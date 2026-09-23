@@ -213,5 +213,45 @@ class UnitTests(unittest.TestCase):
                          [('B', 'changed'), ('C', 'removed'), ('D', 'added')])
 
 
+
+class EngineVersionTests(GateTestCase):
+    """trace.md5 records the engine that drew it; another engine is an upgrade proposed, never applied unseen."""
+
+    def set_version(self, v):
+        with open(os.path.join(self.root, 'arkitect', '__init__.py'), 'w') as fh:
+            fh.write('__version__ = %r\n' % v)
+
+    def digest_line(self):
+        return gate._read(os.path.join(self.root, 'projects', 'demo', 'trace.md5')).split()
+
+    def test_accept_records_the_engine_that_drew_it(self):
+        self.set_version('1.0.0')
+        self.accept_quietly()
+        self.assertEqual(self.digest_line()[1:], ['engine=1.0.0'])
+
+    def test_a_new_engine_that_moves_nothing_is_proposed_not_applied(self):
+        self.set_version('1.0.0')
+        self.accept_quietly()
+        self.commit('pinned')
+        self.set_version('1.1.0')
+        code, rep = self.report()
+        self.assertEqual(code, 0, rep['failures'] + rep['errors'])
+        self.assertEqual(rep['projects']['demo']['engine'],
+                         {'recorded': '1.0.0', 'running': '1.1.0', 'upgrade': 'proposed'})
+        self.assertEqual(self.digest_line()[1:], ['engine=1.0.0'])       # nothing written unseen
+        self.accept_quietly()
+        self.assertEqual(self.digest_line()[1:], ['engine=1.1.0'])
+
+    def test_a_new_engine_that_moves_a_sheet_says_so(self):
+        self.set_version('1.0.0')
+        self.accept_quietly()
+        self.commit('pinned')
+        self.set_version('1.1.0')
+        self.write_build(two='THREE')
+        code, rep = self.report()
+        self.assertEqual(code, 1)
+        self.assertTrue(any('under engine 1.1.0, accepted under 1.0.0' in f for f in rep['failures']),
+                        rep['failures'])
+
 if __name__ == '__main__':
     unittest.main()

@@ -90,6 +90,33 @@ _CITE = re.compile(r"\b(?:RCO|OPC|NEC|IRC|IPC|IMC|IBC|OAC|C\.C\.|UL|ASTM|ASSE|NF
 _DIM = re.compile(r"\d+'-\d+(?:-\d+/\d+)?\"|\b\d+(?:-\d+/\d+)?\"")
 
 
+def engine_version(root=ROOT):
+    """The running engine's version, read from arkitect/__init__.py as TEXT -- not imported: a
+       .pyc is trusted on size and mtime to the second, so '1.0.0' rewritten as '1.1.0' within a
+       second would import as the old one (see _PYCACHE). None for an engine older than versions."""
+    p = os.path.join(root, 'arkitect', '__init__.py')
+    m = re.search(r"^__version__ = ['\"]([^'\"]+)['\"]", _read(p), re.M) if os.path.exists(p) else None
+    return m.group(1) if m else None
+
+
+def read_digest(path):
+    """(digest, engine version) from a trace.md5: `<md5> engine=<version>`, or a bare `<md5>`
+       from before versions were recorded. (None, None) when there is no file. Every reader
+       that only wants the digest takes the first word, so the second is invisible to it."""
+    if not os.path.exists(path):
+        return None, None
+    words = _read(path).split()
+    version = next((w[len('engine='):] for w in words[1:] if w.startswith('engine=')), None)
+    return (words[0] if words else None), version
+
+
+def write_digest(path, digest):
+    """The one writer of trace.md5 (accept): the digest, and the engine that drew it."""
+    v = engine_version()
+    with open(path, 'w') as fh:
+        fh.write(digest + (' engine=%s' % v if v else '') + '\n')
+
+
 def projects(root=WORKSPACE):
     """Every project: a directory under projects/ holding a build.py."""
     base = os.path.join(root, 'projects')
@@ -470,8 +497,9 @@ def gate(base='HEAD', only=None, full=False, expect_unchanged=False, engine_base
             p = report['projects'][s] = res
             here = os.path.join(scratch, s)
             md5_file = os.path.join(WORKSPACE, 'projects', s, 'trace.md5')
-            committed = _read(md5_file).split()[0] if os.path.exists(md5_file) else None
+            committed, recorded = read_digest(md5_file)
             res['trace']['committed'] = committed
+            p['engine'] = {'recorded': recorded, 'running': engine_version()}
             bdir = bases.get(s)
             if res['trace']['ok'] and bdir:
                 p['new_at_base'] = bdir == ABSENT
@@ -504,9 +532,16 @@ def gate(base='HEAD', only=None, full=False, expect_unchanged=False, engine_base
                 report['failures'].append('%s: no trace.md5 committed' % s)
             elif res['trace']['digest'] != committed:
                 names = ', '.join(m['sheet'] for m in p['sheets_moved'] or []) or 'sheets unknown'
+                eng = p['engine']
+                under = (' -- under engine %s, accepted under %s' % (eng['running'], eng['recorded'] or 'none')
+                         if eng['recorded'] != eng['running'] else '')
                 report['failures'].append(
-                    '%s: the drawing moved (%s) and trace.md5 still holds the old digest. '
-                    'Review what moved, then run: python3 arkitect/lib/verify/gate.py accept' % (s, names))
+                    '%s: the drawing moved (%s) and trace.md5 still holds the old digest%s. '
+                    'Review what moved, then run: arkitect gate accept' % (s, names, under))
+            elif p['engine']['recorded'] != p['engine']['running']:
+                # the same drawing under another engine: an upgrade the owner has not yet taken.
+                # Nothing is applied unseen; accept records it.
+                p['engine']['upgrade'] = 'proposed'
             if res['sheet_text']['ran']:
                 with open(os.path.join(here, 'text.json')) as fh:
                     flat = json.load(fh)['text']
@@ -571,6 +606,10 @@ def summary(r):
             same = 'matches' if t['digest'] == t['committed'] else 'DIFFERS from'
             out.append('  %-10s build ok, %d calls, digest %s %s trace.md5'
                        % (s, t['calls'], t['digest'][:8], same))
+            eng = p.get('engine') or {}
+            if eng.get('upgrade') == 'proposed':
+                out.append('             engine %s -> %s: no sheet moved; `arkitect gate accept` takes the upgrade'
+                           % (eng['recorded'] or 'none', eng['running']))
         else:
             out.append('  %-10s build FAILED' % s)
         st = p['sheet_text']
@@ -645,12 +684,18 @@ def accept(base='HEAD', only=None):
                 lines.append('%s: the build failed; nothing written\n%s' % (s, t.get('stderr', '')))
                 continue
             path = os.path.join(WORKSPACE, 'projects', s, 'trace.md5')
-            old = _read(path).split()[0] if os.path.exists(path) else None
+            old, recorded = read_digest(path)
+            running = engine_version()
             if old == t['digest']:
-                lines.append('%s: trace.md5 already matches the drawing (%s)' % (s, old[:8]))
+                if recorded == running:
+                    lines.append('%s: trace.md5 already matches the drawing (%s)' % (s, old[:8]))
+                else:
+                    write_digest(path, t['digest'])
+                    lines.append('%s: the drawing is unchanged; engine %s -> %s recorded'
+                                 % (s, recorded or 'none', running))
+                    moved_names.append('%s none (engine %s -> %s)' % (s, recorded or 'none', running))
                 continue
-            with open(path, 'w') as fh:
-                fh.write(t['digest'] + '\n')
+            write_digest(path, t['digest'])
             names = None
             if bases.get(s):
                 names = [m['sheet'] for m in moved(_base_sheets(bases[s]),
