@@ -101,8 +101,9 @@ class Sheet:
         # address and carries the larger type. src/project.py holds the real one.
         # The block is the same on every sheet, but the column it sits in is not: a
         # smaller sheet gets the same text in whatever TBW it was given. Measure it.
-        # "FRANKLIN COUNTY PARCEL 010-078120-00" is 2.65 in at 9.5 pt and overran a
-        # 2.4 in column the moment an 11 x 17 existed, with nothing to say so.
+        # A county parcel line ("FRANKLIN COUNTY PARCEL" and its number) is 2.65 in at
+        # 9.5 pt and overran a 2.4 in column the moment an 11 x 17 existed, with nothing
+        # to say so.
         avail = TBW-0.44*inch
         def fit(t,fnt,sz):
             assert pdfmetrics.stringWidth(t,fnt,sz)<=avail, (
