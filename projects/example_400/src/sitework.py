@@ -23,7 +23,7 @@ From Oak to the alley: the 25'-0" front yard, Building 1 (the house), the courty
 Building 2 (the two stacked ADUs) and an 18'-0" parking pad against the alley. The
 depth left after the three fixed ones is the courtyard's, so it is derived, never typed.
 """
-from arkitect.codes.columbus import zoning as ZONING
+from arkitect.codes.ohio.columbus import zoning as ZONING
 from arkitect.lib.model.regrid import EXT_STUD
 from arkitect.lib.units import IN, fmt
 from src import fsd, levels

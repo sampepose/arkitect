@@ -22,7 +22,7 @@ governs and which G-001 and C-101 both tabulate from here.
 """
 from arkitect.lib.model.regrid import EXT_STUD
 from arkitect.lib.units import IN, fmt, inches
-from arkitect.codes.columbus import zoning as ZONING
+from arkitect.codes.ohio.columbus import zoning as ZONING
 from src import envelope, fsd, levels
 from arkitect.codes.ohio.rco import fire_separation as rco_fsd
 from src import roof as ROOF

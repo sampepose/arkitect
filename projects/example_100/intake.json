@@ -4,7 +4,7 @@
  "city_line": "COLUMBUS, OHIO 43200",
  "parcel": "TBD",
  "street": "EXAMPLE STREET",
- "jurisdiction": "columbus",
+ "jurisdiction": "ohio/columbus",
  "district": "R-4",
  "lot": {
   "width": 35.0,

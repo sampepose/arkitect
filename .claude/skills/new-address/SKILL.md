@@ -59,7 +59,7 @@ arkitect gate render --project <slug> --sheets G-001,C-102
 
 The gate must pass. Read both PNGs the render prints — a sheet can pass every assert and
 still read badly. A fault in them is a fault in `arkitect/codes/zoning_sheets.py`, or in the jurisdiction's
-own words it prints (`arkitect/codes/<name>/__init__.py`), both shared: fix it there and prove every existing project unmoved with
+own words it prints (`arkitect/codes/<state>/<city>/__init__.py`), both shared: fix it there and prove every existing project unmoved with
 `arkitect gate --base main --expect-unchanged` (every project by default; `--project <slug>` names one).
 
 ## 4. Tailor the feature list

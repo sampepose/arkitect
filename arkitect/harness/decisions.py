@@ -236,16 +236,35 @@ def pending_text(root=ROOT, project=None):
     return '\n'.join(out)
 
 
+# Where a path a record names lives now, when the engine has moved it since: the code went
+# under arkitect/ (phase 3), Columbus under its state (arkitect/codes/ohio/columbus) and its
+# legends to the state (arkitect/codes/ohio/legends.py). A record keeps the path it was written
+# with; these say where to look.
+MOVES = (
+    ('codes/columbus/legends.py', 'codes/ohio/legends.py'),
+    ('codes/columbus', 'codes/ohio/columbus'),
+)
+
+
+def current(path):
+    """`path` as it is spelled now: under arkitect/, and past every move in MOVES."""
+    p = os.path.normpath(path).rstrip(os.sep)
+    p = p[len('arkitect' + os.sep):] if p.startswith('arkitect' + os.sep) else p
+    for old, new in MOVES:
+        if p == old or p.startswith(old + os.sep):
+            p = new + p[len(old):]
+            break
+    return p
+
+
 def about(path, root=ROOT):
     """The records whose refs name this path, or a file under it, or a directory holding it:
        what has been decided about the thing you are about to change."""
-    # records written before the engine's code moved under arkitect/ say lib/, codes/, harness/
-    bare = lambda p: p[len('arkitect' + os.sep):] if p.startswith('arkitect' + os.sep) else p
-    path = bare(os.path.normpath(path).rstrip(os.sep))
+    path = current(path)
     out = []
     for f, _b in all_decisions(root):
         for r in f.get('refs', []):
-            ref = bare(os.path.normpath(r.partition(' @')[0].strip()).rstrip(os.sep))
+            ref = current(r.partition(' @')[0].strip())
             if ref == path or ref.startswith(path + os.sep) or path.startswith(ref + os.sep):
                 out.append(f)
                 break

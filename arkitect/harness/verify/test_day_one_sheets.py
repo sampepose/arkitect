@@ -7,8 +7,8 @@ import unittest
 
 from reportlab.pdfgen import canvas as _rl
 
-from arkitect.codes import columbus as J
-from arkitect.codes.columbus import fit as F
+from arkitect.codes.ohio import columbus as J
+from arkitect.codes.ohio.columbus import fit as F
 from arkitect.codes.zoning_sheets import cover_sheet, zoning_rows, zoning_site_plan
 from arkitect.harness import intake as I
 from arkitect.harness.verify.fixtures import example

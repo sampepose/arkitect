@@ -37,7 +37,7 @@ import math
 from src import fsd, levels
 from arkitect.lib.units import IN, fmt
 from arkitect.lib.model.records import PlanLevel
-from arkitect.codes.columbus.legends import CLEARANCE_CAPTIONS
+from arkitect.codes.ohio.legends import CLEARANCE_CAPTIONS
 from src.finishes import BOARD     # the finish on a stud face, for the clear figures
 from src.openings import WIN_HEAD, WIN_SF
 from arkitect.lib.symbols import LOOSE

@@ -24,7 +24,7 @@ from arkitect.harness import jurisdiction as tool
 class ContractTests(unittest.TestCase):
 
     def test_there_is_a_reference_jurisdiction(self):
-        self.assertIn('columbus', jurisdiction.available())
+        self.assertIn('ohio/columbus', jurisdiction.available())
 
     def test_every_jurisdiction_meets_the_contract(self):
         for name in jurisdiction.available():
@@ -79,13 +79,13 @@ class SecondJurisdictionTests(unittest.TestCase):
                               timeout=600)
 
     def test_a_second_city_from_skeleton_to_a_project_that_passes(self):
-        r = self.run_('jurisdiction', 'new', 'dayton', '--name', 'Dayton, Ohio', '--state', 'arkitect.codes.ohio')
+        r = self.run_('jurisdiction', 'new', 'ohio/dayton', '--name', 'Dayton, Ohio')
         self.assertEqual(r.returncode, 0, r.stderr)
-        r = self.run_('jurisdiction', 'check', 'dayton')
+        r = self.run_('jurisdiction', 'check', 'ohio/dayton')
         self.assertEqual(r.returncode, 1, r.stdout)                     # a skeleton is not verified
         self.assertIn('has not been verified', r.stdout)
 
-        init = os.path.join(self.engine, 'arkitect', 'codes', 'dayton', '__init__.py')
+        init = os.path.join(self.engine, 'arkitect', 'codes', 'ohio', 'dayton', '__init__.py')
         with open(init) as fh:
             text = fh.read()
         text = (text.replace('VERIFIED_ON = None', "VERIFIED_ON = '2026-09-23'")
@@ -95,7 +95,7 @@ class SecondJurisdictionTests(unittest.TestCase):
                              "REVIEWER = 'City of Dayton residential plan reviewer'"))
         with open(init, 'w') as fh:
             fh.write(text)
-        r = self.run_('jurisdiction', 'check', 'dayton')
+        r = self.run_('jurisdiction', 'check', 'ohio/dayton')
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
         ws = os.path.join(self.t, 'ws')
@@ -104,7 +104,7 @@ class SecondJurisdictionTests(unittest.TestCase):
         with open(os.path.join(HERE, 'projects', 'example_100', 'intake.json')) as fh:
             d = json.load(fh)
         d.update(slug='maple_9', address='9 MAPLE ST', city_line='DAYTON, OHIO 45400',
-                 jurisdiction='dayton', relief={}, owner=['MAPLE OWNER LLC', 'DAYTON, OH 45400'])
+                 jurisdiction='ohio/dayton', relief={}, owner=['MAPLE OWNER LLC', 'DAYTON, OH 45400'])
         with open(os.path.join(ws, 'projects', 'maple_9', 'intake.json'), 'w') as fh:
             json.dump(d, fh, indent=1)
         subprocess.run(['git', 'init', '-q'], cwd=ws, check=True)
@@ -117,7 +117,7 @@ class SecondJurisdictionTests(unittest.TestCase):
 
         with open(os.path.join(ws, 'projects', 'maple_9', 'build.py')) as fh:
             build = fh.read()
-        self.assertIn('from arkitect.codes.dayton import fit', build)
+        self.assertIn('from arkitect.codes.ohio.dayton import fit', build)
         self.assertNotIn('columbus', build)
         code = ('import sys; sys.path[:0] = [%r, %r]; from src import project; print(project.TITLEBLOCK)'
                 % (os.path.join(ws, 'projects', 'maple_9'), ws))

@@ -21,7 +21,7 @@ COORDINATES, in feet, as both projects' sitework.py take them: x across the lot 
 LEFT side lot line looking from the street, y from the front lot line toward the rear.
 A corner lot names which side the side street is on.
 """
-from arkitect.codes.columbus import zoning as Z
+from arkitect.codes.ohio.columbus import zoning as Z
 from arkitect.codes.ohio.rco import fire_separation as rco_fsd
 
 # the shape every jurisdiction's fit answers in, and the lot it reads (arkitect/codes/massing.py)

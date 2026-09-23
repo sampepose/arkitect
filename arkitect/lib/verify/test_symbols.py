@@ -114,7 +114,7 @@ class KnownKindTests(unittest.TestCase):
 
 class LegendCoverageTests(unittest.TestCase):
     """arkitect/lib/symbols/electrical.py's LAYER (every device kind E-101/E-102 can draw) and
-       arkitect/codes/columbus/legends.py's DEVICE_KINDS (the legend row for each) used to be one
+       arkitect/codes/ohio/legends.py's DEVICE_KINDS (the legend row for each) used to be one
        dict, so a kind added to one was necessarily in the other. Splitting the
        description out to arkitect/codes/ (this task) removed that guarantee: nothing now stops
        a kind from being added to one side and forgotten on the other. A kind drawn but
@@ -125,7 +125,7 @@ class LegendCoverageTests(unittest.TestCase):
 
     def test_every_drawable_device_kind_has_a_legend_description(self):
         from arkitect.lib.symbols import electrical as es
-        from arkitect.codes.columbus.legends import DEVICE_KINDS
+        from arkitect.codes.ohio.legends import DEVICE_KINDS
         drawable = set(es.LAYER)
         described = set(DEVICE_KINDS)
         self.assertEqual(drawable - described, set(),
@@ -137,7 +137,7 @@ class LegendCoverageTests(unittest.TestCase):
 
 
 class ClearanceCoverageTests(unittest.TestCase):
-    """The same split happened to the clearance pair: `arkitect/codes/columbus/legends.py`'s
+    """The same split happened to the clearance pair: `arkitect/codes/ohio/legends.py`'s
        CLEARANCE_CAPTIONS carries the two lines of text a ClearSpace prints (the code
        citation is Columbus's, not the engine's), while the registry still decides which
        kinds draw as a ClearSpace at all. A kind added to one and not the other is as
@@ -149,7 +149,7 @@ class ClearanceCoverageTests(unittest.TestCase):
 
     def test_every_drawn_clearance_kind_has_a_caption_pair(self):
         from arkitect.lib.symbols.base import ClearSpace
-        from arkitect.codes.columbus.legends import CLEARANCE_CAPTIONS
+        from arkitect.codes.ohio.legends import CLEARANCE_CAPTIONS
         drawable = {kind for kind, cls in symbols.REGISTRY.items()
                     if issubclass(cls, ClearSpace)}
         described = set(CLEARANCE_CAPTIONS)

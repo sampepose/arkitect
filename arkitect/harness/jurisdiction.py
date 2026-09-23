@@ -1,10 +1,11 @@
 """Jurisdictions: which are encoded, whether one meets the contract, and a skeleton for a new one.
 
     arkitect jurisdiction list                          # every one, with its state and verification
-    arkitect jurisdiction check columbus                # the contract, and its fit on a sample lot
-    arkitect jurisdiction new dayton --name "Dayton, Ohio" --state arkitect.codes.ohio
+    arkitect jurisdiction check ohio/columbus           # the contract, and its fit on a sample lot
+    arkitect jurisdiction new ohio/dayton --name "Dayton, Ohio"
 
-`new` writes arkitect/codes/<name>/ with every name the contract asks for (arkitect/codes/
+A jurisdiction is named state/city and lives in its state's package. `new` writes
+arkitect/codes/<state>/<city>/ with every name the contract asks for (arkitect/codes/
 jurisdiction.py, docs/jurisdictions.md) and a fit whose every rule is NOT CHECKED -- and with
 VERIFIED_ON empty, so no intake may name it until someone has encoded its rules, checked them
 against a real permit set and recorded that. A skeleton is where the research goes, never a
@@ -61,7 +62,7 @@ def titleblock(d):
 FIT = '''"""Does a program fit a {name} lot? TO BE ENCODED.
 
 Every rule below is NOT CHECKED until its figure and its section are encoded from the zoning
-code's own text. arkitect/codes/columbus/fit.py is the worked example: a figure beside the line
+code's own text. arkitect/codes/ohio/columbus/fit.py is the worked example: a figure beside the line
 that sources it, SECTION UNVERIFIED where the text has not been obtained, RELIEF STATED where
 the project names a basis.
 """
@@ -122,12 +123,12 @@ def check(name):
     import importlib
     from arkitect.codes.massing import Massing, Row
     try:
-        module = importlib.import_module('arkitect.codes.' + name)
-    except ImportError as exc:
+        module = importlib.import_module(jurisdiction.module_name(name))
+    except (ImportError, ValueError) as exc:
         return ['arkitect/codes/%s does not import: %s' % (name, exc)], []
     bad = jurisdiction.problems(module)
     try:
-        fit = importlib.import_module('arkitect.codes.%s.fit' % name)
+        fit = importlib.import_module(module.__name__ + '.fit')
         rows = fit.fit(Massing.from_intake(_sample(name)))
     except Exception as exc:
         return bad + ['its fit fails on a sample lot: %s: %s' % (exc.__class__.__name__, exc)], []
@@ -144,11 +145,16 @@ def check(name):
     return bad, rows
 
 
-def new(name, place, state, root=None):
-    """Write the skeleton; the paths written."""
-    if not name.isidentifier() or name != name.lower():
-        raise ValueError('a jurisdiction is a lowercase Python identifier: %r' % name)
-    d = os.path.join(root or workspace.ENGINE, 'arkitect', 'codes', name)
+def new(name, place, root=None):
+    """Write the skeleton of 'state/city' inside its state's package; the paths written."""
+    module = jurisdiction.module_name(name)               # ValueError for a bad name
+    state_dir, city = name.split('/')
+    base = os.path.join(root or workspace.ENGINE, 'arkitect', 'codes')
+    if not os.path.exists(os.path.join(base, state_dir, '__init__.py')):
+        raise ValueError('arkitect/codes/%s is not a state package: a state comes first '
+                         '(docs/jurisdictions.md, "Adding a state")' % state_dir)
+    state = module.rsplit('.', 1)[0]
+    d = os.path.join(base, state_dir, city)
     if os.path.exists(d):
         raise ValueError('arkitect/codes/%s exists' % name)
     city = place.split(',')[0].strip().upper()
@@ -169,14 +175,14 @@ def main(argv):
     if argv[0] == 'list':
         import importlib
         for name in jurisdiction.available():
-            m = importlib.import_module('arkitect.codes.' + name)
-            print('%-12s %-24s %-22s %s' % (name, getattr(m, 'NAME', '?'), getattr(m, 'STATE', '?'),
+            m = importlib.import_module(jurisdiction.module_name(name))
+            print('%-16s %-24s %-22s %s' % (name, getattr(m, 'NAME', '?'), getattr(m, 'STATE', '?'),
                                             'verified %s' % m.VERIFIED_ON if getattr(m, 'VERIFIED_ON', None)
                                             else 'NOT VERIFIED'))
         return 0
     if argv[0] == 'check':
         if len(argv) < 2:
-            print('which jurisdiction? arkitect jurisdiction check <name>', file=sys.stderr)
+            print('which jurisdiction? arkitect jurisdiction check <state>/<city>', file=sys.stderr)
             return 2
         bad, rows = check(argv[1])
         for r in rows:
@@ -187,12 +193,11 @@ def main(argv):
         print('%s meets the contract (docs/jurisdictions.md)' % argv[1])
         return 0
     opt = lambda f: argv[argv.index(f)+1] if f in argv else None
-    if len(argv) < 2 or not opt('--name') or not opt('--state'):
-        print('arkitect jurisdiction new <name> --name "City, State" --state arkitect.codes.<state>',
-              file=sys.stderr)
+    if len(argv) < 2 or not opt('--name'):
+        print('arkitect jurisdiction new <state>/<city> --name "City, State"', file=sys.stderr)
         return 2
     try:
-        for p in new(argv[1], opt('--name'), opt('--state')):
+        for p in new(argv[1], opt('--name')):
             print('wrote', p)
     except ValueError as exc:
         print(exc, file=sys.stderr)

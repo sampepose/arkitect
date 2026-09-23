@@ -1,9 +1,9 @@
-"""arkitect/codes/columbus/fit.py on synthetic lots. Both projects hold it to their own zoning
+"""arkitect/codes/ohio/columbus/fit.py on synthetic lots. Both projects hold it to their own zoning
 tables (each project's verify/test_zoning_fit.py); these pin how it behaves at the edges
 a new address will find first."""
 import unittest
 
-from arkitect.codes.columbus import fit as F
+from arkitect.codes.ohio.columbus import fit as F
 
 
 def lot(**kw):

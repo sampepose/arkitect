@@ -1,4 +1,4 @@
-"""400 Oak against arkitect/codes/columbus/fit.py, the shared zoning check a new address runs.
+"""400 Oak against arkitect/codes/ohio/columbus/fit.py, the shared zoning check a new address runs.
 
 The massing is READ from src/sitework.py. Oak requests no variance; its one rule not met
 is lot width, which it states as the lot split, and the check must find exactly that and
@@ -13,7 +13,7 @@ ROWS = []
 
 def setUpModule():
     enter()
-    from arkitect.codes.columbus.fit import Massing, fit
+    from arkitect.codes.ohio.columbus.fit import Massing, fit
     from src import sitework as S
     b1, b2 = S.SITE_BLDG
     x0, y0, x1, y1 = S.STAIR
@@ -40,7 +40,7 @@ def tearDownModule():
 class ZoningFitTests(unittest.TestCase):
 
     def test_lot_width_is_the_one_rule_not_met_and_the_lot_split_is_its_basis(self):
-        from arkitect.codes.columbus import fit
+        from arkitect.codes.ohio.columbus import fit
         self.assertEqual([r.rule for r in ROWS if r.ok is False], ['lot_width'])
         self.assertEqual(fit.failing(ROWS), [])
 

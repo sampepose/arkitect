@@ -43,7 +43,7 @@ def _value(r):
 def zoning_rows(rows, jur):
     """(label, value) for a table: the rule with its section, and what the massing gives.
        `jur` is the jurisdiction package; its zoning code's prefix is left off each section."""
-    unverified = jurisdiction.fit(jur.__name__.rsplit('.', 1)[1]).CITE.get('density')
+    unverified = jurisdiction.fit_of(jur).CITE.get('density')
     out = []
     for r in rows:
         cite = '' if r.citation == unverified else ', ' + r.citation.replace(jur.ZONING_CODE + ' ', '')

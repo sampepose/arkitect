@@ -1,4 +1,4 @@
-"""300 S Elm against arkitect/codes/columbus/fit.py, the shared zoning check a new address runs.
+"""300 S Elm against arkitect/codes/ohio/columbus/fit.py, the shared zoning check a new address runs.
 
 The massing is READ from src/sitework.py, never typed, and the check must find exactly
 the five rules this project asks the Board to vary -- section for section, the list
@@ -19,7 +19,7 @@ if HERE not in sys.path:
 
 
 def massing():
-    from arkitect.codes.columbus.fit import Massing
+    from arkitect.codes.ohio.columbus.fit import Massing
     from src import sitework as S
     from src.building1 import U3_LAND_LO, U3_STOOP_HI
     from src.building2 import U5_LAND_D, U5_LAND_X1, U5_STOOP_X0
@@ -50,7 +50,7 @@ class ZoningFitTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        from arkitect.codes.columbus import fit
+        from arkitect.codes.ohio.columbus import fit
         cls.fit = fit
         cls.rows = fit.fit(massing())
         cls.by = {r.rule: r for r in cls.rows}

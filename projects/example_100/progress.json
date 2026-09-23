@@ -8,7 +8,7 @@
    "title": "COVER, CODE DATA, GENERAL NOTES",
    "status": "drawn",
    "guards": [
-    "arkitect.codes.columbus.fit"
+    "arkitect.codes.ohio.columbus.fit"
    ],
    "notes": ""
   },
@@ -17,7 +17,7 @@
    "title": "SITE PLAN",
    "status": "pending",
    "guards": [
-    "arkitect.codes.columbus.fit",
+    "arkitect.codes.ohio.columbus.fit",
     "arkitect.codes.ohio.opc_separation"
    ],
    "notes": ""
@@ -228,7 +228,7 @@
    "title": "ZONING SITE PLAN \u2014 11 x 17, ISSUED SEPARATELY",
    "status": "drawn",
    "guards": [
-    "arkitect.codes.columbus.fit"
+    "arkitect.codes.ohio.columbus.fit"
    ],
    "notes": ""
   }

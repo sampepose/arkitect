@@ -1,4 +1,4 @@
-"""300 reads arkitect/codes/columbus/zoning.py's constants rather than its own copies.
+"""300 reads arkitect/codes/ohio/columbus/zoning.py's constants rather than its own copies.
 
 Moved here from arkitect/codes/verify/test_zoning_rules.py in phase 1 of the public release: it is a
 claim about this project, and the engine's tests may not lean on a project the public engine
@@ -18,7 +18,7 @@ if HERE not in sys.path:
 class ConsumerTests(unittest.TestCase):
 
     def test_300_reads_these_rather_than_its_own_copies(self):
-        from arkitect.codes.columbus import zoning as Z
+        from arkitect.codes.ohio.columbus import zoning as Z
         from src import sitework
         self.assertIs(sitework.ADU_PCT_MAX, Z.ADU_PCT_MAX)
         self.assertIs(sitework.COVERAGE_PERMITTED, Z.COVERAGE_MAX)

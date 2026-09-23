@@ -38,7 +38,7 @@ from src.finishes import BOARD as GYP     # the finish on a stud face, as Buildi
 from arkitect.codes.ohio.rco import fire_separation as rco_fsd
 from arkitect.lib.units import IN, fmt
 from arkitect.lib.model.records import PlanLevel
-from arkitect.codes.columbus.legends import CLEARANCE_CAPTIONS
+from arkitect.codes.ohio.legends import CLEARANCE_CAPTIONS
 from arkitect.lib.model.regrid import EXT_STUD, PARTITION, Zone, Plan
 from arkitect.lib.model.dimensions import strings, wall_faces
 from src.stairs import EXT_STAIR

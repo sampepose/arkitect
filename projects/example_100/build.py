@@ -11,7 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(HERE))            # the repository
 for _p in (ROOT, HERE):                                  # arkitect/lib/ and arkitect/codes/, then src/
     if _p not in sys.path:
         sys.path.insert(0, _p)
-from arkitect.codes.columbus import fit
+from arkitect.codes.ohio.columbus import fit
 from arkitect.codes.zoning_sheets import cover_sheet, zoning_site_plan
 from arkitect.lib.buildkit import documents
 from src import project, sitework

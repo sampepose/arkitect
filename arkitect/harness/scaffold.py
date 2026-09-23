@@ -267,7 +267,7 @@ def scaffold(intake_path, root=ROOT, accept=True):
                          % slug)
     date = datetime.date.today().isoformat()
     fmt = dict(address=d['address'], slug=slug, date=date, stem=_stem(d), street=d['street'],
-               jur=d['jurisdiction'],
+               jur=d['jurisdiction'].replace('/', '.'),
                cls=''.join(w.capitalize() for w in slug.split('_')) + 'Tests')
     files = {
         '__init__.py': '"""%s."""\n' % d['address'],

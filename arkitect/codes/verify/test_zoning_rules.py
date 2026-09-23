@@ -12,7 +12,7 @@ HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.a
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-from arkitect.codes.columbus import zoning as Z
+from arkitect.codes.ohio.columbus import zoning as Z
 
 
 class RuleTests(unittest.TestCase):

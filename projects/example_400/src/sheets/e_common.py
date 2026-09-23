@@ -5,7 +5,7 @@ from arkitect.lib.draw.page import LAY, GREY
 from arkitect.lib.draw.text import wrap_notes
 from arkitect.lib.symbols import electrical as es
 from arkitect.lib.units import inches
-from arkitect.codes.columbus.legends import DEVICE_KINDS as _KINDS
+from arkitect.codes.ohio.legends import DEVICE_KINDS as _KINDS
 from arkitect.lib.draw.kit import _fits, title
 # Columbus's legend text, with the one line that cited 300's M-101 pointed at this set's
 # own note instead.

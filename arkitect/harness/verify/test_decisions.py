@@ -25,10 +25,9 @@ def _ref_exists(ref):
         return subprocess.run(['git', 'cat-file', '-e', '%s:%s' % (rev.strip(), path)],
                               cwd=ROOT, capture_output=True).returncode == 0
     path = path.split('::')[0]
-    # a record written before the engine's code moved under arkitect/ names lib/..., codes/...
-    # or harness/...: the same file, one level down
+    # a record keeps the path it was written with; D.current() says where it lives now
     return any(os.path.exists(os.path.join(t, p)) for t in TREES
-               for p in (path, os.path.join('arkitect', path)))
+               for p in (path, os.path.join('arkitect', D.current(path))))
 
 
 def _cited():

@@ -28,7 +28,7 @@ What is NOT here: the stair drawing (A-101) and the framing, the working spaces,
 bath fans and the plumbing, none of which is modelled for this building yet.
 """
 from arkitect.codes.clearances import WC_SIDE
-from arkitect.codes.columbus.legends import CLEARANCE_CAPTIONS
+from arkitect.codes.ohio.legends import CLEARANCE_CAPTIONS
 from arkitect.lib.model import geom
 from arkitect.lib.model.dimensions import strings, wall_faces
 from arkitect.lib.model.records import PlanLevel

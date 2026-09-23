@@ -102,7 +102,7 @@ class ScaffoldTests(unittest.TestCase):
 
     def test_set_accepts_a_proved_claim_and_refuses_an_unproved_one(self):
         r = self.run_('-m', 'arkitect.harness.progress', 'set', 'example_100', 'G-001', 'passes')
-        self.assertEqual(r.returncode, 0, r.stderr)                 # arkitect.codes.columbus.fit ran
+        self.assertEqual(r.returncode, 0, r.stderr)                 # arkitect.codes.ohio.columbus.fit ran
         r = self.run_('-m', 'arkitect.harness.progress', 'set', 'example_100', 'A-101', 'drawn')
         self.assertEqual(r.returncode, 1)
         self.assertIn('does not bind', r.stderr)

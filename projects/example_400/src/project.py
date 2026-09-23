@@ -5,7 +5,7 @@ title block is handed in, and the output names come from here.
 """
 
 ADDRESS = "400 OAK AVE"
-JURISDICTION = "columbus"      # arkitect/codes/columbus: its zoning, title block and reviewer
+JURISDICTION = "ohio/columbus"      # arkitect/codes/ohio/columbus: its zoning, title block and reviewer
 
 TITLEBLOCK = [
     (None, [ADDRESS,

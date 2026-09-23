@@ -5,7 +5,7 @@ from arkitect.lib.draw.page import LAY, GREY
 from arkitect.lib.draw.text import wrap_notes
 from arkitect.lib.symbols import electrical as es
 from arkitect.lib.units import inches
-from arkitect.codes.columbus.legends import DEVICE_KINDS
+from arkitect.codes.ohio.legends import DEVICE_KINDS
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics

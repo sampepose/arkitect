@@ -221,7 +221,7 @@ def jurisdiction_of(slug, root=ROOT):
     p = os.path.join(root, 'projects', slug, 'src', 'project.py')
     if os.path.exists(p):
         with open(p) as fh:
-            m = re.search(r'^JURISDICTION = ["\']([a-z_]+)["\']', fh.read(), re.M)
+            m = re.search(r'^JURISDICTION = ["\']([a-z_]+/[a-z_]+)["\']', fh.read(), re.M)
         return m.group(1) if m else None
     return None
 

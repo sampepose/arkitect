@@ -9,7 +9,7 @@ EXAMPLE = {
     'city_line': 'COLUMBUS, OHIO 43200',
     'parcel': 'TBD',
     'street': 'EXAMPLE STREET',
-    'jurisdiction': 'columbus',
+    'jurisdiction': 'ohio/columbus',
     'district': 'R-4',
     'lot': {'width': 35.0, 'depth': 120.0, 'corner': False, 'alley': True, 'alley_width': 20.0,
             'front_line': 20.0, 'survey': False},

@@ -7,8 +7,8 @@ a **state** package holding the building, plumbing and electrical codes the stat
 Columbus does.
 
     arkitect jurisdiction list              # what is encoded, and when each was verified
-    arkitect jurisdiction check <name>      # does it meet the contract?
-    arkitect jurisdiction new <name> --name "City, State" --state arkitect.codes.<state>
+    arkitect jurisdiction check ohio/columbus        # does it meet the contract?
+    arkitect jurisdiction new <state>/<city> --name "City, State"
 
 **Adding a city is code research, not configuration.** The engine will not let an intake name a
 jurisdiction until someone has encoded its rules from the code's own text, checked them
@@ -17,7 +17,7 @@ against a real permit set, and recorded when and against what (`VERIFIED_ON`,
 
 ## How a jurisdiction is chosen
 
-An address's `intake.json` names it -- `"jurisdiction": "columbus"` -- and everything after
+An address's `intake.json` names it -- `"jurisdiction": "ohio/columbus"` -- and everything after
 reads it from there (`arkitect/codes/jurisdiction.py`):
 
 | what                         | how it uses the jurisdiction |
@@ -29,11 +29,13 @@ reads it from there (`arkitect/codes/jurisdiction.py`):
 | a plan review                | the reviewer reviews as that place's reviewer would |
 
 A whole set that has no intake names its jurisdiction in `src/project.py`:
-`JURISDICTION = "columbus"`.
+`JURISDICTION = "ohio/columbus"`.
 
 ## The contract
 
-A jurisdiction is a package `arkitect/codes/<name>/`. `arkitect jurisdiction check` holds it to
+A jurisdiction is a city package inside its state's, `arkitect/codes/<state>/<city>/`, and is
+named by that path: `"ohio/columbus"` -- a city's name alone is not unique (there is a
+Columbus in Georgia). `arkitect jurisdiction check` holds it to
 this, and so does the shared test suite (`arkitect/codes/verify/test_jurisdictions.py`), which
 runs for every jurisdiction encoded.
 
@@ -43,7 +45,7 @@ runs for every jurisdiction encoded.
 |--------------------|-------------------------------------------------------|------------|
 | `NAME`             | `'Columbus, Ohio'`                                    | the place, as a sentence says it |
 | `CITY`             | `'COLUMBUS'`                                          | as its zoning line prints it: "ZONING: COLUMBUS R-4" |
-| `STATE`            | `'arkitect.codes.ohio'`                               | the state package it builds on |
+| `STATE`            | `'arkitect.codes.ohio'`                               | the state package it builds on -- the one it sits in |
 | `CODES`            | the RCO as amended 2024, the OPC, NEC 2023, C.C. Title 33 | what it encodes, editions included; G-001 lists them |
 | `VERIFIED_ON`      | `'2026-09-17'`                                        | when its rules were checked against a real permit set; **empty refuses the jurisdiction** |
 | `VERIFIED_AGAINST` | `'a Columbus permit set, 27 sheets'`                  | what they were checked against |
@@ -97,10 +99,10 @@ guards cannot run, and `arkitect progress` says so.
 
 1. **Write the skeleton**:
 
-       arkitect jurisdiction new dayton --name "Dayton, Ohio" --state arkitect.codes.ohio
+       arkitect jurisdiction new ohio/dayton --name "Dayton, Ohio"
 
-   It writes `arkitect/codes/dayton/__init__.py` and `fit.py` with every name above, every
-   zoning rule `NOT CHECKED`, and `VERIFIED_ON = None`. `arkitect jurisdiction check dayton`
+   It writes `arkitect/codes/ohio/dayton/__init__.py` and `fit.py` with every name above, every
+   zoning rule `NOT CHECKED`, and `VERIFIED_ON = None`. `arkitect jurisdiction check ohio/dayton`
    says it has not been verified; no intake may name it.
 2. **Encode the zoning** in `fit.py`, rule by rule, from the zoning code's own text: each figure
    with its section beside it, `SECTION UNVERIFIED` where the text has not been obtained. Pin
@@ -109,7 +111,7 @@ guards cannot run, and `arkitect progress` says so.
    `QUESTION_TEXT`.
 4. **Verify it** against a real permit set from that city -- its zoning table, its title block,
    what its reviewers asked for -- and record it: `VERIFIED_ON`, `VERIFIED_AGAINST`.
-5. `arkitect jurisdiction check dayton` passes; `arkitect gate --full` passes, and the shared
+5. `arkitect jurisdiction check ohio/dayton` passes; `arkitect gate --full` passes, and the shared
    tests have run it through intake and scaffold.
 
 ## Adding a state
