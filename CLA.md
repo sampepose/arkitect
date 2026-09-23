@@ -1,8 +1,6 @@
 # arkitect Individual Contributor License Agreement
 
-> **DRAFT for the maintainer's review. This is not legal advice, and it has not been reviewed
-> by a lawyer.** Until the maintainer adopts a final text, no contribution is accepted under
-> it.
+> Adopted by the Maintainer, 2026-09-23. This is not legal advice.
 >
 > Adapted from the Apache Software Foundation's Individual Contributor License Agreement
 > V2.2 (https://www.apache.org/licenses/icla.pdf). The structure and much of the wording of
@@ -18,8 +16,7 @@ as the Maintainer and the Project's users. It does not change your rights to use
 Contributions for any other purpose.
 
 **The Maintainer** is the copyright holder of the Project named in the `Required Notice:` line
-of the Project's NOTICE and LICENSE files (at the time of this draft:
-COPYRIGHT HOLDER TO BE NAMED), and that holder's successors and assigns.
+of the Project's NOTICE and LICENSE files (Antron), and that holder's successors and assigns.
 
 You accept and agree to the following terms and conditions for Your Contributions, present and
 future, that You submit to the Maintainer. Except for the license granted herein to the
