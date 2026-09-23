@@ -20,6 +20,21 @@ def _git(root, *args):
     return r.stdout.strip() if r.returncode == 0 else ''
 
 
+def shared_lines(root):
+    """In a projects repository, the engine's skills and agents linked if this checkout has
+       none (a fresh clone or worktree): they are local links, never committed."""
+    if os.path.isdir(os.path.join(root, 'lib')) or not os.path.isdir(os.path.join(root, 'projects')):
+        return []                               # the engine itself, or not a workspace
+    try:
+        sys.path.insert(0, hooklib.ENGINE)
+        from harness import hooks
+        made = hooks.link_shared(root)
+    except Exception as exc:                    # a hook that fails to start helps nobody
+        return ['Could not link the engine\'s skills and agents: %s' % exc]
+    return (['Linked the engine\'s %s into .claude/; restart the session to load them.'
+             % ' and '.join(os.path.basename(m) for m in made)] if made else [])
+
+
 def progress_lines(root):
     """One line per project with a feature list: the handoff from the last session. Read
        from progress.json alone -- no build -- so a session starts in a second; the gate is
@@ -99,6 +114,7 @@ def main():
         if ahead and ahead != '0':
             lines.append('main has %s commit(s) this branch does not: re-measure before trusting '
                          'an earlier figure.' % ahead)
+    lines += shared_lines(root)
     lines += progress_lines(root)
     lines += decision_lines(root)
     lines += review_lines(root)

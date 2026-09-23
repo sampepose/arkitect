@@ -10,9 +10,10 @@ here (guard_bash.py, guard_write.py), and Stop runs the gate when a turn ends (s
 with the policy harness/config.py's [hooks] table sets. Nothing is wired until a person runs
 `install`, because a Stop hook that blocks is a working rule its user should choose.
 
-In a projects repository outside the engine (lib/workspace.py) `install` also links
-.claude/skills and .claude/agents to the engine's, so a session opened there has the
-workflows and their reviewers.
+In a projects repository outside the engine (lib/workspace.py) each hook runs by name
+through the linked engine (`python3 -m harness.hook stop_gate`), so the settings name no
+path and can be committed; `install` also links .claude/skills and .claude/agents to the
+engine's, locally, so a session opened there has the workflows and their reviewers.
 
 `install` merges: every key of settings.json other than a hook this template owns is left as
 it was, and a second install changes nothing. A hook is recognised as the template's by its
@@ -38,11 +39,14 @@ def _read(path):
         return json.load(fh)
 
 
+RUNNER = 'python3 -m harness.hook '
+
+
 def template(root=ROOT):
     """The engine's wiring, for `root`. Inside the engine each command finds its script in the
        checkout it fires in, so a worktree runs its own hooks. A projects repository outside
-       the engine gets the engine's scripts by absolute path, and a command whose script is
-       gone says so and fails instead of doing nothing."""
+       the engine runs each by name through the linked engine (harness/hook.py), so the
+       settings it commits name no path; an engine that is not linked fails loudly."""
     hooks = _read(os.path.join(ENGINE, TEMPLATE))['hooks']
     if not workspace.separate(root):
         return hooks
@@ -51,14 +55,13 @@ def template(root=ROOT):
             for h in g['hooks']:
                 cmd = h['command']
                 i, j = cmd.index(MARK), cmd.index('.py', cmd.index(MARK))
-                script = os.path.join(ENGINE, '.claude', 'hooks', cmd[i+len(MARK):j+3])
-                h['command'] = ('f="%s"; if [ -f "$f" ]; then exec python3 "$f"; else echo '
-                                '"arkitect: no engine hook at $f" >&2; exit 1; fi' % script)
+                h['command'] = RUNNER + cmd[i+len(MARK):j]
     return hooks
 
 
 def _ours(group):
-    return any(MARK in h.get('command', '') for h in group.get('hooks', []))
+    return any(MARK in h.get('command', '') or h.get('command', '').startswith(RUNNER)
+               for h in group.get('hooks', []))
 
 
 def _without(hooks):
@@ -91,8 +94,26 @@ def _write(root, cfg):
 
 # What a Claude session opened in a projects repository needs from the engine besides the
 # hooks: the skills that run the workflows and the agents they call. Linked, never copied,
-# so a change to one reaches every repository at once.
+# so a change to one reaches every repository at once -- and never committed, since a link
+# names this machine's path: `install` makes them, and the SessionStart hook makes them in a
+# checkout or worktree that has none (link_shared()).
 SHARED = (os.path.join('.claude', 'skills'), os.path.join('.claude', 'agents'))
+
+
+def link_shared(root=ROOT):
+    """Link SHARED into `root` where missing or stale; the paths linked."""
+    made = []
+    if not workspace.separate(root):
+        return made
+    for rel in SHARED:
+        dest, src = os.path.join(root, rel), os.path.join(ENGINE, rel)
+        if os.path.islink(dest) and os.readlink(dest) != src:
+            os.remove(dest)
+        if not os.path.exists(dest) and not os.path.islink(dest):
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            os.symlink(src, dest)
+            made.append(rel)
+    return made
 
 
 def install(root=ROOT):
@@ -102,13 +123,7 @@ def install(root=ROOT):
         hooks.setdefault(event, []).extend(groups)
     cfg['hooks'] = hooks
     _write(root, cfg)
-    if workspace.separate(root):
-        for rel in SHARED:
-            dest, src = os.path.join(root, rel), os.path.join(ENGINE, rel)
-            if os.path.islink(dest):
-                os.remove(dest)
-            if not os.path.exists(dest):
-                os.symlink(src, dest)
+    link_shared(root)
 
 
 def uninstall(root=ROOT):

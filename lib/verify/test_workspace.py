@@ -109,11 +109,28 @@ class SeparateGateTests(unittest.TestCase):
                     for g in gs for h in g['hooks']]
         self.assertEqual(len(cmds), 4)
         for c in cmds:
-            self.assertIn(os.path.join(workspace.ENGINE, '.claude', 'hooks', ''), c)
-            self.assertIn('exit 1', c)
+            self.assertRegex(c, r'^python3 -m harness\.hook [a-z_]+$')     # names no path
+            self.assertNotIn(workspace.ENGINE, c)
         for rel in ('skills', 'agents'):
             self.assertEqual(os.path.realpath(os.path.join(self.ws, '.claude', rel)),
                              os.path.realpath(os.path.join(workspace.ENGINE, '.claude', rel)))
+
+
+class HookRunnerTests(unittest.TestCase):
+
+    def test_a_hook_runs_by_name_through_the_import_path(self):
+        env = dict(os.environ, PYTHONPATH=workspace.ENGINE)
+        r = subprocess.run([sys.executable, '-m', 'harness.hook', 'guard_bash'], cwd=tempfile.gettempdir(),
+                           input=json.dumps({'tool_input': {'command': 'git add -A'}}),
+                           capture_output=True, text=True, env=env)
+        self.assertEqual(r.returncode, 2, r.stderr)                    # refused, as by path
+        self.assertIn('git add -A', r.stderr)
+
+    def test_an_unknown_hook_is_an_error(self):
+        env = dict(os.environ, PYTHONPATH=workspace.ENGINE)
+        r = subprocess.run([sys.executable, '-m', 'harness.hook', 'nope'], capture_output=True,
+                           text=True, env=env, cwd=tempfile.gettempdir())
+        self.assertEqual(r.returncode, 2)
 
 
 if __name__ == '__main__':
