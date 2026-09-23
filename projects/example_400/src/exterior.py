@@ -10,7 +10,7 @@ on every opening of both buildings. Black window frames and no grilles on every 
 Sizes are the set's own, not a product's. 300's equipment screening is not carried: this
 project has no service-equipment model yet.
 """
-from lib.units import IN
+from arkitect.lib.units import IN
 
 # (building, face) as src/sheets/elevations.py names them.
 STREET_FACES = ((1, 'FRONT'),)

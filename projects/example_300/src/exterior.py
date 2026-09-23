@@ -21,7 +21,7 @@ src/faces.py measure it; site feet as src/grading.py.
 """
 import math
 from collections import namedtuple
-from lib.units import IN, fmt
+from arkitect.lib.units import IN, fmt
 
 # ---------------- the trim package ----------------
 # (building, wall) as src/mechanical.py names walls.

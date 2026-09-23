@@ -1,8 +1,8 @@
-# The engine's own settings, for its examples (harness/config.py). Your installation keeps its
+# The engine's own settings, for its examples (arkitect/harness/config.py). Your installation keeps its
 # own arkitect.toml in its workspace, beside its projects: start from arkitect.example.toml.
 
 [verify]
 # example_300 and example_400 are two real sets, drawn one after the other, and share what the
-# second copied from the first before it was moved into lib/ and codes/ (python3 -m
-# lib.verify.twins). Lower it when a move takes it down; never raise it to let a copy through.
+# second copied from the first before it was moved into arkitect/lib/ and arkitect/codes/ (python3 -m
+# arkitect.lib.verify.twins). Lower it when a move takes it down; never raise it to let a copy through.
 twins_ceiling = 363

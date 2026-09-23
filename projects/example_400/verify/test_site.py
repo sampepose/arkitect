@@ -77,7 +77,7 @@ class SiteTests(unittest.TestCase):
 class ZoningSheetTests(unittest.TestCase):
 
     def test_c102_is_its_own_document(self):
-        from lib import buildscript
+        from arkitect.lib import buildscript
         b = buildscript.load(os.path.join(PROJ, "build.py"))
         self.assertEqual([f.__name__ for f in b.DOCUMENTS], ["build_set", "build_zoning_sheet"])
         with tempfile.TemporaryDirectory() as d:

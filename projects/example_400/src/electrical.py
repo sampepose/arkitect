@@ -10,8 +10,8 @@ anything draws. The 220.82 table lives here so P-601 and the E-sheets print one 
 """
 
 
-# def nec220_82(: shared, see codes/nec/load.py
-from codes.nec.load import nec220_82
+# def nec220_82(: shared, see arkitect/codes/nec/load.py
+from arkitect.codes.nec.load import nec220_82
 
 
 # name, floor area SF, range VA, dryer VA, dishwasher VA, water heater VA, heat pump VA
@@ -26,8 +26,8 @@ NEC_UNITS = [("UNIT 1",       1320, 12000, 5000, 1200, WH_VA, 7200, 125),
              ("UNITS 2 / 3",   660, 12000, 5000,    0, WH_VA, 4800, 100)]
 
 
-# ================================ the types: shared, see codes/nec/dwelling.py
-from codes.nec.dwelling import (LUM, Level, OUTLETS, UnitType, WIRE_AMPS, check_unit, ckt, dev, panel_spaces)
+# ================================ the types: shared, see arkitect/codes/nec/dwelling.py
+from arkitect.codes.nec.dwelling import (LUM, Level, OUTLETS, UnitType, WIRE_AMPS, check_unit, ckt, dev, panel_spaces)
 
 
 # ================================ this project's dwellings ================================
@@ -283,8 +283,8 @@ SERVICES = [
 HOUSE_VA = 0
 
 
-# def _demand_220_45(: shared, see codes/nec/load.py
-from codes.nec.load import feeders, service_loads
+# def _demand_220_45(: shared, see arkitect/codes/nec/load.py
+from arkitect.codes.nec.load import feeders, service_loads
 
 
 def check_services():

@@ -1,16 +1,16 @@
 """M-102 — Building 2 mechanical plans: Unit 4 and Unit 5 side by side, greyed, with
 the heads, fans, ducts, caps and line sets on them; the legend, the schedules and the
 notes."""
-from lib.draw.page import Sheet, end_plans
-from lib.draw.sheets import draw_level
+from arkitect.lib.draw.page import Sheet, end_plans
+from arkitect.lib.draw.sheets import draw_level
 from reportlab.lib.units import inch
 from src.building2 import B2_W, b2_level
 from src.mechanical import B2_LEVELS
-from lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 from src.sheets.m_common import DUCTLESS
 from src.sheets.m_common import (grey_context, notes, outdoor_schedule, place, termination_schedule, title,
                                  ventilation_schedule)
-from lib.draw.mechanical_kit import legend
+from arkitect.lib.draw.mechanical_kit import legend
 from src.sheets.plans import draw_u5_stair
 
 

@@ -27,13 +27,13 @@ riser are PINNED so both levels put them on the same line.
 What is NOT here: the stair drawing (A-101) and the framing, the working spaces, the
 bath fans and the plumbing, none of which is modelled for this building yet.
 """
-from codes.clearances import WC_SIDE
-from codes.columbus.legends import CLEARANCE_CAPTIONS
-from lib.model import geom
-from lib.model.dimensions import strings, wall_faces
-from lib.model.records import PlanLevel
-from lib.model.regrid import EXT_STUD, PARTITION, PART_STUD, Zone, Plan
-from lib.units import IN, fmt, inches
+from arkitect.codes.clearances import WC_SIDE
+from arkitect.codes.columbus.legends import CLEARANCE_CAPTIONS
+from arkitect.lib.model import geom
+from arkitect.lib.model.dimensions import strings, wall_faces
+from arkitect.lib.model.records import PlanLevel
+from arkitect.lib.model.regrid import EXT_STUD, PARTITION, PART_STUD, Zone, Plan
+from arkitect.lib.units import IN, fmt, inches
 from src import levels
 # the finish on a stud face, for the clear figures: A-601 W2's board, defined once where
 # A-602's schedule prints it
@@ -151,7 +151,7 @@ OA_L1[0]=(OPEN_L1,_open_labels(
     ("%s x %s"%(fmt(KITCHEN_W),fmt(KITCHEN_D)),"%d SF"%round(KITCHEN_SF))))
 
 # Fittings, (x,y,w,h,kind,face) in model feet. A water closet's 'n' / 's' names the side
-# its TANK is on (low y / high y); lib/symbols/plumbing.py. The kitchen is a run on the right wall —
+# its TANK is on (low y / high y); arkitect/lib/symbols/plumbing.py. The kitchen is a run on the right wall —
 # the sink under its W-B, the dishwasher, the range — into the rear corner, the pantry
 # door beside it. The fridge stands centred on the mechanical / laundry room's
 # wall, to close the work triangle with the sink and the range (the designer,

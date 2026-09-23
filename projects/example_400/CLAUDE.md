@@ -15,7 +15,7 @@ had drifted weeks behind; the DXF had never been produced at all.
 
 **The drawing is pinned by `trace.md5`** (2026-09-18), as 300's is. A change that moves a sheet
 fails `verify/test_trace_digest.py`: trace, find which sheets moved, and commit the new digest
-with the change, naming them — `rm -f t.txt && python3 -m lib.verify.trace t.txt
+with the change, naming them — `rm -f t.txt && python3 -m arkitect.lib.verify.trace t.txt
 projects/example_400/build.py && md5 -q t.txt > projects/example_400/trace.md5`. Never update it just
 to make the test pass.
 
@@ -24,22 +24,22 @@ to make the test pass.
 ```sh
 python3 projects/example_400/build.py          # 0.3 s: every model check, then both PDFs
 python3 -m unittest discover -s projects/example_400/verify -t .   # Oak's tests alone
-python3 -m lib.verify.run_tests             # everything; REQUIRED when lib/ or codes/ is touched
+python3 -m arkitect.lib.verify.run_tests             # everything; REQUIRED when arkitect/lib/ or arkitect/codes/ is touched
 python3 -m pyflakes projects/example_400/build.py projects/example_400/src projects/example_400/verify
 ```
 
 The designer's loop for Oak: make the change, build, test, commit, reply in 1–3 lines. **Gate the
-commit on the build and tests with `&&`.** Touching `lib/` or `codes/` also needs 300's
+commit on the build and tests with `&&`.** Touching `arkitect/lib/` or `arkitect/codes/` also needs 300's
 trace proved byte-identical against a worktree of the previous commit (it was, for the
 `chase` and `jbox` symbols).
 
 The physical-fit checks (headers, heads across windows, stacks at windows, washer drains against
-dryer ducts) are `lib/model/fit.py`'s and the drawn-text sweep is `lib/verify/sheet_text.py`'s — both
+dryer ducts) are `arkitect/lib/model/fit.py`'s and the drawn-text sweep is `arkitect/lib/verify/sheet_text.py`'s — both
 shared with 300, which had every fault they found here. `verify/test_sheet_text.py` holds this set
 to no string printed on another, no unbound sheet cited and no unprinted note cited.
 
 Both projects' packages are named `src`; Oak's tests swap it in with
-`projects/example_400/verify/__init__.py`'s `enter()` / `leave()`. `lib/verify/run_tests.py`
+`projects/example_400/verify/__init__.py`'s `enter()` / `leave()`. `arkitect/lib/verify/run_tests.py`
 carries a floor on Oak's test count — raise it when you add tests.
 
 ## The set: 24 sheets + C-102
@@ -95,7 +95,7 @@ and the sheets follow or the build fails with the rule named. Oak-specific ones:
   34'-2". M-101 note 6a has Manual D, the dampers, the filter and the return path; note 3
   adds RCO M1411.3.1's auxiliary pan, which a unit over a finished ceiling needs. The
   legend lists what a building draws (`m_common.legend_kinds()`), which is why 300's M
-  sheets are byte-identical though `lib/symbols/mechanical.py` gained two symbols.
+  sheets are byte-identical though `arkitect/lib/symbols/mechanical.py` gained two symbols.
   **Each zone has its own thermostat** in its hall beside the air handler, and each ADU a
   wall control in its living space (the designer, 2026-09-19; RCO 1103.1, the root notes have the
   rule). Programmable for the two ducted zones, 1103.1.1.
@@ -161,7 +161,7 @@ and the sheets follow or the build fails with the rule named. Oak-specific ones:
   (2026-09-20, a reviewer's comment the designer pasted). Every other string on a plan runs stud
   face to stud face — A-001 notes 1 and 1a, G-001 note 5 — and a room rectangle in the
   model IS a stud face, so RCO 307.1's 15" to a *wall* is that face plus its board.
-  `lib/model/dimensions.py`'s `wc_clearances(..., finish)` starts each side at the
+  `arkitect/lib/model/dimensions.py`'s `wc_clearances(..., finish)` starts each side at the
   FINISHED wall face and lets a fixture take it in from there; a fixture needs no
   deduction, since it stands in the room with its finished face where it is drawn. The
   board is `finishes.BOARD` (1/2", A-601 W2, ONE definition — A-602's schedule cell prints
@@ -213,9 +213,9 @@ different requirements"). Three findings, one cause: the MODEL said what the old
   project hands it the fixtures with no dry vent of their own, so dropping either name from
   `WASTE_STACKS` fails the build with "only a 913 waste stack vent may do that".
 
-The rules are `codes/ohio/opc_vents.py` (`vertical_wet_violations`, `horizontal_wet_violations`,
+The rules are `arkitect/codes/ohio/opc_vents.py` (`vertical_wet_violations`, `horizontal_wet_violations`,
 Table 912.3 as `WET_VENT`, `waste_stack_text`) and the DRAWING is
-`codes/ohio/opc_vents_draw.py` -- in `codes/` because every label names a section and lib/ is
+`arkitect/codes/ohio/opc_vents_draw.py` -- in `arkitect/codes/` because every label names a section and arkitect/lib/ is
 code-neutral. P-601's riser draws each trap where it stands, each connection in order with its
 height printed, each vent takeoff on its fixture's connection and each reconnection above every
 fixture on that stack; the stack is solid where it carries waste and dashed above its highest
@@ -239,7 +239,7 @@ the branch inside the truss webs between the chords (its bottom 8" under the SUB
 against the bottom chord at 13-1/4", so deepening the branch or shallowing the trusses stops
 the build), and Bath 2's trap arms are measured to
 the branch, which 912.1 makes their vent. The riser gained a FLOOR form in
-`codes/ohio/opc_vents_draw.py` (`Floor`, a `Cell` field defaulting to none, so 300 is
+`arkitect/codes/ohio/opc_vents_draw.py` (`Floor`, a `Cell` field defaulting to none, so 300 is
 byte-identical) and **P-102 draws an enlarged Bath 2 plan** -- the drawing the reviewer asked
 for: the stack, every drop, the branch sizes and falls, V-E, and the statement that no
 lavatory runs in a wall above the floor and no chase is needed.
@@ -268,8 +268,8 @@ openings on all faces are cased. A back door in Unit 1's hall. Fixed W-D over th
 ## Decisions
 
 What the designer confirmed, what is still an agent's call, and what waits on AEP, DPU, Public Service
-or the county is in the ledger, not here: `python3 -m harness.decisions pending --project
-example_400` and `python3 -m harness.decisions about <path>`. The root CLAUDE.md, "Decisions",
+or the county is in the ledger, not here: `python3 -m arkitect.harness.decisions pending --project
+example_400` and `python3 -m arkitect.harness.decisions about <path>`. The root CLAUDE.md, "Decisions",
 has the rules. This file's "Confirmed by the designer" and "Open" sections moved there on 2026-09-22.
 
 ## Leftovers to be careful with
@@ -306,12 +306,12 @@ comes over wrong — that is how the eave and ridge vent leaders came to cite no
 
 - Ohio's minimum building-sewer depth was never checked (as on 300).
 
-- The DXF is `python3 -m lib.export.dxf projects/example_400/build.py`, tracked like the PDFs.
+- The DXF is `python3 -m arkitect.lib.export.dxf projects/example_400/build.py`, tracked like the PDFs.
   It has failed TWICE on a layer the exporter had no colour for — the door tags until
   2026-09-18, and `M-HVAC-DUCT` under Unit 1's supply registers until 2026-09-20, when it
-  could not be written at all while every other oracle stayed green. `lib/verify/test_dxf.py`
+  could not be written at all while every other oracle stayed green. `arkitect/lib/verify/test_dxf.py`
   now exports BOTH projects in the suite, reading exit status and stderr, so a third one fails
-  loudly. Add a new symbol layer to `COLOR` in `lib/export/dxf.py` when you add the symbol.
+  loudly. Add a new symbol layer to `COLOR` in `arkitect/lib/export/dxf.py` when you add the symbol.
 
 - The whole set was swept for overlapping text and the flagged pages read; nobody has read
   every page against every other.

@@ -4,7 +4,7 @@ sizes by, pinned to their text."""
 import os
 import sys
 import unittest
-from codes.ohio import opc_drainage as opc_drainage_shared
+from arkitect.codes.ohio import opc_drainage as opc_drainage_shared
 
 HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -12,7 +12,7 @@ if PROJ not in sys.path:
     sys.path.insert(0, PROJ)
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
-from codes.ohio import opc_separation
+from arkitect.codes.ohio import opc_separation
 
 
 class TallyTests(unittest.TestCase):
@@ -23,7 +23,7 @@ class TallyTests(unittest.TestCase):
            vents one floor and 913 takes no water closet, and B, C and D each carry one.
            Vent A and the laundry's dry vent were always right; the other four are new."""
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         self.assertEqual(d.vent_violations(), [])
         self.assertEqual(sorted(v.mark for v in d.DRY_VENTS),
                          ['V-A', 'V-B', 'V-C', 'V-D', 'V-K', 'V-L'])
@@ -36,7 +36,7 @@ class TallyTests(unittest.TestCase):
     def test_the_ties_clear_every_rim_on_their_stack(self):
         """905.4. Stack C carries a Level 2 kitchen sink, whose rim is the highest here."""
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         self.assertEqual(V.dry_vent_rise_violations(d.vent_ties()), [])
         low = [(m, rim+0.2, rim) for m, _t, rim in d.vent_ties()]
         self.assertEqual(len(V.dry_vent_rise_violations(low)), len(low))
@@ -45,7 +45,7 @@ class TallyTests(unittest.TestCase):
         """Claimed on P-601 note 1w, so the load is checked: E sits exactly on Table 913.4's
            2 DFU at a branch interval and 4 in all for a 2" stack."""
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         rows = {r[0]: r for r in d.waste_stacks()}
         self.assertEqual(sorted(rows), ['E', 'F'])
         self.assertEqual(V.waste_stack_violations(d.waste_stacks()), [])
@@ -77,8 +77,8 @@ class TallyTests(unittest.TestCase):
            one group again wherever a pipe carries all of it, so each building drain
            carries exactly its building's tally."""
         from src import drainage as d
-        from codes.ohio import opc_drainage as opc_drainage
-        from lib.model import drains as drains
+        from arkitect.codes.ohio import opc_drainage as opc_drainage
+        from arkitect.lib.model import drains as drains
         b1, b2 = d.BUILDINGS
         self.assertEqual({s.name: opc_drainage.stack_dfu(s) for s in b1.stacks}, {'A': 0, 'B': 6, 'C': 8, 'E': 4})
         self.assertEqual({s.name: opc_drainage.stack_dfu(s) for s in b2.stacks}, {'D': 6, 'F': 8})
@@ -119,7 +119,7 @@ class GeometryTests(unittest.TestCase):
            crosses the building sewer on the lot below frost. So it is sleeved, once, from
            5'-0" past that sewer, 12'-0" out from the wall, to its riser."""
         from src import drainage as d
-        from lib.model import drains as drains
+        from arkitect.lib.model import drains as drains
         b1, b2 = d.BUILDINGS
         self.assertEqual([(nm, x, k) for _r, nm, x, k in opc_separation.water_crossings(b1, d.GROUND)], [('UNITS 2 AND 3 TRUNK', (6.0, 46.95), 'above')])
         self.assertEqual([(nm, x, k) for _r, nm, x, k in opc_separation.water_crossings(b2, d.GROUND)], [('SERVICE', (1.5, 12.2), 'sleeved')])
@@ -149,7 +149,7 @@ class GeometryTests(unittest.TestCase):
         """The authored points are tied to the model's rectangles, so a tub that moves
            on A-101 moves its box-out or fails the build."""
         from src import drainage as d
-        from lib.model import runs as runs
+        from arkitect.lib.model import runs as runs
         b1 = d.BUILDING_1
         wc1 = next(p for p in b1.pens if p.mark == 2)
         self.assertTrue(runs.in_rect(wc1.pos, (d.U1_WC.x, d.U1_WC.y, d.U1_WC.w, d.U1_WC.h)))
@@ -164,8 +164,8 @@ class InvertTests(unittest.TestCase):
         """A head has COVER over its top; where a 3" run ends at the 4" trunk's head the
            crowns line up, so the trunk starts an inch lower than that run's tail."""
         from src import drainage as d
-        from lib.model import runs as runs
-        from lib.units import IN
+        from arkitect.lib.model import runs as runs
+        from arkitect.lib.units import IN
         b1 = d.BUILDING_1
         r1, r2, r5 = b1.runs[0], b1.runs[1], b1.runs[4]
         self.assertAlmostEqual(opc_drainage_shared.head_invert(b1, r1, cover=d.COVER), -(d.COVER+IN(2)))
@@ -176,8 +176,8 @@ class InvertTests(unittest.TestCase):
 
     def test_exits_and_the_sewer(self):
         from src import drainage as d
-        from lib.model import drains as drains
-        from lib.units import IN
+        from arkitect.lib.model import drains as drains
+        from arkitect.lib.units import IN
         b1, b2 = d.BUILDINGS
         self.assertEqual(drains.exit_site(b1), (14.0, 68.0)); self.assertEqual(drains.exit_site(b2), (8.0, 97.0))
         s = d.sewer()
@@ -265,7 +265,7 @@ class CheckTests(unittest.TestCase):
     def test_a_branch_entering_below_its_drain_fails(self):
         """A long shallow-sloped branch dropping into a trunk near the trunk's head."""
         from src import drainage as d
-        from lib.model import drains as drains
+        from arkitect.lib.model import drains as drains
         # the laundry standpipe run rerouted as a 2" of 40 ft into the trunk 1 ft from its head
         long = drains.Run('2', [d.CW1, (d.CW1[0], 2.0), (5.0, 2.0), (5.0, 18.5), (d.TRUNK_X, 18.5)])
         runs = [long if i == 3 else r for i, r in enumerate(d.BUILDING_1.runs)]
@@ -298,7 +298,7 @@ class StackAtAnOpeningTests(unittest.TestCase):
 
     def test_vent_a_stands_past_the_windows_within_a_trap_arm_of_the_sink(self):
         from src import drainage as d
-        from lib.model import drains as drains
+        from arkitect.lib.model import drains as drains
         a = drains.stack_by_name(d.BUILDING_1, 'A')
         self.assertGreater(a.pos[1], max(w[1]+w[2] for w in d._A_WINS))
         self.assertLess(abs(a.pos[1]-d.KS1[1]), 8.0)              # a 2" trap arm reaches 8'-0"

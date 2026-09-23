@@ -1,6 +1,6 @@
 """100 EXAMPLE ST — the title block and the output names. Everything else it knows comes
 from intake.json through src/sitework.py."""
-from codes.columbus import titleblock
+from arkitect.codes.columbus import titleblock
 from src.sitework import INTAKE
 
 ADDRESS = INTAKE["address"]

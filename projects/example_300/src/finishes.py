@@ -8,7 +8,7 @@ is not a cheap one. The spec is docs/superpowers/specs/2026-09-16-a602-paint-fin
 """
 from collections import namedtuple
 
-from lib.units import IN, inches
+from arkitect.lib.units import IN, inches
 
 # The board on a stud face, A-601 W2. ONE definition, because two readers need the same
 # number: the schedule cell below prints it, and RCO 307.1's water closet dimension

@@ -6,19 +6,19 @@ Level 1 walls of Building 2 that hold it up, 302.3.1. The house is a detached on
 dwelling and separates from nothing. Everything else on this sheet is Table 302.1(1)
 measured to the side lot lines and to the imaginary line in the courtyard (src/fsd.py).
 """
-from lib.draw.page import POCHE, Sheet
-from lib.draw.text import wrap_notes
-from lib.model.regrid import EXT_STUD
-from lib.units import IN, fmt, inches
+from arkitect.lib.draw.page import POCHE, Sheet
+from arkitect.lib.draw.text import wrap_notes
+from arkitect.lib.model.regrid import EXT_STUD
+from arkitect.lib.units import IN, fmt, inches
 from reportlab.lib.colors import Color, black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src import fsd, levels
-from codes.ohio.rco import fire_separation as rco_fsd
+from arkitect.codes.ohio.rco import fire_separation as rco_fsd
 from src.building1 import B1_D, B1_W
 from src.building2 import B2_D, B2_W, U5_STAIR_RATED
-from codes import ul_u305 as u305
-from codes.ohio.pipe_in_wall_draw import stack_in_cavity
+from arkitect.codes import ul_u305 as u305
+from arkitect.codes.ohio.pipe_in_wall_draw import stack_in_cavity
 from src import envelope
 from src.envelope import (CAVITY_BATT_R, CLIMATE_ZONE, EXTERIOR_FRAME_WALLS, VR_CLASS,
                           check_wall_rows, perm_text, stack_bay_text, vr_layer)
@@ -26,7 +26,7 @@ from src.foundation import (EDGE_INSUL_RUN, FROST_DEPTH, FTG_T, FTG_W, GRAVEL_T,
                             ROOF_OVERHANG, SLAB_T, STRIP_D, STRIP_W, WALL_T)
 from src.building2 import U2_SOFFIT_DROP
 from src.framing import F1_JOIST, F1_MAX_JOIST_OC, F1_MIN_TRUSS_DEPTH, F2_JOIST, FRAMING, JOIST_OC, TRUSS_OC
-from lib.draw.kit import X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import X0, X1, Y0, Y1, c
 from src.sitework import EAVE_FIREBLOCKED, SIDE_YARD, rear_storeys
 
 DRAFTSTOP_SF = 1000.0          # RCO 302.12: the largest concealed floor-ceiling space without draftstopping
@@ -277,7 +277,7 @@ def _stack_bay(x, y):
        A-601's W1 / W1R rows fill the cavity with a batt as deep as the cavity; P-601 note
        1aa stands a 3" drain in one of those cavities. Both were true and they did not fit:
        a 3" DWV pipe is 3-1/2" across, so 2" is left. This is the bay that reconciles them,
-       and every figure on it is the same one lib/model/fit.py checks."""
+       and every figure on it is the same one arkitect/lib/model/fit.py checks."""
     from src import drainage as dr
     run = next(r for r in dr.cavity_runs() if r.name.endswith('F'))
     dims = {'cavity': inches(run.depth), 'added': inches(run.added),

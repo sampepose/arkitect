@@ -7,16 +7,16 @@ Unit 1 well is the stair's own constants; nothing is typed that another sheet pr
 The I-joists themselves are the manufacturer's, sized to the loads stated here.
 """
 from collections import namedtuple
-from lib.units import IN, fmt, inches
-from lib.model import fit
-from lib.model.regrid import EXT_STUD
+from arkitect.lib.units import IN, fmt, inches
+from arkitect.lib.model import fit
+from arkitect.lib.model.regrid import EXT_STUD
 from src.openings import WIN_HEAD
 from src import levels
 from src.building1 import (B0, D_STUD, SX, U1_STAIR_WALL, U23_BEARING_WALL, W_STUD, YT, Y_SEP_BOT,
                            site_x, site_y)
 from src.building2 import B2_D, B2_W, U45_BEARING_WALL, Y_BEAR
 from src.mirror import B1_W
-from codes.ohio.rco.floor_checks import floor_violations, bay_span
+from arkitect.codes.ohio.rco.floor_checks import floor_violations, bay_span
 
 # ---------------- basis ----------------
 JOIST_OC = IN(16)
@@ -180,8 +180,8 @@ def check_framing():
 
 
 # ---------------- headers ----------------
-# RCO Tables 602.7(1), (2) and 602.7.5 are codes/ohio/rco/headers.py: one transcription, one pin.
-from codes.ohio.rco.headers import header_for, full_height_studs
+# RCO Tables 602.7(1), (2) and 602.7.5 are arkitect/codes/ohio/rco/headers.py: one transcription, one pin.
+from arkitect.codes.ohio.rco.headers import header_for, full_height_studs
 
 
 Header = namedtuple('Header', 'tag building level wall load_case width size jacks full_height_studs row openings unit room table_size',
@@ -215,7 +215,7 @@ LOAD_CASE = {
 # 1's F2, 8-1/8" under F1 and 9" on Level 2 — and Table 602.7's answer for a loaded opening can be
 # 9-1/4" or 11-1/4" deep. Found on 400 Oak on 2026-09-18 and here the same day: H1, H3, H15 and
 # H21 had been scheduled deeper than the wall over their windows, with every oracle green, because
-# each check measured the table and none measured the room. The measuring is lib/model/fit.py's.
+# each check measured the table and none measured the room. The measuring is arkitect/lib/model/fit.py's.
 # Where the table's header does not fit the schedule takes an LVL of a 2x6's depth (the designer, on Oak:
 # "do lvl and add the checks so we don't miss this again").
 TOP_PLATES = fit.TOP_PLATES

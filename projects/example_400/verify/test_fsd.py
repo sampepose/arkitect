@@ -4,7 +4,7 @@ import importlib
 import unittest
 
 from projects.example_400.verify import enter, leave
-from codes.ohio.rco import fire_separation as T
+from arkitect.codes.ohio.rco import fire_separation as T
 
 
 def setUpModule():

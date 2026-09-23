@@ -9,12 +9,12 @@ are read from the same opening lists the plans, the elevations and the header sc
 read, through the same regrid, so a window moved on A-101 moves a braced wall panel here.
 """
 from collections import namedtuple
-from lib.units import fmt
+from arkitect.lib.units import fmt
 from src import levels
 from src.openings import WIN_GEOM
-from codes.ohio.rco.bracing import corner_segment, end_condition, factor, provided, segments
-from codes.ohio.rco.bracing import roof_connection
-from codes.ohio.rco.bracing import header_depth
+from arkitect.codes.ohio.rco.bracing import corner_segment, end_condition, factor, provided, segments
+from arkitect.codes.ohio.rco.bracing import roof_connection
+from arkitect.codes.ohio.rco.bracing import header_depth
 
 HEEL_NOM = levels.ROOF_HEEL
 FRONT = {'BUILDING 1': 'FRONT WALL', 'BUILDING 2': 'COURTYARD WALL'}
@@ -89,8 +89,8 @@ def eave_to_ridge(span):
     return levels.ridge(span)-levels.ROOF_PLATE
 
 
-# RCO R602.10, transcribed: shared, see codes/ohio/rco/bracing.py
-from codes.ohio.rco.bracing import (CS_PF_CREDIT, EXPOSURE, FIRST_PANEL_MAX, F_EAVE_RIDGE, F_EXPOSURE,
+# RCO R602.10, transcribed: shared, see arkitect/codes/ohio/rco/bracing.py
+from arkitect.codes.ohio.rco.bracing import (CS_PF_CREDIT, EXPOSURE, FIRST_PANEL_MAX, F_EAVE_RIDGE, F_EXPOSURE,
                                     F_LINES, F_STORY_HEIGHT, GYP_SHEATHING_T, HOLD_DOWN_LB, MAX_SPACING,
                                     METHOD, NAIL, NAIL_LENGTH, NAIL_PENETRATION, NAIL_W1R, ONE_PANEL_MIN,
                                     PANEL_GAP_MAX, PORTAL_HEADER, PORTAL_MAX_HEADER_HEIGHT,
@@ -99,7 +99,7 @@ from codes.ohio.rco.bracing import (CS_PF_CREDIT, EXPOSURE, FIRST_PANEL_MAX, F_E
 
 
 from src.criteria import WIND, WIND_VULT, WIND_EXPOSURE
-from codes.ohio.rco.bracing import require_column
+from arkitect.codes.ohio.rco.bracing import require_column
 # The shared tables are ONE column of Table 602.10.3(1) and Table 602.10.6.4; this project's
 # design criteria have to be that column before a figure from them is printed.
 require_column(WIND_VULT, WIND_EXPOSURE, WIND)

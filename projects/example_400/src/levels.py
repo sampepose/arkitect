@@ -13,7 +13,7 @@ src/framing.py holds the framing to that listing; changing a layer updates ceili
 elevations.
 Bearing means TOP of wall plate / UNDERSIDE of joist, not ceiling or stud length.
 """
-from lib.units import IN
+from arkitect.lib.units import IN
 
 GRADE = 0.0
 # Level 1's finished floor, 8-1/4" above finished grade at the wall, so the slab top and

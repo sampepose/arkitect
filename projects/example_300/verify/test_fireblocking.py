@@ -36,7 +36,7 @@ class FireblockingModelTests(unittest.TestCase):
     def test_each_wall_is_closed_at_its_own_floor_line(self):
         """W4A and W4B are separate walls: each cavity is closed from its own top plate to
            its own Level 2 sole plate, and no zone spans both."""
-        from lib.units import fmt
+        from arkitect.lib.units import fmt
         from src import fireblocking as fb, levels
         self.assertEqual(list(fb.W4_BLOCK_ZONES), ['W4A', 'W4B'])
         self.assertEqual(fb.W4_BLOCK_ZONES['W4A'], (levels.F2_PLATE, levels.SUBFLOOR_TOP))
@@ -69,7 +69,7 @@ class FireblockingModelTests(unittest.TestCase):
                                             'W4A +9\'-5-1/4" to +10\'-8"; W4B +9\'-7-3/8" to +10\'-8"'))
 
     def test_a_floor_line_with_no_depth_fails_the_build(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         from src import fireblocking as fb
         self.addCleanup(setattr, fb, 'W4_BLOCK_ZONES', fb.W4_BLOCK_ZONES)
         fb.W4_BLOCK_ZONES = dict(fb.W4_BLOCK_ZONES, W4B=(10.0, 10.0+IN(1)))

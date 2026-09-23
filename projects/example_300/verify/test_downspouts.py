@@ -45,7 +45,7 @@ class RealModelTests(unittest.TestCase):
 
     def test_every_leader_outlet_is_six_inches(self):
         """With no gas on any wall, every outlet elbow is at OUTLET_Z."""
-        from lib.units import IN
+        from arkitect.lib.units import IN
         from src import downspouts as ds
         for d in ds.DOWNSPOUTS:
             self.assertEqual(ds.discharge(d).outlet_z, IN(6))

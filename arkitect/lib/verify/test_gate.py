@@ -1,0 +1,217 @@
+"""Tests for arkitect/lib/verify/gate.py, on throwaway repositories rather than either project.
+
+The gate's whole claim is that it cannot report a green it did not earn, so most of
+these break something on purpose and check the gate says so: a build that raises, a DXF
+exporter that exits 1, a drawing that moved under an old trace.md5, a citation a sheet
+stopped printing. Each test makes a git repository in a temporary directory holding a
+copy of arkitect/lib/ and one synthetic two-sheet project, commits it as the base, and runs that
+copy's gate.py -- the gate measures the tree it sits in.
+"""
+import json, os, shutil, subprocess, sys, tempfile, unittest
+
+HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, HERE)
+from arkitect.lib.verify import gate
+
+
+BUILD = """
+from reportlab.pdfgen import canvas
+from arkitect.lib.draw.page import Sheet, PW, PH
+
+def build_set(output_path=None, make_canvas=None):
+    print('MODEL CHECK: %(printed)s')
+    %(before)s
+    c = (make_canvas or canvas.Canvas)(output_path or 'x.pdf', pagesize=(PW, PH))
+    for no, text in (('X-001', %(one)r), ('X-002', %(two)r)):
+        Sheet(c, no, 'synthetic', 'N/A')
+        c.drawString(100, 100, text)
+        c.showPage()
+    c.save()
+    return output_path
+
+DOCUMENTS = (build_set,)
+"""
+PLAIN = dict(printed='ok', before='pass', one='SEE RCO 311.3', two='TWO')
+
+
+class GateTestCase(unittest.TestCase):
+
+    def setUp(self):
+        t = tempfile.TemporaryDirectory()
+        self.addCleanup(t.cleanup)
+        self.root = os.path.join(t.name, 'repo')
+        shutil.copytree(os.path.join(HERE, 'arkitect', 'lib'), os.path.join(self.root, 'arkitect', 'lib'),
+                        ignore=shutil.ignore_patterns('__pycache__', '.DS_Store'))
+        os.makedirs(os.path.join(self.root, 'projects', 'demo'))
+        self.write_build(**PLAIN)
+        with open(os.path.join(self.root, '.gitignore'), 'w') as fh:
+            fh.write('.verify-cache/\n__pycache__/\n')
+        self.git('init', '-q')
+        self.accept_quietly()
+        self.commit('base')
+
+    def git(self, *args):
+        r = subprocess.run(['git', '-c', 'user.email=t@t', '-c', 'user.name=t'] + list(args),
+                           cwd=self.root, capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return r.stdout
+
+    def commit(self, msg):
+        self.git('add', '-A')
+        self.git('commit', '-q', '-m', msg)
+
+    def write_build(self, **kw):
+        with open(os.path.join(self.root, 'projects', 'demo', 'build.py'), 'w') as fh:
+            fh.write(BUILD % dict(PLAIN, **kw))
+
+    def run_gate(self, *args):
+        r = subprocess.run([sys.executable, os.path.join(self.root, 'arkitect', 'lib', 'verify', 'gate.py')]
+                           + list(args), cwd=self.root, capture_output=True, text=True)
+        return r
+
+    def report(self, *args):
+        r = self.run_gate('--json', *args)
+        try:
+            return r.returncode, json.loads(r.stdout)
+        except ValueError:
+            self.fail('no JSON (exit %s): %s' % (r.returncode, (r.stdout + r.stderr)[-600:]))
+
+    def accept_quietly(self):
+        # the first accept has no base commit yet; it must still write the digest
+        r = self.run_gate('accept')
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+
+class GateTests(GateTestCase):
+
+    def test_a_clean_tree_passes(self):
+        code, r = self.report()
+        self.assertEqual(code, 0, r['failures'] + r['errors'])
+        self.assertTrue(r['ok'])
+        self.assertEqual(r['projects']['demo']['sheets_moved'], [])
+        self.assertEqual(r['projects']['demo']['stdout_diff'], '')
+
+    def test_a_moved_drawing_fails_until_accepted_and_names_its_sheet(self):
+        self.write_build(two='TWO, CHANGED')
+        code, r = self.report()
+        self.assertEqual(code, 1)
+        self.assertEqual([m['sheet'] for m in r['projects']['demo']['sheets_moved']], ['X-002'])
+        self.assertTrue(any('X-002' in f and 'accept' in f for f in r['failures']), r['failures'])
+        a = self.run_gate('accept')
+        self.assertEqual(a.returncode, 0, a.stderr)
+        self.assertIn('Sheets moved: demo X-002', a.stdout)
+        code, r = self.report()
+        self.assertEqual(code, 0, r['failures'] + r['errors'])
+
+    def test_a_build_that_raises_fails_and_says_why(self):
+        self.write_build(before="raise AssertionError('the model check failed')")
+        code, r = self.report()
+        self.assertEqual(code, 1)
+        self.assertTrue(any('the model check failed' in f for f in r['failures']), r['failures'])
+
+    def test_accept_writes_nothing_for_a_build_that_raises(self):
+        md5 = os.path.join(self.root, 'projects', 'demo', 'trace.md5')
+        before = gate._read(md5)
+        self.write_build(before="raise RuntimeError('broken')")
+        a = self.run_gate('accept')
+        self.assertNotEqual(a.returncode, 0)
+        self.assertEqual(gate._read(md5), before)
+
+    def test_a_missing_digest_fails(self):
+        os.remove(os.path.join(self.root, 'projects', 'demo', 'trace.md5'))
+        code, r = self.report()
+        self.assertEqual(code, 1)
+        self.assertTrue(any('no trace.md5' in f for f in r['failures']), r['failures'])
+
+    def test_a_dead_dxf_exporter_fails(self):
+        with open(os.path.join(self.root, 'arkitect', 'lib', 'export', 'dxf.py'), 'w') as fh:
+            fh.write("import sys\nsys.exit('exporter is broken')\n")
+        code, r = self.report()
+        self.assertEqual(code, 1)
+        self.assertFalse(r['projects']['demo']['dxf']['ok'])
+        self.assertIn('exporter is broken', r['projects']['demo']['dxf']['stderr'])
+
+    def test_a_citation_no_sheet_prints_any_more_is_listed(self):
+        self.write_build(one='SEE X-002')
+        _code, r = self.report()
+        self.assertIn('RCO 311.3', r['projects']['demo']['vocab_lost'])
+
+    def test_a_printed_figure_that_changes_is_a_diff(self):
+        self.write_build(printed='changed')
+        self.run_gate('accept')                  # the drawing did not move; nothing to write
+        code, r = self.report()
+        self.assertEqual(code, 0, r['failures'] + r['errors'])
+        self.assertIn('+MODEL CHECK: changed', r['projects']['demo']['stdout_diff'])
+        code, r = self.report('--expect-unchanged')
+        self.assertEqual(code, 1)
+
+    def test_expect_unchanged_fails_on_a_moved_sheet_even_when_accepted(self):
+        self.write_build(one='SEE RCO 311.3 NOW')
+        self.run_gate('accept')
+        code, _r = self.report('--expect-unchanged')
+        self.assertEqual(code, 1)
+
+    def test_a_sheet_text_finding_fails(self):
+        self.write_build(two='SEE X-009')             # a sheet the build never draws
+        self.run_gate('accept')
+        code, r = self.report()
+        self.assertEqual(code, 1)
+        self.assertTrue(any('X-009' in f for f in r['failures']), r['failures'])
+
+    def test_a_sheet_printing_a_decision_id_fails(self):
+        self.write_build(two='PER D-912')                 # internal vocabulary on a sheet
+        self.run_gate('accept')
+        code, r = self.report()
+        self.assertEqual(code, 1)
+        self.assertTrue(any('D-912 on X-002' in f for f in r['failures']), r['failures'])
+        self.write_build(two='DOOR D-4A')                 # a door mark is not a decision id
+        self.run_gate('accept')
+        self.assertEqual(self.report()[0], 0)
+
+    def test_an_unknown_base_is_an_error_not_a_pass(self):
+        code, r = self.report('--base', 'no-such-ref')
+        self.assertEqual(code, 2)
+        self.assertTrue(r['errors'])
+
+    def test_no_project_is_an_error_not_a_pass(self):
+        shutil.rmtree(os.path.join(self.root, 'projects', 'demo'))
+        code, r = self.report()
+        self.assertEqual(code, 2)
+        self.assertIn('no project was measured', r['errors'])
+
+
+class RenderTests(GateTestCase):
+
+    def test_render_names_its_files_by_sheet_outside_the_checkout(self):
+        out = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, out, True)
+        r = self.run_gate('render', '--sheets', 'X-002', '--out', out, '--dpi', '20')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(sorted(os.listdir(os.path.join(out, 'demo'))), ['X-002.pdf', 'X-002.png'])
+
+    def test_render_refuses_the_checkout(self):
+        r = self.run_gate('render', '--out', os.path.join(self.root, 'renders'))
+        self.assertNotEqual(r.returncode, 0)
+        self.assertFalse(os.path.exists(os.path.join(self.root, 'renders')))
+
+    def test_render_moved_draws_both_sides(self):
+        self.write_build(two='TWO, CHANGED')
+        out = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, out, True)
+        r = self.run_gate('render', '--moved', '--out', out, '--dpi', '20')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(sorted(f for f in os.listdir(os.path.join(out, 'demo')) if f.endswith('.png')),
+                         ['X-002.base.png', 'X-002.png'])
+
+
+class UnitTests(unittest.TestCase):
+
+    def test_moved_names_added_removed_and_changed(self):
+        a = {'A': (1, 'x'), 'B': (2, 'y'), 'C': (3, 'z')}
+        b = {'A': (1, 'x'), 'B': (2, 'Y'), 'D': (4, 'w')}
+        self.assertEqual([(m['sheet'], m['change']) for m in gate.moved(a, b)],
+                         [('B', 'changed'), ('C', 'removed'), ('D', 'added')])
+
+
+if __name__ == '__main__':
+    unittest.main()

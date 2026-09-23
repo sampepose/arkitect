@@ -29,19 +29,19 @@ frame src/drainage.py places the stacks in. Heights in feet above grade.
 """
 import math
 from collections import namedtuple
-from lib.units import IN, fmt, inches
+from arkitect.lib.units import IN, fmt, inches
 from src import levels
 from src import drainage as dr
-from lib.model import drains as drains
-from codes.ohio import opc_drainage as opc_drainage
-from lib.model import runs as runs
+from arkitect.lib.model import drains as drains
+from arkitect.codes.ohio import opc_drainage as opc_drainage
+from arkitect.lib.model import runs as runs
 from src import foundation as F
 from src.openings import WIN_HEAD
 from src.sitework import SITE_BLDG, SITE_W
-from codes.irc_appendix_f import PIPE_OD, TOL, _attic_of, _clear, _in, _rect_edges, _segs_cross, _strip
-from codes.ohio import opc_drainage as opc_drainage_shared
+from arkitect.codes.irc_appendix_f import PIPE_OD, TOL, _attic_of, _clear, _in, _rect_edges, _segs_cross, _strip
+from arkitect.codes.ohio import opc_drainage as opc_drainage_shared
 from functools import partial
-from codes.irc_appendix_f import areas as _shared_areas
+from arkitect.codes.irc_appendix_f import areas as _shared_areas
 
 # ---------------- basis ----------------
 ZONE = 1                          # EPA Map of Radon Zones, Franklin County, Ohio
@@ -94,7 +94,7 @@ EXIT_OFF_RIDGE = 1.5              # a roof exit this far off the ridge, clear of
 
 def _partition_x(rooms, plan, W, left, right):
     """The center of the partition between two named rooms that stand side by side, page x."""
-    from lib.model import water as water
+    from arkitect.lib.model import water as water
     r = {q[4]: water._mirror(plan.rect(q), W) for q in rooms if q[4] in (left, right)}
     return (r[left][0]+r[left][2]+r[right][0])/2.0
 
@@ -172,7 +172,7 @@ def _points(path, step=0.05):
 def radon_violations(risers=None):
     risers = RISERS if risers is None else risers
     from src.roof import ROOFS, penetrations
-    from codes.ohio.rco.attic_ventilation import VENT_CLR
+    from arkitect.codes.ohio.rco.attic_ventilation import VENT_CLR
     v = []
     for bname in ('BUILDING 1', 'BUILDING 2'):
         b, fb = _bldg(bname)
@@ -277,7 +277,7 @@ def _room_at(bname, level, pt):
     """The room a page point stands in on that level, from the electrical model's rooms and
        polygons, or None when it is in a wall."""
     from src import building1 as B1M, building2 as B2M, electrical as E
-    from codes.nec import dwelling as nec_dwelling
+    from arkitect.codes.nec import dwelling as nec_dwelling
     if bname == 'BUILDING 1':
         P, W, lv = B1M.LEVEL[level]['plan'], B1M.B1_W, (E.LEVEL_U1_L1, E.LEVEL_U1_L2)[level-1]
     else:

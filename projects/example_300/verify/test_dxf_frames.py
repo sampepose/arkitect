@@ -1,7 +1,7 @@
 """300's DXF: every plan sheet framed, and a plausible number of entities.
 
-Moved here from lib/verify/test_trace.py in phase 1 of the public release. That the exporter
-RUNS is the engine's claim (lib/verify/test_dxf.py runs it on every project); WHICH sheets
+Moved here from arkitect/lib/verify/test_trace.py in phase 1 of the public release. That the exporter
+RUNS is the engine's claim (arkitect/lib/verify/test_dxf.py runs it on every project); WHICH sheets
 300 frames, and how much it draws, is this project's."""
 import os
 import re
@@ -12,8 +12,8 @@ import unittest
 
 HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 BUILD = os.path.join(HERE, 'projects', 'example_300', 'build.py')
-from lib import workspace                                    # noqa: E402  the engine, wherever it is
-DXF = os.path.join(workspace.ENGINE, 'lib', 'export', 'dxf.py')
+from arkitect.lib import workspace                                    # noqa: E402  the engine, wherever it is
+DXF = os.path.join(workspace.ENGINE, 'arkitect', 'lib', 'export', 'dxf.py')
 
 FRAMED = ['C-101', 'C-103', 'A-101', 'A-102', 'A-103', 'A-103', 'S-101', 'S-101', 'S-102', 'S-102',
           'S-103', 'S-103', 'S-104', 'S-104', 'S-104', 'S-104', 'M-101', 'M-101', 'M-102', 'M-102',

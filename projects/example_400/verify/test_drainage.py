@@ -3,8 +3,8 @@
 import unittest
 
 from projects.example_400.verify import enter, leave
-from codes.ohio import opc_drainage as opc_drainage_shared
-from codes.ohio import opc_separation
+from arkitect.codes.ohio import opc_drainage as opc_drainage_shared
+from arkitect.codes.ohio import opc_separation
 
 
 def setUpModule():
@@ -22,7 +22,7 @@ class DrainageTests(unittest.TestCase):
            a vent for the level below. 912 wet vents one floor and 913's waste stack vent
            takes no water closet, so each Level 1 group keeps its own dry vent."""
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         self.assertEqual(d.vent_violations(), [])
         self.assertEqual(sorted(v.mark for v in d.DRY_VENTS),
                          ['V-A', 'V-B', 'V-C', 'V-D', 'V-E', 'V-F'])
@@ -37,7 +37,7 @@ class DrainageTests(unittest.TestCase):
     def test_a_vent_that_ties_in_too_low_fails(self):
         """905.4: the tie stands 6" over the highest flood rim on the stack."""
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         self.assertEqual(V.dry_vent_rise_violations(d.vent_ties()), [])
         low = [(m, rim+0.2, rim) for m, _tie, rim in d.vent_ties()]
         self.assertTrue(V.dry_vent_rise_violations(low))
@@ -50,8 +50,8 @@ class DrainageTests(unittest.TestCase):
 
     def test_the_tallies_and_the_drains_agree(self):
         from src import drainage as d
-        from codes.ohio import opc_drainage as opc_drainage
-        from lib.model import drains as drains
+        from arkitect.codes.ohio import opc_drainage as opc_drainage
+        from arkitect.lib.model import drains as drains
         self.assertEqual([d.building_dfu(b) for b in d.BUILDINGS], [15, 18])
         for b in d.BUILDINGS:
             self.assertEqual(opc_drainage.run_dfu(b, drains.exit_run(b)), d.building_dfu(b))
@@ -59,7 +59,7 @@ class DrainageTests(unittest.TestCase):
 
     def test_one_exit_each_through_the_south_wall(self):
         from src import drainage as d
-        from lib.model import drains as drains
+        from arkitect.lib.model import drains as drains
         for b in d.BUILDINGS:
             self.assertAlmostEqual(drains.exit_pen(b).pos[0], b.W)
 
@@ -106,7 +106,7 @@ class DrainageTests(unittest.TestCase):
     def test_a_stack_at_a_window_fails(self):
         """Where Stack E first stood: behind the sinks, under the kitchen window of both units."""
         from src import drainage as d
-        from lib.model import drains as drains
+        from arkitect.lib.model import drains as drains
         self.assertEqual(d.stack_violations(), [])
         keep = d.BUILDING_2.stacks[1]
         d.BUILDING_2.stacks[1] = keep._replace(pos=(keep.pos[0], drains._cy(d.U2_KS)))
@@ -167,7 +167,7 @@ class VentingArrangementTests(unittest.TestCase):
         """912.1: any additional fixture discharges downstream of the wet vent. Unit 3's
            bath is on stack D, and its foot comes into the drain past the tub."""
         from src import drainage as d
-        from lib.model import runs
+        from arkitect.lib.model import runs
         group = next(g for g in d.horizontal_wet_groups() if g[0].endswith('V-D'))
         walk = d._walk(d.BUILDING_2, d.LAV2)
         line = d._flow_line(walk)
@@ -178,7 +178,7 @@ class VentingArrangementTests(unittest.TestCase):
 
     def test_the_level_2_groups_are_vertical_wet_vents_with_the_closet_lowest(self):
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         groups = d.vertical_wet_groups()
         self.assertEqual([g[0].split()[3].rstrip(',') for g in groups], ['D'])     # Bath 2 is 912.1, below
         for _name, _size, conns, _vent in groups:
@@ -198,7 +198,7 @@ class VentingArrangementTests(unittest.TestCase):
 
     def test_e_and_f_are_913_waste_stack_vents_and_their_offsets_are_below_both(self):
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         got = d.waste_stacks()
         self.assertEqual([n for n, *_r in got], ['E', 'F'])
         for name, size, wc, by, total, offset in got:
@@ -213,7 +213,7 @@ class VentingArrangementTests(unittest.TestCase):
         """OPC 406.2: a washer's fixture drain connects to a 3\" or larger branch or stack.
            Table 913.4 would let stack F carry both washers at 2\"; 406.2 does not."""
         from src import drainage as d
-        from codes.ohio.opc_drainage import washer_connections, washer_violations
+        from arkitect.codes.ohio.opc_drainage import washer_connections, washer_violations
         self.assertEqual(len(washer_connections(d.BUILDINGS)), 3)
         self.assertEqual(washer_violations(d.BUILDINGS), [])
         b2 = d.BUILDINGS[1]
@@ -269,7 +269,7 @@ class VentingArrangementTests(unittest.TestCase):
            stands under the tub, 6'-8" and 9'-8" from the lavatories: nothing vertical stands
            at them, so the group is 912.1's horizontal wet vent in the floor, V-E at its head."""
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         g = next(g for g in d.horizontal_wet_groups() if g[0].endswith('V-E'))
         _name, conns, head, extras = g
         self.assertEqual([c.kind for c in conns], ['lav', 'lav', 'wc', 'tub'])
@@ -294,7 +294,7 @@ class VentingArrangementTests(unittest.TestCase):
            figure as the clear depth once (a 14" truss reading 13-1/4" between its chords),
            which is the subfloor and one chord counted as pipe space."""
         from src import drainage as d
-        from lib.units import inches
+        from arkitect.lib.units import inches
         self.assertEqual(d.web_clear(), d.levels.F2_JOIST-2*d.TRUSS_CHORD)
         self.assertEqual(inches(d.web_clear()), '11"')
         self.assertGreater(d.levels.F2_DEPTH-d.TRUSS_CHORD, d.web_clear())
@@ -316,8 +316,8 @@ class StackInCavityTests(unittest.TestCase):
 
     def test_the_bay_is_measured_at_the_fitting_and_closes_with_deeper_studs(self):
         from src import drainage as d
-        from lib.model import fit
-        from lib.units import inches
+        from arkitect.lib.model import fit
+        from arkitect.lib.units import inches
         r = d.cavity_runs()[0]
         self.assertEqual(inches(r.od), '3-1/2"')          # a "3 inch" stack, outside
         self.assertEqual(inches(r.fitting), '4-1/2"')     # and its hub, which governs
@@ -332,8 +332,8 @@ class StackInCavityTests(unittest.TestCase):
            pipe, but leaves no allowance for the larger outside dimensions of coupling hubs
            and sanitary tees". The bay is 1" short at the hub, and says so."""
         from src import drainage as d
-        from lib.model import fit
-        from lib.units import inches
+        from arkitect.lib.model import fit
+        from arkitect.lib.units import inches
         bare = [r._replace(added=0.0) for r in d.cavity_runs()]
         self.assertEqual(inches(fit.cavity_deepening_needed(bare[0])), '1"')
         v = fit.cavity_violations(bare)
@@ -345,8 +345,8 @@ class StackInCavityTests(unittest.TestCase):
            foam behind the WIDEST part of the line is the foam the schedule names."""
         from src import drainage as d
         from src import envelope as E
-        from lib.model import pipe
-        from lib.units import inches
+        from arkitect.lib.model import pipe
+        from arkitect.lib.units import inches
         self.assertAlmostEqual(d.F_POS[0], E.STACK_BAY_FILL+pipe.fitting_od(d.F_SIZE)/2.0)
         self.assertEqual(inches(d.F_POS[0]), '4-1/4"')
         back_of_fitting = d.F_POS[0]-pipe.fitting_od(d.F_SIZE)/2.0
@@ -356,7 +356,7 @@ class StackInCavityTests(unittest.TestCase):
         """The reviewer's finding, in the model: this is why the bay has its own fill."""
         from src import drainage as d
         from src import envelope as E
-        from lib.model import fit
+        from arkitect.lib.model import fit
         bad = [r._replace(fill=E.CAVITY_BATT, fill_name='R-%d BATT' % E.CAVITY_BATT_R)
                for r in d.cavity_runs()]
         v = fit.cavity_violations(bad)
@@ -366,7 +366,7 @@ class StackInCavityTests(unittest.TestCase):
 
     def test_making_the_stack_bigger_fails_the_build(self):
         from src import drainage as d
-        from lib.model import pipe
+        from arkitect.lib.model import pipe
         keep = list(d.BUILDINGS[1].stacks)
         i = next(j for j, s in enumerate(keep) if s.name == 'F')
         d.BUILDINGS[1].stacks[i] = keep[i]._replace(size='4')
@@ -392,7 +392,7 @@ class Bath2WeirTests(unittest.TestCase):
 
     def test_the_group_passes_909_2_as_drawn(self):
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         self.assertEqual(V.weir_violations(d.bath2_weirs()), [])
         self.assertEqual([w.name for w in d.bath2_weirs()],
                          ['UNIT 1 L2 LAV', 'UNIT 1 L2 LAV 2', 'UNIT 1 L2 WC', 'UNIT 1 L2 TUB'])
@@ -401,7 +401,7 @@ class Bath2WeirTests(unittest.TestCase):
         """The vent connects under the weir only by the fall of its own trap arm, which is what
            909.2 permits -- not by the depth of the floor it stands on."""
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         self.assertEqual(d.BATH2_VENTS, {0: 'V-E', 1: 'V-F'})
         for w in d.bath2_weirs():
             if w.kind != 'lav':
@@ -414,7 +414,7 @@ class Bath2WeirTests(unittest.TestCase):
            branch with the branch as its vent. Its PLAN trap arm is inches long, so Table 909.1
            passed it and every oracle was green. Only 909.2 can see it, and now does."""
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         keep = dict(d.BATH2_VENTS)
         d.BATH2_VENTS.pop(1)
         try:
@@ -434,7 +434,7 @@ class Bath2WeirTests(unittest.TestCase):
         """Their bend or trap hangs in the floor and is set to the branch, so the section does
            not measure them: the closet is excepted outright and the tub carries no weir."""
         from src import drainage as d
-        from codes.ohio import opc_vents as V
+        from arkitect.codes.ohio import opc_vents as V
         for w in d.bath2_weirs():
             if w.kind in ('wc', 'tub'):
                 self.assertLess(w.vent_at, 0.0)

@@ -15,16 +15,16 @@ Importing this module draws nothing, writes nothing and prints nothing.
 import sys, os, contextlib
 HERE = os.path.dirname(os.path.abspath(__file__))        # this project
 ROOT = os.path.dirname(os.path.dirname(HERE))            # the repository
-for _p in (ROOT, HERE):                                  # lib/ and codes/, then src/
+for _p in (ROOT, HERE):                                  # arkitect/lib/ and arkitect/codes/, then src/
     if _p not in sys.path:
         sys.path.insert(0, _p)
-from lib.draw import page
-from lib.draw.page import PH, PW
-from lib.model import pipe
+from arkitect.lib.draw import page
+from arkitect.lib.draw.page import PH, PW
+from arkitect.lib.model import pipe
 from src import levels, project
 # W-A, the one egress unit: its frame can host the net clear minimums every product must give
 from src.openings import WIN_GEOM, WIN_W
-from codes.ohio.rco.egress import check_egress_window
+from arkitect.codes.ohio.rco.egress import check_egress_window
 # the rear building: its Sage-wall terminations and its RCO 303.1 glazing
 from src.building2 import (check_b2_inside, check_b2_terms, check_b2_glazing,
                           stack_bay_violations)
@@ -67,11 +67,11 @@ OUT=os.path.join(HERE,project.PDF_OUT)
 # C-102 is its own document: the zoning site plan goes to Building and Zoning Services at
 # 11 x 17, which is not the set's sheet size.
 ZONING_OUT=os.path.join(HERE,project.ZONING_OUT)
-# Read by lib/export/dxf.py, which may not import a project.
+# Read by arkitect/lib/export/dxf.py, which may not import a project.
 DXF_OUT=os.path.join(HERE,project.DXF_OUT)
 
 # `c` is the per-document canvas every sheet function reads as a global; see
-# lib/draw/page.py's BuildContext.
+# arkitect/lib/draw/page.py's BuildContext.
 c=page.canvas_proxy()
 
 _CHECKED = False
@@ -182,7 +182,7 @@ def build_zoning_sheet(output_path=None, make_canvas=None):
 
 
 # Every file this project writes. A tool that re-runs the build reads this; see
-# lib/buildscript.py.
+# arkitect/lib/buildscript.py.
 DOCUMENTS = (build_set, build_zoning_sheet)
 
 

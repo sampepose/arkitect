@@ -35,16 +35,16 @@ bays they sit in; and the glazing and clear-rectangle figures the notes quote.
 """
 import math
 from src import fsd, levels
-from lib.units import IN, fmt
-from lib.model.records import PlanLevel
-from codes.columbus.legends import CLEARANCE_CAPTIONS
+from arkitect.lib.units import IN, fmt
+from arkitect.lib.model.records import PlanLevel
+from arkitect.codes.columbus.legends import CLEARANCE_CAPTIONS
 from src.finishes import BOARD     # the finish on a stud face, for the clear figures
 from src.openings import WIN_HEAD, WIN_SF
-from lib.symbols import LOOSE
-from lib.model import geom
-from lib.model.regrid import EXT_STUD, PART_STUD, Zone, Plan, snap
+from arkitect.lib.symbols import LOOSE
+from arkitect.lib.model import geom
+from arkitect.lib.model.regrid import EXT_STUD, PART_STUD, Zone, Plan, snap
 from src.partywall import SEP_STUD, W4_CORE, W4_STUD
-from lib.model.dimensions import net_areas, strings, wall_faces, carve, unbridge, drop
+from arkitect.lib.model.dimensions import net_areas, strings, wall_faces, carve, unbridge, drop
 from src.stairs import EXT_STAIR, THRESHOLD_DROP
 from src.mirror import B1_W, BED_SIDE, LIVE_SIDE, rdoors, rfurn, rjoist, rnotes, rops, rpoly, rpts, rrooms, rspan, rwins, rx
 

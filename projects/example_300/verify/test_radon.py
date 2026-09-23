@@ -17,7 +17,7 @@ if HERE not in sys.path:
 
 from src import radon as R          # noqa: E402
 from src import foundation as F     # noqa: E402
-from codes import irc_appendix_f as irc_appendix_f_shared
+from arkitect.codes import irc_appendix_f as irc_appendix_f_shared
 
 
 def _swap(i, **kw):
@@ -56,7 +56,7 @@ class RealModelTests(unittest.TestCase):
 
     def test_rr1_steps_out_of_the_w4_band_in_the_attic(self):
         from src.roof import B1_ROOF
-        from codes.ohio.rco.attic_ventilation import VENT_CLR
+        from arkitect.codes.ohio.rco.attic_ventilation import VENT_CLR
         rr1 = R.RISERS[0]
         self.assertNotEqual(rr1.pos, rr1.exit)
         self.assertAlmostEqual(rr1.exit[1], B1_ROOF.w4_band[0]-VENT_CLR)

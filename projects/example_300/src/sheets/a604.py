@@ -12,10 +12,10 @@ connection. Every figure is the model's — the riser, the tread, the width and 
 landing framing from src/stairs.py, the piers from src/foundation.py, the fire
 separation from src/fsd.py.
 """
-from lib.draw.page import GREY, Sheet
-from lib.draw.text import wrap_notes
+from arkitect.lib.draw.page import GREY, Sheet
+from arkitect.lib.draw.text import wrap_notes
 import math
-from lib.units import IN, fmt, inches, inches16
+from arkitect.lib.units import IN, fmt, inches, inches16
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
@@ -23,9 +23,9 @@ from src import fsd, stairs
 from src.framing import GROUND_SNOW
 from src.building1 import U3_STAIR
 from src.foundation import FROST_DEPTH
-from lib.draw.detail import _Det, _title
-from lib.draw.kit import X0, X1, Y0, Y1, c
-from lib.draw.detail import _break
+from arkitect.lib.draw.detail import _Det, _title
+from arkitect.lib.draw.kit import X0, X1, Y0, Y1, c
+from arkitect.lib.draw.detail import _break
 
 FLIGHT_SC = 1.5*72.0       # 1-1/2" = 1'-0", as A-603's sections
 BIG = 3.0*72.0             # 3" = 1'-0", for the two connection details

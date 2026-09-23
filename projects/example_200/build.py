@@ -1,19 +1,19 @@
 """200 EXAMPLE AVE — what the project writes, in what order, and what must hold first.
 
-Scaffolded by harness/scaffold.py from intake.json on 2026-09-22. The set grows one feature
-at a time: `python3 -m harness.progress next example_200`. Importing this module draws nothing,
+Scaffolded by arkitect/harness/scaffold.py from intake.json on 2026-09-22. The set grows one feature
+at a time: `python3 -m arkitect.harness.progress next example_200`. Importing this module draws nothing,
 writes nothing and prints nothing.
 """
 import os
 import sys
 HERE = os.path.dirname(os.path.abspath(__file__))        # this project
 ROOT = os.path.dirname(os.path.dirname(HERE))            # the repository
-for _p in (ROOT, HERE):                                  # lib/ and codes/, then src/
+for _p in (ROOT, HERE):                                  # arkitect/lib/ and arkitect/codes/, then src/
     if _p not in sys.path:
         sys.path.insert(0, _p)
-from codes.columbus import fit
-from codes.columbus.zoning_sheets import cover_sheet, zoning_site_plan
-from lib.buildkit import documents
+from arkitect.codes.columbus import fit
+from arkitect.codes.columbus.zoning_sheets import cover_sheet, zoning_site_plan
+from arkitect.lib.buildkit import documents
 from src import project, sitework
 
 _CHECKED = False
@@ -35,7 +35,7 @@ def check_model():
 INDEX = [("G-001", "COVER SHEET"), ("C-102", "ZONING SITE PLAN — 11 x 17, ISSUED SEPARATELY")]
 SHEETS = (cover_sheet(sitework.INTAKE, sitework.MASSING, INDEX),)
 
-# Read by lib/export/dxf.py, which may not import a project.
+# Read by arkitect/lib/export/dxf.py, which may not import a project.
 DXF_OUT = os.path.join(HERE, project.DXF_OUT)
 
 DOCUMENTS = documents(project.TITLEBLOCK, check_model, SHEETS, os.path.join(HERE, project.PDF_OUT),

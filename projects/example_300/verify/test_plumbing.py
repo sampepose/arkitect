@@ -48,7 +48,7 @@ class TallyTests(unittest.TestCase):
 
     def test_the_real_units(self):
         from src import plumbing as p
-        from lib.model import water as water
+        from arkitect.lib.model import water as water
         b1, b2 = p.BUILDINGS
         self.assertEqual(water.unit_names(b1), ['UNIT 1', 'UNIT 2', 'UNIT 3']); self.assertEqual(water.unit_names(b2), ['UNIT 4', 'UNIT 5'])
         self.assertAlmostEqual(p.unit_wsfu(b1, 'UNIT 1')[2], 11.4)
@@ -78,7 +78,7 @@ class GeometryTests(unittest.TestCase):
 
     def test_stub_leaves_the_run_at_the_nearest_point(self):
         from src import plumbing as p
-        from lib.model import water as water
+        from arkitect.lib.model import water as water
         r = p.Run('T', ('lav',), [(0.0, 0.0), (0.0, 10.0)])
         q, e = water.stub(r, p.Fixture(2.0, 4.0, 2.0, 1.0, 'lav'))
         self.assertEqual(q, (0.0, 4.5)); self.assertEqual(e, (2.0, 4.5))
@@ -87,7 +87,7 @@ class GeometryTests(unittest.TestCase):
 
     def test_run_lines(self):
         from src import plumbing as p
-        from lib.model import water as water
+        from arkitect.lib.model import water as water
         u = p.BUILDING_1.units[2]
         bath = next(r for r in u.runs if r.group == 'BATH')
         self.assertEqual(water.run_lines(bath, u.fixtures), (3, 2))
@@ -183,7 +183,7 @@ class WorkingSpaceTests(unittest.TestCase):
         self.assertEqual(v, [])
 
     def test_the_tanks_are_sized_by_bedroom_count(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         from src.plumbing import WH_TANKS
         self.assertEqual(WH_TANKS['UNIT 1'], (50, IN(20)))
         self.assertEqual(WH_TANKS['UNITS 2 / 3'], (40, IN(18)))
@@ -192,7 +192,7 @@ class WorkingSpaceTests(unittest.TestCase):
     def test_units_2_3_and_unit_1_keep_their_panel_spaces_clear(self):
         """The two that CAN be clear are clear, and nothing hides in the exception."""
         from src.plumbing import HEATER_RECT, PANEL_SPACE, PANEL_SPACE_EXCEPTION
-        from lib.model.water import _overlap_box
+        from arkitect.lib.model.water import _overlap_box
         for nm in ('UNIT 1', 'UNITS 2 / 3'):
             self.assertNotIn(nm, PANEL_SPACE_EXCEPTION)
             self.assertEqual(_overlap_box(HEATER_RECT[nm], PANEL_SPACE[nm]), (0.0, 0.0), nm)
@@ -214,7 +214,7 @@ class WorkingSpaceTests(unittest.TestCase):
         """Unit 1's heater space once started at the tank's west edge and ran 10" past the
            strip's east wall into Bath 1, and nothing failed. Put it back there and the
            build stops."""
-        from lib.units import IN
+        from arkitect.lib.units import IN
         import src.building1 as b
         import src.plumbing as p
         x, y, w, h = p.HEATER_SPACE['UNIT 1']

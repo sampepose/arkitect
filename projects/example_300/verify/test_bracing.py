@@ -2,7 +2,7 @@
 import os
 import sys
 import unittest
-from codes.ohio.rco import bracing as bracing_shared
+from arkitect.codes.ohio.rco import bracing as bracing_shared
 
 HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -88,7 +88,7 @@ class LineTests(unittest.TestCase):
 
     def test_required_length_is_the_interpolated_row_times_the_factors(self):
         from src import bracing as b
-        from codes.ohio.rco import bracing as rco_bracing
+        from arkitect.codes.ohio.rco import bracing as rco_bracing
         from src import levels
         from src.roof import HEEL_NOM
         ln = [l for l in b.LINES if l.building == 'BUILDING 1' and l.level == 1 and l.tag == '1'][0]
@@ -127,8 +127,8 @@ class LineTests(unittest.TestCase):
 
     def test_end_conditions_in_order(self):
         from src import bracing as b
-        from codes.ohio.rco import bracing as rco_bracing
-        from lib.units import IN
+        from arkitect.codes.ohio.rco import bracing as rco_bracing
+        from arkitect.lib.units import IN
         run = self._run(20.0, [(3.0, 3.0, 6.0, 'W-A'), (15.0, 3.0, 6.0, 'W-A')])
         ps = b.panels(run, 9.0)
         self.assertEqual(rco_bracing.end_condition(run, 'lo', ps, IN(24)).condition, 1)
@@ -171,7 +171,7 @@ class LineTests(unittest.TestCase):
 
     def test_a_short_line_and_a_nail_that_does_not_reach_fail(self):
         from src import bracing as b
-        from codes.ohio.rco import bracing as rco_bracing
+        from arkitect.codes.ohio.rco import bracing as rco_bracing
         ln = [l for l in b.LINES if l.building == 'BUILDING 1' and l.level == 1 and l.tag == '1'][0]
         short = ln._replace(panels=ln.panels[:1], required=50.0)
         v = b.bracing_violations([short])
@@ -191,7 +191,7 @@ class PortalTests(unittest.TestCase):
 
     def test_the_real_portals_stand_beside_building_2s_courtyard_doors(self):
         from src import bracing as b
-        from codes.ohio.rco import bracing as rco_bracing
+        from arkitect.codes.ohio.rco import bracing as rco_bracing
         pf = [(ln, p, o) for ln in b.LINES for p, o in b.portal_openings(ln)]
         self.assertEqual(sorted((ln.building, ln.level, ln.tag) for ln, p, o in pf), [('BUILDING 2', 1, '1')])
         for ln, p, o in pf:
@@ -201,8 +201,8 @@ class PortalTests(unittest.TestCase):
             self.assertLessEqual(rco_bracing.header_depth(h.size), rco_bracing.PORTAL_HEADER[1])
 
     def test_header_depths(self):
-        from codes.ohio.rco import bracing as rco_bracing
-        from lib.units import IN
+        from arkitect.codes.ohio.rco import bracing as rco_bracing
+        from arkitect.lib.units import IN
         self.assertAlmostEqual(rco_bracing.header_depth('2-2x6'), IN(5.5))
         self.assertAlmostEqual(rco_bracing.header_depth('3-2x12'), IN(11.25))
         self.assertEqual(rco_bracing.header_depth('PER 602.7.4'), 0.0)

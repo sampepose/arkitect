@@ -17,7 +17,7 @@ if PROJ not in sys.path:
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-from lib.units import IN
+from arkitect.lib.units import IN
 from src import levels as L
 
 

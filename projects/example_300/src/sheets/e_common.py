@@ -1,21 +1,21 @@
 """What E-101 and E-102 share: putting a unit's devices on a greyed plan, the panel
 schedules, the one-line diagram and the notes. Every figure printed here is read from
 src/electrical.py, which check_model() has already passed."""
-from lib.draw.page import LAY, GREY
-from lib.draw.text import wrap_notes
-from lib.symbols import electrical as es
-from lib.units import inches
-from codes.columbus.legends import DEVICE_KINDS
+from arkitect.lib.draw.page import LAY, GREY
+from arkitect.lib.draw.text import wrap_notes
+from arkitect.lib.symbols import electrical as es
+from arkitect.lib.units import inches
+from arkitect.codes.columbus.legends import DEVICE_KINDS
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src.electrical import CIRCUITS_HOUSE, CIRCUITS_U1, CIRCUITS_U23, CIRCUITS_U45, HOUSE_VA, NEC_UNITS
-from codes.nec.load import GEC_CEE, feeders, service_loads
-from codes.nec.load import nec220_82
-from codes.nec.dwelling import panel_spaces
-from lib.draw.kit import c
-from lib.draw.kit import _fits, title
-from lib.draw.kit import notes_block
+from arkitect.codes.nec.load import GEC_CEE, feeders, service_loads
+from arkitect.codes.nec.load import nec220_82
+from arkitect.codes.nec.dwelling import panel_spaces
+from arkitect.lib.draw.kit import c
+from arkitect.lib.draw.kit import _fits, title
+from arkitect.lib.draw.kit import notes_block
 
 def legend(p, x, y, devs, width):
     kinds = [k for k in DEVICE_KINDS if any(d.kind == k for d in devs)]

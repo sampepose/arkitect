@@ -2,20 +2,20 @@
 the legend, the fixture-unit and pipe-size table, the supply diagram and the notes.
 Every figure printed here is read from src/plumbing.py, which check_model() has
 already passed."""
-from lib.draw.page import LAY
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import LAY
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from src import drainage as dr
 from src import plumbing as pm
-from codes.ohio.opc_service_entry import entry_for as _entry_for
-from lib.model import water as water
-from lib.draw.kit import c
-from lib.draw.kit import _fits
-from lib.draw.plumbing_kit import (_P, _text, cold_line, hot_line, manifold, meter, riser, run_label,
+from arkitect.codes.ohio.opc_service_entry import entry_for as _entry_for
+from arkitect.lib.model import water as water
+from arkitect.lib.draw.kit import c
+from arkitect.lib.draw.kit import _fits
+from arkitect.lib.draw.plumbing_kit import (_P, _text, cold_line, hot_line, manifold, meter, riser, run_label,
                                    under_line, valve)
-from lib.draw.kit import notes_block
-from lib.draw.plumbing_kit import fixture_end
+from arkitect.lib.draw.kit import notes_block
+from arkitect.lib.draw.plumbing_kit import fixture_end
 
 S = 5.6                                  # the text size the legend, table and notes share
 

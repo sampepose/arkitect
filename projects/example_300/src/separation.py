@@ -9,7 +9,7 @@ Type SCX layer on each face, 4-3/4" — with their inner layers touching:
     W4A   Unit 1's, its floors and ceilings framed on it
     W4B   Units 2 / 3', theirs framed on it
 
-9-1/2" finished, 8-1/4" stud face to stud face (lib/model/regrid.py). Nothing of either
+9-1/2" finished, 8-1/4" stud face to stud face (arkitect/lib/model/regrid.py). Nothing of either
 unit touches the other's wall, so each is ordinary platform framing: a tier per story on
 its own sole plate under its own top plate, with its own floor's rim NAILED to it. That
 is what makes the height prescriptive — RCO Table 602.3(5) stops a 2x4 at 10'-0" between
@@ -28,7 +28,7 @@ the joint between the two inner layers, + toward Units 2 / 3.
 """
 from collections import namedtuple
 from src.partywall import SEP_STUD, W4_CORE, W4_FACE, W4_STUD
-from lib.units import IN, fmt, inches
+from arkitect.lib.units import IN, fmt, inches
 from src import fireblocking, levels
 from src.mirror import B1_W
 

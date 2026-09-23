@@ -2,18 +2,18 @@
    src/drainage.py: each stack's branch intervals, and beside them the slab-drained
    fixtures that vent into it. The drainage fixture units and everything below the slabs
    are P-101's; the water supply is P-102 / P-103's."""
-from lib.draw.page import LAY, Sheet
-from lib.draw.text import wrap_notes
-from lib.units import IN, fmt, inches
-from codes.ohio.opc_drainage import SIZE_IN
+from arkitect.lib.draw.page import LAY, Sheet
+from arkitect.lib.draw.text import wrap_notes
+from arkitect.lib.units import IN, fmt, inches
+from arkitect.codes.ohio.opc_drainage import SIZE_IN
 from reportlab.lib.colors import black
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
-from codes.ohio import opc_vents as VENT
-from codes.ohio.opc_service_entry import entry_for
-from codes.ohio.opc_service_entry_draw import (service_entry_elevation, service_entry_notes,
+from arkitect.codes.ohio import opc_vents as VENT
+from arkitect.codes.ohio.opc_service_entry import entry_for
+from arkitect.codes.ohio.opc_service_entry_draw import (service_entry_elevation, service_entry_notes,
                                                service_entry_section)
-from codes.ohio import opc_vents_draw as DRAW
+from arkitect.codes.ohio import opc_vents_draw as DRAW
 from src import criteria as crit
 from src import drainage as dr
 from src import envelope
@@ -22,13 +22,13 @@ from src.foundation import (BAR_COVER, EDGE_INSUL_RUN, FTG_BAR, FTG_BAR_DIA,
                             FTG_PROJ, FTG_W, GRAVEL_T, INSUL_T, SLAB_T, WALL_T)
 from src.building1 import CHASE
 from src import plumbing as pm
-from lib.draw.kit import X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import X0, X1, Y0, Y1, c
 
 FIX = {'sink': 'KITCHEN SINK', 'wc': 'WC', 'tub': 'TUB', 'shower': 'SHOWER', 'lav': 'LAV', 'wd': 'WASHER STANDPIPE'}
 WHAT = {(1, 'A'): "UNIT 1 BATH 2", (1, 'B'): "UNIT 1 BATH 1 DRY VENT",
         (2, 'D'): "UNITS 2 / 3 BATH", (2, 'E'): "UNITS 2 / 3 KITCHEN SINKS", (2, 'F'): "UNITS 2 / 3 LAUNDRY"}
 # What vents what, in the words the riser prints. Each is a different arrangement with its
-# own requirements, which is why each is drawn its own way: codes/ohio/opc_vents.py.
+# own requirements, which is why each is drawn its own way: arkitect/codes/ohio/opc_vents.py.
 VERTICAL = 'VERTICAL WET VENT, 912.1.1'
 HORIZONTAL = 'HORIZONTAL WET VENT, 912.1'
 # How far the isometric carries a pipe that leaves the drawing: it runs off at a break, so
@@ -460,7 +460,7 @@ def sheet_p601():
     bath2_isometric(ix, y-iso_h, X1-ix, iso_h)
     y = min(ny, y-iso_h-0.18*inch)
     # The water service entry, in the band the notes leave at the foot of the sheet. The
-    # same section 300's P-601 draws, from lib/draw/plumbing_kit.py: both slabs sit on the
+    # same section 300's P-601 draws, from arkitect/lib/draw/plumbing_kit.py: both slabs sit on the
     # same 32" footing and neither can take the service through its wall.
     e = entry_for(dr.BUILDING_1, dr.GROUND)
     assert entry_for(dr.BUILDING_2, dr.GROUND) == e, \

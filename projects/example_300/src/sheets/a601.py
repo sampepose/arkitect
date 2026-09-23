@@ -1,19 +1,19 @@
 """A-601 — assemblies and the fire-separation schedule."""
-from lib.draw.page import POCHE, Sheet
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import POCHE, Sheet
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from src.building1 import U3_STAIR_CLR, U3_STAIR_RATED
 from src.building2 import U5_STAIR_CLR, U5_STAIR_LINE, U5_STAIR_RATED
 from src import fsd
-from codes.ohio.rco import fire_separation as rco_fsd
+from arkitect.codes.ohio.rco import fire_separation as rco_fsd
 from src.mirror import B1_W
 from src.sitework import L2_STOREY, REAR_OPEN_PCT
 from src.foundation import EDGE_INSUL_RUN, FROST_DEPTH, FTG_T, FTG_W, GRAVEL_T, INSUL_R_NOM, RETARDER_MIL, SLAB_T, STRIP_D, STRIP_W, WALL_T
-from lib.draw.kit import X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import X0, X1, Y0, Y1, c
 from src import levels
 from src.framing import F1_JOIST, F1_MAX_JOIST_OC, JOIST_OC
-from lib.draw.text import wrap_notes
+from arkitect.lib.draw.text import wrap_notes
 from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.colors import Color
 from src import fireblocking as fb

@@ -3,27 +3,27 @@
 Draws src/foundation.py and nothing it does not hold. The plans are in final sheet
 coordinates already (see that module), so PlanDraw takes them straight: no mirror.
 """
-from lib.draw.page import GREY, LAY, Sheet
-from lib.draw.plan import PlanDraw
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import GREY, LAY, Sheet
+from arkitect.lib.draw.plan import PlanDraw
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src import criteria as crit
 from src import levels
 from src import radon as RN
-from lib.draw.text import wrap_notes
+from arkitect.lib.draw.text import wrap_notes
 from src.foundation import (B1, B2, BAR_COVER, CONCRETE, EDGE_INSUL_RUN, ENERGY_R, FLATWORK, FROST_DEPTH, FTG_BAR, GRAVEL_T,
                             RETARDER_MIL, FTG_PROJ, FTG_T, FTG_W, INSUL_NAME, INSUL_R_NOM, INSUL_T,
                             PAD_EDGE, PAD_T, SLAB, SLAB_T, STRIP_D, STRIP_W, TERMITE, TERMITE_METHOD,
                             TERMITE_METHODS, TERMITE_TREATMENT, WALL_T, WEATHERING)
-from codes.ohio.rco.concrete import ACI_DEICING, AIR_MAX, AIR_MIN, psi
+from arkitect.codes.ohio.rco.concrete import ACI_DEICING, AIR_MAX, AIR_MIN, psi
 from src.building1 import Y_SEP_TOP
 from src.grading import FALL, FALL_RUN, IMPERVIOUS_MIN
 from src import drainage as _dr
-from codes.ohio.opc_service_entry import entry_for
-from lib.draw.kit import Q, X0, X1, Y0, Y1, c
-from lib.draw.foundation_kit import _band
+from arkitect.codes.ohio.opc_service_entry import entry_for
+from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.foundation_kit import _band
 
 TERMITE_SIZE = 6.6
 TERMITE_LEAD = 0.112*inch
@@ -316,7 +316,7 @@ def sheet_s101():
     # label is 0.5 in above that datum); its lowest line, the scale under the footing,
     # is derived from the model's frost depth and held above the drawing area.
     # the slab stands 8" out of grade: the sill's label is that much higher over the detail's datum,
-    # and used to print on the last note line (lib/verify/sheet_text.py found it)
+    # and used to print on the last note line (arkitect/lib/verify/sheet_text.py found it)
     _dy = ny-0.55*inch-(levels.SLAB_TOP-levels.GRADE)*54.0+0.12*inch
     _low = _dy-FROST_DEPTH*54.0-22
     assert _low >= Y0, "S-101 wall detail runs off the sheet by %.2f in" % ((Y0-_low)/inch)

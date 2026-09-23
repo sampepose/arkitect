@@ -17,10 +17,10 @@ as A-101 and A-102 draw the buildings. Nothing here is mirrored.
 Elm's, unchanged -- same city, same code. The two buildings below are Oak's.
 """
 from collections import namedtuple
-from lib.units import IN, fmt
+from arkitect.lib.units import IN, fmt
 from src import levels
 from math import pi
-from lib.model.regrid import EXT_STUD
+from arkitect.lib.model.regrid import EXT_STUD
 from src import criteria
 from src.building1 import B1_W, B1_D, D_REAR_W, ENTRY_X, REAR_DOOR_X, STAIR_WALL
 from src.building2 import (B2_W, B2_D, U45_BEARING_WALL, U5_DOOR_X0, U5_STOOP_X0, U5_FLIGHT_X0,
@@ -103,8 +103,8 @@ def check_basis():
     check_termite()
 
 
-# concrete, RCO Table R402.2: shared, see codes/ohio/rco/concrete.py
-from codes.ohio.rco.concrete import (Concrete, INTERIOR_SLAB, NOT_EXPOSED, PORCH_STEPS, VERTICAL_EXPOSED,
+# concrete, RCO Table R402.2: shared, see arkitect/codes/ohio/rco/concrete.py
+from arkitect.codes.ohio.rco.concrete import (Concrete, INTERIOR_SLAB, NOT_EXPOSED, PORCH_STEPS, VERTICAL_EXPOSED,
                                      psi, table_violations)
 
 

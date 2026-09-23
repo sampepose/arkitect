@@ -7,21 +7,21 @@ table; its original stays in projects/example_300.
 """
 import re
 
-from lib.draw.page import ARCH_C, Sheet
-from lib.draw.text import table
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import ARCH_C, Sheet
+from arkitect.lib.draw.text import table
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src import criteria as crit, levels, stairs
 from src.building1 import LEVELS as B1_LEVELS
 from src.electrical import CIRCUITS_U1, CIRCUITS_U23, SERVICES
-from codes.nec.load import service_loads
+from arkitect.codes.nec.load import service_loads
 from src.foundation import (FROST_DEPTH, FTG_T, FTG_W, STRIP_D, STRIP_W, TERMITE,
                             TERMITE_TREATMENT, WALL_T, WEATHERING)
 from src.framing import F1_JOIST, F2_JOIST, JOIST_OC, TRUSS_OC
 from src.openings import WIN_GEOM, WIN_HEAD, WIN_W
-from codes.ohio.rco.egress import EGRESS_MIN_H, EGRESS_MIN_SF, EGRESS_MIN_W
-from lib.draw.kit import X0, X1, Y1, c
+from arkitect.codes.ohio.rco.egress import EGRESS_MIN_H, EGRESS_MIN_SF, EGRESS_MIN_W
+from arkitect.lib.draw.kit import X0, X1, Y1, c
 from src.sitework import (ADU_SF, COVERAGE, COVERAGE_MAX, LOT_AREA, PARK_N, PARK_REQ,
                           PRINCIPAL_SF, SITE_BLDG, SITE_D, SITE_W)
 

@@ -28,7 +28,7 @@ line yet: neither building's roof is modelled for this lot.
 
 Distances are in FEET. Site y increases toward the rear, as everywhere else.
 """
-from lib.units import fmt, inches
+from arkitect.lib.units import fmt, inches
 from src.stairs import EXT_STAIR
 
 # ---------------- the courtyard ----------------
@@ -50,8 +50,8 @@ OFF_B1 = 6.25
 OFF_B2 = GAP-OFF_B1        # 8'-9" — Building 2's courtyard wall is clear of the table entirely
 
 
-# RCO Table 302.1(1), EXTERIOR WALLS: shared, see codes/ohio/rco/fire_separation.py
-from codes.ohio.rco.fire_separation import (OPEN_MIN, PROJ_FREE, PROJ_MIN, RAKE, RATED_MAX, SECTION,
+# RCO Table 302.1(1), EXTERIOR WALLS: shared, see arkitect/codes/ohio/rco/fire_separation.py
+from arkitect.codes.ohio.rco.fire_separation import (OPEN_MIN, PROJ_FREE, PROJ_MIN, RAKE, RATED_MAX, SECTION,
                                             opening_max, projection_rating, rated, underside)
 
 

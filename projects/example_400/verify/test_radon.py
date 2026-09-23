@@ -47,7 +47,7 @@ class RadonTests(unittest.TestCase):
         """The drains are COVER under the slab and the lateral is in the aggregate: crossing the
            collector in plan is not a conflict. At 300's 12-inch cover the 2-inch drains would be."""
         from src import radon as r, drainage as d
-        from lib.model import runs as runs
+        from arkitect.lib.model import runs as runs
         self.assertFalse([w for w in r._below_slab(d.BUILDING_2) if 'DRAIN' in w[0]])
         self.assertTrue(any(runs.crossing(a, b, p, q) is not None for run in d.BUILDING_2.runs
                             for p, q in zip(run.path, run.path[1:])

@@ -11,15 +11,15 @@ by corner and would shrink it. Each stands between two trusses. The Level 2 bath
 exhaust straight up, so each roof cap is its fan's place in src/electrical.py.
 """
 from collections import namedtuple
-from lib.units import IN
-from lib.model.regrid import EXT_STUD
+from arkitect.lib.units import IN
+from arkitect.lib.model.regrid import EXT_STUD
 from src import levels
 from src.building1 import B1_D, B1_W, PLAN_B1_L2
 from src.building2 import B2_D, B2_W, PLAN_B2
 from src.foundation import ROOF_OVERHANG
 from src.framing import TRUSS_OC
-from codes.ohio.rco.attic_ventilation import _attic, attic_vents
-from codes.ohio.rco.roof_checks import HATCH_L, HATCH_W, roof_violations
+from arkitect.codes.ohio.rco.attic_ventilation import _attic, attic_vents
+from arkitect.codes.ohio.rco.roof_checks import HATCH_L, HATCH_W, roof_violations
 
 # ---------------- basis ----------------
 HEEL_NOM   = levels.ROOF_HEEL   # the raised heel the details draw; the truss design sets it

@@ -1,11 +1,11 @@
 """300 S Elm's own binding order, asserted against its own cover sheet.
 
-    python3 lib/verify/run_tests.py       # the project's test command; see that file
+    python3 arkitect/lib/verify/run_tests.py       # the project's test command; see that file
 
-This was one test in lib/verify/test_trace.py, kept there because that file tests the
+This was one test in arkitect/lib/verify/test_trace.py, kept there because that file tests the
 tracing harness. But asserting the 300 S Elm set binds in the order ITS G-001 lists is
 a project fact, not a harness fact, so it moves here with the project. The three helpers
-below are copied from lib/verify/test_trace.py's HarnessTestCase rather than imported --
+below are copied from arkitect/lib/verify/test_trace.py's HarnessTestCase rather than imported --
 a project test does not reach back into the engine's test directory for plumbing."""
 import os
 import subprocess
@@ -20,8 +20,8 @@ if PROJ not in sys.path:
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-from lib import workspace                                    # noqa: E402  the engine, wherever it is
-TRACE = os.path.join(workspace.ENGINE, 'lib', 'verify', 'trace.py')
+from arkitect.lib import workspace                                    # noqa: E402  the engine, wherever it is
+TRACE = os.path.join(workspace.ENGINE, 'arkitect', 'lib', 'verify', 'trace.py')
 BUILD = os.path.join(HERE, 'projects', 'example_300', 'build.py')
 
 

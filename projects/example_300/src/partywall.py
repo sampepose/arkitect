@@ -1,7 +1,7 @@
 """W4's plan dimensions. A leaf: it imports nothing, so the building model, the separation
 model, the roof and A-301 can all read it without a cycle. src/separation.py owns what W4 IS
 and checks it; these four figures are only how thick it draws and how much plan it takes.
-They lived in lib/model/regrid.py until 2026-09-18, where a second project with no party
+They lived in arkitect/lib/model/regrid.py until 2026-09-18, where a second project with no party
 wall carried them."""
 
 # W4, the grouping separation: two independent 1-hour UL U305 walls back to back — W4A,

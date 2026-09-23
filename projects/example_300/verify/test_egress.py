@@ -4,7 +4,7 @@
 import os
 import sys
 import unittest
-from codes.ohio.rco import egress as egress_shared
+from arkitect.codes.ohio.rco import egress as egress_shared
 
 HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -17,7 +17,7 @@ if HERE not in sys.path:
 class EgressMinimumTests(unittest.TestCase):
 
     def test_the_minimums_are_rco_310_2_1_and_310_2_2(self):
-        from codes.ohio.rco import egress as rco_egress
+        from arkitect.codes.ohio.rco import egress as rco_egress
         self.assertEqual(rco_egress.EGRESS_MIN_SF, 5.7)
         self.assertAlmostEqual(rco_egress.EGRESS_MIN_W*12, 20.0)
         self.assertAlmostEqual(rco_egress.EGRESS_MIN_H*12, 24.0)
@@ -25,12 +25,12 @@ class EgressMinimumTests(unittest.TestCase):
 
     def test_the_drawn_frame_passes(self):
         from src.openings import WIN_GEOM, WIN_W
-        from codes.ohio.rco.egress import check_egress_window
+        from arkitect.codes.ohio.rco.egress import check_egress_window
         check_egress_window(win_geom=WIN_GEOM, win_w=WIN_W)
 
     def _fails_with(self, name, value):
         # restored before returning, so each call patches exactly one figure
-        # the minimums are the code's, codes/ohio/rco/egress.py; the frame is this project's
+        # the minimums are the code's, arkitect/codes/ohio/rco/egress.py; the frame is this project's
         from src import openings as o
         old = getattr(egress_shared, name)
         setattr(egress_shared, name, value)
@@ -41,7 +41,7 @@ class EgressMinimumTests(unittest.TestCase):
             setattr(egress_shared, name, old)
 
     def test_a_minimum_the_frame_cannot_host_fails_the_build(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         # a 3'-0" x 6'-0" double hung opens at most 36" x 36" = 9.0 SF
         self._fails_with('EGRESS_MIN_H', IN(37))
         self._fails_with('EGRESS_MIN_W', IN(37))

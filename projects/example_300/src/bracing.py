@@ -9,14 +9,14 @@ from the same opening lists the plans, the elevations and the header schedule re
 so a window moved on A-101 moves a braced wall panel here.
 """
 from collections import namedtuple
-from lib.units import fmt
+from arkitect.lib.units import fmt
 from src import levels
 from src.mirror import B1_W
 from src.openings import WIN_GEOM
 from src.roof import HEEL_NOM
-from codes.ohio.rco.bracing import corner_segment, end_condition, factor, provided, segments
-from codes.ohio.rco.bracing import roof_connection
-from codes.ohio.rco.bracing import header_depth
+from arkitect.codes.ohio.rco.bracing import corner_segment, end_condition, factor, provided, segments
+from arkitect.codes.ohio.rco.bracing import roof_connection
+from arkitect.codes.ohio.rco.bracing import header_depth
 
 # ---------------- the opening lists, in page feet along each wall ----------------
 D1_HEIGHT = 6.0+8.0/12.0            # D-1, 3'-0" x 6'-8", A-602: the only exterior door
@@ -111,8 +111,8 @@ def eave_to_ridge(span):
     return levels.ridge(span)-levels.ROOF_PLATE
 
 
-# RCO R602.10, transcribed: shared, see codes/ohio/rco/bracing.py
-from codes.ohio.rco.bracing import (CS_PF_CREDIT, EXPOSURE, FIRST_PANEL_MAX, F_EAVE_RIDGE, F_EXPOSURE,
+# RCO R602.10, transcribed: shared, see arkitect/codes/ohio/rco/bracing.py
+from arkitect.codes.ohio.rco.bracing import (CS_PF_CREDIT, EXPOSURE, FIRST_PANEL_MAX, F_EAVE_RIDGE, F_EXPOSURE,
                                     F_LINES, F_STORY_HEIGHT, GYP_SHEATHING_T, HOLD_DOWN_LB, MAX_SPACING,
                                     METHOD, NAIL, NAIL_LENGTH, NAIL_PENETRATION, NAIL_W1R, ONE_PANEL_MIN,
                                     PANEL_GAP_MAX, PORTAL_HEADER, PORTAL_MAX_HEADER_HEIGHT,
@@ -121,7 +121,7 @@ from codes.ohio.rco.bracing import (CS_PF_CREDIT, EXPOSURE, FIRST_PANEL_MAX, F_E
 
 
 from src.criteria import WIND, WIND_VULT, WIND_EXPOSURE
-from codes.ohio.rco.bracing import require_column
+from arkitect.codes.ohio.rco.bracing import require_column
 # The shared tables are ONE column of Table 602.10.3(1) and Table 602.10.6.4; this project's
 # design criteria have to be that column before a figure from them is printed.
 require_column(WIND_VULT, WIND_EXPOSURE, WIND)
@@ -277,7 +277,7 @@ def floor_connection(line):
 def truss_perpendicular(line):
     """Do the trusses of this line's roof cross the wall? They span x on both roofs."""
     from src.roof import ROOFS, TRUSS_OC
-    from codes.ohio.rco.roof_checks import truss_lines
+    from arkitect.codes.ohio.rco.roof_checks import truss_lines
     (roof,) = [r for r in ROOFS if r.name == line.building]
     x0, y0, x1, y1 = truss_lines(roof.bays[0], truss_oc=TRUSS_OC)[0]
     return ('x' if abs(y1-y0) < 1e-9 else 'y') != line.o

@@ -1,6 +1,6 @@
 """300 S Elm's exterior stair — one spec, used by both buildings.
 
-The class is lib/model/stairs.py; this is this lot's instance of it. Unit 5's stair is
+The class is arkitect/lib/model/stairs.py; this is this lot's instance of it. Unit 5's stair is
 this one with a longer top landing, which is what with_landing() is for.
 
 Both stairs are PRESCRIPTIVE WOOD as of 2026-09-15. They were galvanized steel, drawn
@@ -17,9 +17,9 @@ The words below are the ones the sheets print. They are here rather than typed i
 A-001, A-601 and A-604 separately, because three sheets describing one stair in three
 sets of words is how a set ends up specifying two different stairs.
 """
-from lib.units import IN
+from arkitect.lib.units import IN
 from src import levels
-from lib.model.stairs import ExteriorStair
+from arkitect.lib.model.stairs import ExteriorStair
 
 
 # What the stair is made of, and the code it is designed to. A-001 notes 13a / 13b,
@@ -43,7 +43,7 @@ SPEC = '%s: %s, %s, %s, %s' % (MATERIAL, STRINGERS, LANDING, TREADS, GUARDS)
 
 
 # The stair both buildings use. Unit 5's is this one with a longer top landing; see
-# lib/model/stairs.py for why that relationship is an object and not six assignments.
+# arkitect/lib/model/stairs.py for why that relationship is an object and not six assignments.
 # Every exterior landing pad stands THRESHOLD_DROP under its door's threshold, and the
 # stoops at the same height, so the flights keep ~8" risers whatever the floor's height
 # above grade (the designer, 2026-09-18: the floor rose to +8-1/4"; a +6" stoop would have left

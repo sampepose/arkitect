@@ -34,7 +34,7 @@ class WaterTests(unittest.TestCase):
 
     def test_one_service_sized_at_the_longest_run(self):
         from src import plumbing as p
-        from codes.ohio import water_supply as water_supply
+        from arkitect.codes.ohio import water_supply as water_supply
         sv = p.service()
         self.assertEqual((sv['meter'], sv['service']), ('3/4', '1-1/4'))
         self.assertAlmostEqual(sv['length'], max(p.building_length(b) for b in p.BUILDINGS))

@@ -4,25 +4,25 @@
    src/grading.py: every band, section, flowline and grade on this sheet is the model's,
    and check_grading() has held each to RCO 401.3 before a line is drawn. Nothing here
    computes a grade; it places the ones the model has."""
-from lib.draw.context import LAY
-from lib.draw.page import GREY, PlanDraw, Sheet
-from lib.units import IN, fmt, inches
+from arkitect.lib.draw.context import LAY
+from arkitect.lib.draw.page import GREY, PlanDraw, Sheet
+from arkitect.lib.units import IN, fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src import levels
 from src import grading as G
-from lib.model import grade as grade
+from arkitect.lib.model import grade as grade
 from src.foundation import FLATWORK
-from codes.ohio.rco.concrete import psi
+from arkitect.codes.ohio.rco.concrete import psi
 from src.sitework import NORTH_NEIGHBOUR, SITE_D, SITE_W, SOUTH_NEIGHBOUR
-from lib.draw.kit import DH, E, X0, X1, Y0, Y1, c
-from lib.draw.civil_kit import _Swatch, _arrow, _pct
-from lib.draw.civil_kit import _band_arrows
-from lib.draw.civil_kit import _spot as _shared_spot
-from lib.draw.civil_kit import _walk_slope
+from arkitect.lib.draw.kit import DH, E, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.civil_kit import _Swatch, _arrow, _pct
+from arkitect.lib.draw.civil_kit import _band_arrows
+from arkitect.lib.draw.civil_kit import _spot as _shared_spot
+from arkitect.lib.draw.civil_kit import _walk_slope
 from functools import partial
-from codes.ohio.rco import site_steps
+from arkitect.codes.ohio.rco import site_steps
 
 MIN_ARROW = 1.5          # a surface shorter than this, in feet, takes no arrow of its own
 

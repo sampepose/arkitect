@@ -6,8 +6,8 @@ anything draws. The 220.82 table lives here so P-601 and the E-sheets print one 
 """
 
 
-# def nec220_82(: shared, see codes/nec/load.py
-from codes.nec.load import nec220_82
+# def nec220_82(: shared, see arkitect/codes/nec/load.py
+from arkitect.codes.nec.load import nec220_82
 
 
 # name, floor area SF, range VA, dryer VA, dishwasher VA, water heater VA, heat pump VA
@@ -21,8 +21,8 @@ NEC_UNITS = [("UNIT 1",      1248, 12000, 5000, 1200, WH_VA, 7200, 125),
              ("UNITS 4 / 5",  728, 12000, 5000,    0, WH_VA, 4800, 100)]
 
 
-# ================================ the types: shared, see codes/nec/dwelling.py
-from codes.nec.dwelling import (LUM, Level, OUTLETS, UnitType, WIRE_AMPS, check_unit, ckt, dev, panel_spaces)
+# ================================ the types: shared, see arkitect/codes/nec/dwelling.py
+from arkitect.codes.nec.dwelling import (LUM, Level, OUTLETS, UnitType, WIRE_AMPS, check_unit, ckt, dev, panel_spaces)
 
 
 # ================================ this project's dwellings ================================
@@ -218,7 +218,7 @@ UNIT_45 = UnitType('UNITS 4 / 5', 100, [LEVEL_U4, LEVEL_U5], CIRCUITS_U45, stack
 # (y = site_y(D_STUD)): a device on that line is on the chase face, mount 'w5s'.
 from src.building1 import (B0, B1, BR_X, BX0, BX1, BY1, CS, DEM0, DEM1, D_STUD, ENTRY_LEFT, ENTRY_WIDTH, FZ, KX,
                            LB, MX0, MX1, NX, PK0, R0, SX, W_STUD, YT, Y_SEP_TOP, site_x, site_y)
-from lib.units import IN
+from arkitect.lib.units import IN
 
 
 def _u1(xi, yi, kind, mount, circuit=None, tag=''):
@@ -405,8 +405,8 @@ SERVICES = [
 ]
 
 
-# def _demand_220_45(: shared, see codes/nec/load.py
-from codes.nec.load import feeders, service_loads
+# def _demand_220_45(: shared, see arkitect/codes/nec/load.py
+from arkitect.codes.nec.load import feeders, service_loads
 
 
 def check_services():

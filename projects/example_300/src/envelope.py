@@ -10,8 +10,8 @@
    It also carries what each of those walls stands OUTSIDE its studs, which is what a
    yard and a fire separation distance are measured to (RCO 202) and what every
    dimension on the set is not (G-001 note 5, face of stud)."""
-from lib.units import IN
-from codes.ohio.rco.bracing import GYP_SHEATHING_T, SHEATHING_T
+from arkitect.lib.units import IN
+from arkitect.codes.ohio.rco.bracing import GYP_SHEATHING_T, SHEATHING_T
 
 CLIMATE_ZONE = 5                   # G-001 'Climate zone 5A'; A-602's energy table
 
@@ -66,7 +66,7 @@ def check_wall_rows(assemblies):
 # either model knew the two faces were not the same place.
 #
 # The layers are A-601's, in its order, outside the studs. The sheathing thicknesses are
-# the ones codes/ohio/rco/bracing.py already nails through, so a wall cannot be sheathed
+# the ones arkitect/codes/ohio/rco/bracing.py already nails through, so a wall cannot be sheathed
 # one way for bracing and another way for a setback.
 #
 # CLADDING_T is the set's own allowance and is the agent's call, unconfirmed by the designer: the

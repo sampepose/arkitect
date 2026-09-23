@@ -7,22 +7,22 @@
 
    Set in TWO COLUMNS. The lines are lifted verbatim from the sheets they replaced,
    so the line COUNT is fixed and only the setting can give."""
-from lib.units import IN, fmt, inches, inches16
-from lib.model.dimensions import wc_clearances
+from arkitect.lib.units import IN, fmt, inches, inches16
+from arkitect.lib.model.dimensions import wc_clearances
 from src.finishes import BOARD
 from src import clearances as CL
-from codes import clearances as code_clearances
+from arkitect.codes import clearances as code_clearances
 from src.grading import STOOP_STEP
-from lib.draw.kit import c
+from arkitect.lib.draw.kit import c
 from src import levels
-from codes.ohio.rco import fire_separation as rco_fsd
+from arkitect.codes.ohio.rco import fire_separation as rco_fsd
 
 from src.building1 import LINE_LOCAL, BAY, DR_CLR, DR_CLR_NEAR, DR_END_SIDE, GL_MIN, GL_OPEN_TEXT, GL_U2, U23_BAYS, U23_HEATER_BAY, U3_LAND_SOFFIT, U3_STAIR, U3_STOOP_HI, WD_SIDE
 from src.building2 import GL_U45, MECH_DEPTH, MECH_RUN, U5_LAND_D, U5_LAND_LEN, U5_LAND_SOFFIT, U5_RUN, U5_STAIR_CLR, U5_STAIR_W
 from src.mirror import BED_SIDE, LIVE_SIDE
 from src.openings import WIN_GEOM, WIN_HEAD, WIN_W
 from src.building1 import SX
-from lib.draw.text import textsheet
+from arkitect.lib.draw.text import textsheet
 from src.fireblocking import FB
 
 

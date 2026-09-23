@@ -1,6 +1,6 @@
 """Stop hook: a turn does not end on uncommitted work the gate has not passed.
 
-The policy is harness/config.py's [hooks] table. By default a new installation is ADVISED,
+The policy is arkitect/harness/config.py's [hooks] table. By default a new installation is ADVISED,
 never held: the turn ends and the problem is shown ("advise" for both). The stricter setting
 this repository's designer runs, option C:
 
@@ -76,10 +76,10 @@ def state_key(root, paths):
 
 def run_gate(root):
     """The gate's JSON report, or a synthetic red one saying why it could not run."""
-    gate = os.path.join(root, 'lib', 'verify', 'gate.py')
+    gate = os.path.join(root, 'arkitect', 'lib', 'verify', 'gate.py')
     if not os.path.exists(gate):
         # a projects repository measured by the engine these hooks came from
-        gate = os.path.join(hooklib.ENGINE, 'lib', 'verify', 'gate.py')
+        gate = os.path.join(hooklib.ENGINE, 'arkitect', 'lib', 'verify', 'gate.py')
         if not os.path.isdir(os.path.join(root, 'projects')):
             return None                            # neither an engine nor a workspace
         if not os.path.exists(gate):
@@ -104,10 +104,10 @@ DEFAULT_POLICY = {'green_uncommitted': 'advise', 'red': 'advise'}
 
 
 def policy(root):
-    """The [hooks] table of harness/config.py for this checkout, or the defaults."""
+    """The [hooks] table of arkitect/harness/config.py for this checkout, or the defaults."""
     try:
         sys.path.insert(0, hooklib.ENGINE)
-        from harness import config
+        from arkitect.harness import config
         return dict(DEFAULT_POLICY, **config.load(root=root)['hooks'])
     except Exception:
         return dict(DEFAULT_POLICY)
@@ -139,20 +139,20 @@ def decide(paths, report, attended, worktree, blocks, rules=None):
             action, msg = 'allow', ''              # no gate in this checkout: nothing to hold to
         elif not report.get('ok'):
             problems = report.get('errors', []) + report.get('failures', [])
-            text = 'lib/verify/gate.py is RED:\n- ' + '\n- '.join(problems)
+            text = 'arkitect/lib/verify/gate.py is RED:\n- ' + '\n- '.join(problems)
             red = rules['red']
             if red == 'off':
                 action, msg = 'allow', ''
             elif red == 'advise' or (red == 'block-unattended' and attended):
                 action, msg = 'advise', text + '\n(uncommitted; the turn ends so the person here can decide)'
             else:
-                action, msg = 'block', (text + '\nFix it and run `python3 -m lib.verify.gate` '
+                action, msg = 'block', (text + '\nFix it and run `python3 -m arkitect.lib.verify.gate` '
                                         'again. If it cannot be fixed, say so plainly in your reply.')
         else:
             moved = ['%s %s' % (s, ', '.join(m['sheet'] for m in p['sheets_moved']))
                      for s, p in sorted(projects.items()) if p.get('sheets_moved')]
             action, msg = 'block', (
-                'lib/verify/gate.py is green and these changes are uncommitted:\n  %s\n'
+                'arkitect/lib/verify/gate.py is green and these changes are uncommitted:\n  %s\n'
                 'Commit them now -- add each file BY NAME (never -A), one change per commit%s. '
                 'A file that is scratch belongs outside the checkout; delete it instead.' % (
                     '\n  '.join(source + deliverables),

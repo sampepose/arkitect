@@ -27,7 +27,7 @@ to the midline's other option, 3'-6" off Building 1, and everything follows.
 
 Distances are in FEET. Site y increases toward the rear, as everywhere else.
 """
-from lib.units import fmt, inches
+from arkitect.lib.units import fmt, inches
 from src.openings import WIN_SF
 from src.stairs import EXT_STAIR
 
@@ -43,8 +43,8 @@ OFF_B1 = 3.0
 OFF_B2 = GAP-OFF_B1        # 9'-0" — Building 2's courtyard wall is clear of the table entirely
 
 
-# RCO Table 302.1(1), EXTERIOR WALLS: shared, see codes/ohio/rco/fire_separation.py
-from codes.ohio.rco.fire_separation import (OPEN_MIN, PROJ_FREE, PROJ_MIN, RAKE, RATED_MAX, SECTION,
+# RCO Table 302.1(1), EXTERIOR WALLS: shared, see arkitect/codes/ohio/rco/fire_separation.py
+from arkitect.codes.ohio.rco.fire_separation import (OPEN_MIN, PROJ_FREE, PROJ_MIN, RAKE, RATED_MAX, SECTION,
                                             opening_max, projection_rating, rated, underside)
 
 

@@ -7,8 +7,8 @@ here from where it stands and how wide it is; a door the classifier cannot place
 build rather than going unscheduled.
 """
 from collections import Counter, OrderedDict
-from lib.draw.sheets import is_closet
-from lib.model.regrid import PARTITION
+from arkitect.lib.draw.sheets import is_closet
+from arkitect.lib.model.regrid import PARTITION
 from src import building1 as B1, building2 as B2
 
 # mark -> (size, type, hardware)

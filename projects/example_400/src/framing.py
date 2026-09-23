@@ -7,16 +7,16 @@ nothing is typed that another sheet prints. The floor trusses themselves are the
 truss manufacturer's, designed to the loads stated here.
 """
 from collections import namedtuple
-from lib.units import IN, fmt, inches
-from lib.model import fit
-from lib.model.regrid import EXT_STUD, PARTITION
+from arkitect.lib.units import IN, fmt, inches
+from arkitect.lib.model import fit
+from arkitect.lib.model.regrid import EXT_STUD, PARTITION
 from src import levels
 from src.building1 import B1_D, B1_W, PLAN_B1_L2, STAIR_WALL, Y_TOP_RISER, Y_WELL
 from src.building2 import B2_D, B2_W, U45_BEARING_WALL, Y_BEAR
 from src.openings import WIN_HEAD
 from src.sitework import DOOR_H
-from codes.ohio.rco.bracing import PORTAL_HEADER, portal_header_size
-from codes.ohio.rco.floor_checks import floor_violations, bay_span
+from arkitect.codes.ohio.rco.bracing import PORTAL_HEADER, portal_header_size
+from arkitect.codes.ohio.rco.floor_checks import floor_violations, bay_span
 
 # ---------------- basis ----------------
 # Floor trusses at 24" o.c. (the designer, 2026-09-19, a cost saving: a third fewer trusses). UL L528
@@ -70,7 +70,7 @@ def f1_listing_violations(joist_oc=None, depth=None, chord_w=None, layers=None, 
     insulation = F1_CAVITY_INSULATION if insulation is None else insulation
     if ceiling_devices is None:
         from src import electrical as E
-        from codes.nec import dwelling as nec_dwelling
+        from arkitect.codes.nec import dwelling as nec_dwelling
         from src.building2 import U2_SOFFIT_ROOMS
         # what hangs in the bath's soffit is below the membrane, not in it
         ceiling_devices = [d.kind for d in E.LEVEL_U2.devices
@@ -196,8 +196,8 @@ def check_framing():
 
 
 # ---------------- headers ----------------
-# RCO Tables 602.7(1), (2) and 602.7.5 are codes/ohio/rco/headers.py: one transcription, one pin.
-from codes.ohio.rco.headers import header_for, full_height_studs
+# RCO Tables 602.7(1), (2) and 602.7.5 are arkitect/codes/ohio/rco/headers.py: one transcription, one pin.
+from arkitect.codes.ohio.rco.headers import header_for, full_height_studs
 
 
 Header = namedtuple('Header', 'tag building level wall load_case width size jacks full_height_studs row openings unit room table_size',
@@ -233,7 +233,7 @@ B2_BEARING_WALL = 'UNITS 2 AND 3 BEARING WALL'
 # Found 2026-09-18 after three such headers had been scheduled for a day. Where the table's header
 # does not fit, the schedule takes an LVL of the 2x6's depth instead, so every header in the set is
 # ONE depth (the designer: "do lvl and add the checks so we don't miss this again").
-# The measuring is lib/model/fit.py's, shared with every project; what is this project's is the
+# The measuring is arkitect/lib/model/fit.py's, shared with every project; what is this project's is the
 # heads, the plates, the loads and the choice of an LVL.
 TOP_PLATES = fit.TOP_PLATES          # the double top plate over every header
 NONBEARING_HEADER = fit.FLAT_2X4     # RCO 602.7.4: a single flat 2x4

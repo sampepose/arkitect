@@ -1,20 +1,20 @@
 """A-602 — the door and window schedules, and the energy-compliance table."""
-from lib.draw.page import Sheet
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import Sheet
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.units import inch
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from src.openings import WIN_GEOM, WIN_HEAD, WIN_W
-from codes.ohio.rco.egress import EGRESS_MIN_H, EGRESS_MIN_SF, EGRESS_MIN_W
+from arkitect.codes.ohio.rco.egress import EGRESS_MIN_H, EGRESS_MIN_SF, EGRESS_MIN_W
 from src.envelope import EXTERIOR_FRAME_WALLS, VR_CLASS, perm_text
 from src.exterior import WINDOW_COLOUR
 from src import finishes
 from src import plumbing as pm
 from src.schedules import check_schedule_quantities, window_totals
-from lib.draw.kit import X0, Y0, Y1, c
+from arkitect.lib.draw.kit import X0, Y0, Y1, c
 
 
 # W-A's net clear opening belongs to the product, not the drawing. The schedule cell and
-# the notes under the schedule hold every W-A to the minimums in codes/ohio/rco/egress.py
+# the notes under the schedule hold every W-A to the minimums in arkitect/codes/ohio/rco/egress.py
 # and ask for the data that shows a product meets them. Those two and G-001 note 8 are the
 # only places the figures print; everything else on the set cites one of them.
 def wa_net_clear():

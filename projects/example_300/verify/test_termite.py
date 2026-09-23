@@ -77,7 +77,7 @@ class S101TermiteBlockTests(unittest.TestCase):
 
     def _width(self):
         from reportlab.lib.units import inch
-        from lib.draw.kit import Q, X0
+        from arkitect.lib.draw.kit import Q, X0
         from src.foundation import B1
         # the gap from the Building 1 plan's origin to Building 2's column, as sheet_s101 sets it
         return (X0+1.1*inch+B1.W*Q+2.3*inch) - 0.3*inch - (X0+1.1*inch)

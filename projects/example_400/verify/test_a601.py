@@ -36,7 +36,7 @@ class AssemblyTests(unittest.TestCase):
             self.assertNotIn(stale, text)
 
     def test_the_stair_row_states_one_condition_in_each_cell(self):
-        from lib.units import fmt
+        from arkitect.lib.units import fmt
         from src import fsd
         from src.sheets import a601
         row = next(r for r in a601.fire_separation_rows() if r[0].startswith("UNIT 3 STAIR"))

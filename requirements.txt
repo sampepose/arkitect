@@ -9,12 +9,12 @@
 # against the previous build before committing. Built and issued on Python 3.12.4.
 reportlab==4.4.9
 
-# lib/export/dxf.py only. Nothing in the issued set depends on it.
+# arkitect/lib/export/dxf.py only. Nothing in the issued set depends on it.
 ezdxf==1.4.4
 
 # The dead-import oracle, per CLAUDE.md "Verifying a change".
 pyflakes==3.2.0
 
-# lib/verify/gate.py render only: sheets to PNG for a person or an agent to look at.
+# arkitect/lib/verify/gate.py render only: sheets to PNG for a person or an agent to look at.
 # Nothing in the issued set depends on it.
 pymupdf==1.28.2

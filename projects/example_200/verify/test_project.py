@@ -1,8 +1,8 @@
-"""200 EXAMPLE AVE: the drawing against trace.md5, its text against lib/verify/sheet_text.py,
+"""200 EXAMPLE AVE: the drawing against trace.md5, its text against arkitect/lib/verify/sheet_text.py,
 and progress.json against what the build proves."""
 import unittest
 
-from harness.testkit import ProjectTests
+from arkitect.harness.testkit import ProjectTests
 from projects.example_200.verify import PROJ, enter, leave
 
 

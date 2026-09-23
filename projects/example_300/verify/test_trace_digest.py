@@ -19,8 +19,8 @@ import unittest
 HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-from lib import workspace                                    # noqa: E402  the engine, wherever it is
-TRACE = os.path.join(workspace.ENGINE, 'lib', 'verify', 'trace.py')
+from arkitect.lib import workspace                                    # noqa: E402  the engine, wherever it is
+TRACE = os.path.join(workspace.ENGINE, 'arkitect', 'lib', 'verify', 'trace.py')
 BUILD = os.path.join(PROJ, 'build.py')
 DIGEST = os.path.join(PROJ, 'trace.md5')
 

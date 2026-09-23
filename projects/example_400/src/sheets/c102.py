@@ -8,15 +8,15 @@ above and 404 Oak below. It carries no construction information.
 street yard and five variance requests. This lot is interior and requests nothing, so
 none of that is here; its original stays in projects/example_300.
 """
-from lib import assets
-from lib.draw import page
-from lib.draw.page import Sheet
-from lib.draw.text import table
-from lib.units import fmt
+from arkitect.lib import assets
+from arkitect.lib.draw import page
+from arkitect.lib.draw.page import Sheet
+from arkitect.lib.draw.text import table
+from arkitect.lib.units import fmt
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
-from lib.draw.kit import draw_runs
-from lib.draw.kit import c
+from arkitect.lib.draw.kit import draw_runs
+from arkitect.lib.draw.kit import c
 from src.sheets.site import TURN, draw_site, frame
 from src.sitework import ALLEY_W, COURT, PARCEL, PARK_D, PARK_N, PARK_PITCH, STAIR, zoning_rows
 

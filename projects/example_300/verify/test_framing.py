@@ -2,7 +2,7 @@
 import os
 import sys
 import unittest
-from codes.ohio.rco import floor_checks as floor_checks_shared
+from arkitect.codes.ohio.rco import floor_checks as floor_checks_shared
 
 HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -16,9 +16,9 @@ class BayTests(unittest.TestCase):
 
     def test_building_1_bays_are_the_plan_arrows_and_tile_the_floor(self):
         from src import framing as f
-        from codes.ohio.rco import floor_checks as rco_floor
+        from arkitect.codes.ohio.rco import floor_checks as rco_floor
         from src.building1 import U23_BEARING_WALL, Y_SEP_BOT, site_x, site_y, W_STUD, D_STUD
-        from lib.model.regrid import EXT_STUD
+        from arkitect.lib.model.regrid import EXT_STUD
         names = [b.name for b in f.B1_FLOOR.bays]
         self.assertEqual(names, ['UNIT 1 F2', 'UNITS 2 / 3 F1, SAGE BAY', 'UNITS 2 / 3 F1, PARCEL BAY'])
         u1 = f.B1_FLOOR.bays[0]
@@ -33,7 +33,7 @@ class BayTests(unittest.TestCase):
     def test_building_2_bays_meet_on_the_bearing_wall(self):
         from src import framing as f
         from src.building2 import U45_BEARING_WALL
-        from lib.model.regrid import EXT_STUD
+        from arkitect.lib.model.regrid import EXT_STUD
         a, b = f.B2_FLOOR.bays
         self.assertEqual((a.run, b.run), ('v', 'v'))
         self.assertAlmostEqual(a.y1, U45_BEARING_WALL[1]); self.assertAlmostEqual(b.y0, U45_BEARING_WALL[3])
@@ -90,7 +90,7 @@ class CheckTests(unittest.TestCase):
 
     def test_a_floor_with_no_outline_sf_compares_against_its_own_generic_rectangle(self):
         from src import framing as f
-        from lib.model.regrid import EXT_STUD
+        from arkitect.lib.model.regrid import EXT_STUD
         bay = f.Bay('X', EXT_STUD, EXT_STUD, 20.0-EXT_STUD, 10.0-EXT_STUD, 'h', 14/12.0, ('A', 'B'))
         floor = f.Floor('T', 20.0, 10.0, [bay], [], [])
         lines = [(EXT_STUD, 0.0, EXT_STUD, 10.0, 'A'), (20.0-EXT_STUD, 0.0, 20.0-EXT_STUD, 10.0, 'B')]
@@ -98,7 +98,7 @@ class CheckTests(unittest.TestCase):
 
     def test_a_floor_short_of_its_own_outline_fails_to_tile(self):
         from src import framing as f
-        from lib.model.regrid import EXT_STUD
+        from arkitect.lib.model.regrid import EXT_STUD
         bay = f.Bay('X', EXT_STUD, EXT_STUD, 18.0-EXT_STUD, 10.0-EXT_STUD, 'h', 14/12.0, ('A', 'C'))
         floor = f.Floor('T', 20.0, 10.0, [bay], [], [])
         lines = [(EXT_STUD, 0.0, EXT_STUD, 10.0, 'A'), (20.0-EXT_STUD, 0.0, 20.0-EXT_STUD, 10.0, 'B'),
@@ -148,7 +148,7 @@ class F1ListingTests(unittest.TestCase):
 
     def test_build_up_is_one_five_eighths_type_c_on_rc1(self):
         from src import levels
-        from lib.units import IN
+        from arkitect.lib.units import IN
         self.assertEqual(levels.F1_LISTING, 'ICC-ES ESR-1153 ASSEMBLY F')
         self.assertEqual(levels.F1_LAYERS, 1)
         self.assertEqual(levels.F1_BOARD, 'TYPE C')
@@ -171,7 +171,7 @@ class F1ListingTests(unittest.TestCase):
 
     def test_each_limit_fails_when_exceeded(self):
         from src import framing as f
-        from lib.units import IN
+        from arkitect.lib.units import IN
         cases = [dict(joist_oc=IN(32)), dict(flange_w=IN(1.75)), dict(layers=2),
                  dict(layer=IN(0.5)), dict(board='TYPE X'), dict(channel_oc=IN(24)),
                  dict(insul_t=IN(1.0)), dict(insul_pcf=1.5)]
@@ -191,7 +191,7 @@ class F1ListingTests(unittest.TestCase):
         """Assembly B allowed 24" channels where the joists were at 16"; Assembly F
            states 16" flat. Joists at 16" do not buy the wider spacing any more."""
         from src import framing as f
-        from lib.units import IN
+        from arkitect.lib.units import IN
         self.assertTrue(f.f1_listing_violations(channel_oc=IN(24), joist_oc=IN(16)))
 
 

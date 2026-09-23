@@ -9,10 +9,10 @@
 
    It also holds what FILLS those cavities, because one of them has a drain standing in it
    and the batt the schedule names does not fit behind it."""
-from codes import ul_u305 as u305
-from lib.model import fit
-from lib.model.regrid import EXT_STUD
-from lib.units import IN, inches
+from arkitect.codes import ul_u305 as u305
+from arkitect.lib.model import fit
+from arkitect.lib.model.regrid import EXT_STUD
+from arkitect.lib.units import IN, inches
 
 CLIMATE_ZONE = 5                     # G-001 'Climate zone 5A'; A-602's energy table
 
@@ -35,7 +35,7 @@ EXTERIOR_FRAME_WALLS = ('W1', 'W1R')
 # in one of those cavities (P-601 note 1aa), and a 3" DWV pipe is 3-1/2" across, so that bay
 # has 2" left and the batt the schedule names is 5-1/2" thick. The two drawings each looked
 # right alone and no code table is broken by either, which is why this went unseen: only the
-# ROOM says so. `lib/model/fit.py`'s cavity_violations() is the check, and the bay below is
+# ROOM says so. `arkitect/lib/model/fit.py`'s cavity_violations() is the check, and the bay below is
 # what A-601 prints beside the W1 / W1R rows so the section and the schedule agree.
 STUD_CAVITY = EXT_STUD               # 2x6, stud face to stud face -- the grid's, not a copy
 STUD_OC = IN(16)                     # what the W1 / W1R rows print, and what a bay is wide
@@ -43,7 +43,7 @@ STUD_T = IN(1.5)                     # a stud, flat dimension
 CAVITY_BATT = IN(5.5)                # the scheduled batt: the whole cavity
 CAVITY_BATT_R = 21
 # THE BAY IS PART OF A RATED WALL, so what fills it and what carries its board are the
-# listing's business, not the drafter's. `codes/ul_u305.py` has the design; two things follow
+# listing's business, not the drafter's. `arkitect/codes/ul_u305.py` has the design; two things follow
 # from it and neither is obvious from a sheet:
 #
 #   * the fill is a BATT, Item 5, the one cavity option that both permits a PARTIAL fill and

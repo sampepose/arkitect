@@ -3,7 +3,7 @@
 import unittest
 
 from projects.example_400.verify import enter, leave
-from codes.ohio.rco import roof_checks as roof_checks_shared
+from arkitect.codes.ohio.rco import roof_checks as roof_checks_shared
 
 
 def setUpModule():
@@ -22,7 +22,7 @@ class RoofTests(unittest.TestCase):
 
     def test_each_hatch_is_true_size_between_trusses(self):
         from src import roof as r
-        from codes.ohio.rco import roof_checks as rco_roof
+        from arkitect.codes.ohio.rco import roof_checks as rco_roof
         self.assertEqual([h.unit for h in r.HATCHES], ["UNIT 1", "UNIT 3"])
         for h in r.HATCHES:
             x0, y0, x1, y1 = h.page
@@ -40,7 +40,7 @@ class RoofTests(unittest.TestCase):
 
     def test_the_vents_clear_806_and_a_poor_vent_does_not(self):
         from src import roof as r
-        from codes.ohio.rco import attic_ventilation as rco_attic
+        from arkitect.codes.ohio.rco import attic_ventilation as rco_attic
         for rf in r.ROOFS:
             for av in rco_attic.attic_vents(rf, r.penetrations(rf)):
                 self.assertGreater(av.provided, av.required)

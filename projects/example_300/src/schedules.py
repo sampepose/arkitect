@@ -8,8 +8,8 @@ elevations and the schedule disagreeing about a window.
 from src.building1 import L1_DOORS, L1_WINS, L2_DOORS, L2_WINS, PLAN_L1, PLAN_L2, U23_OPENINGS
 from src.building1 import ENTRY_LEFT, ENTRY_WIDTH, U1_BYPASS_DOORS, windows
 from src.building2 import B2U, B2doors, B2op, PLAN_B2, b2_wins
-from lib.draw.sheets import is_closet
-from lib.model.regrid import EXT_STUD
+from arkitect.lib.draw.sheets import is_closet
+from arkitect.lib.model.regrid import EXT_STUD
 
 
 # ---------------- the schedules' quantities ----------------

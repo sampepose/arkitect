@@ -1,32 +1,32 @@
 """S-104 — wall bracing plans and details: each building's braced wall lines at both
 levels over the greyed plans, from src/bracing.py; the bracing schedule, the design
 basis, four details and the notes. Every figure printed is the model's."""
-from lib.draw.page import GREY, LAY, Sheet, end_plans
-from lib.draw.sheets import draw_level
-from lib.model.regrid import EXT_STUD
-from lib.units import fmt, inches, IN
+from arkitect.lib.draw.page import GREY, LAY, Sheet, end_plans
+from arkitect.lib.draw.sheets import draw_level
+from arkitect.lib.model.regrid import EXT_STUD
+from arkitect.lib.units import fmt, inches, IN
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from src import bracing as br
-from codes.ohio.rco import bracing as rco_bracing
+from arkitect.codes.ohio.rco import bracing as rco_bracing
 from src import levels
 from src.building1 import B1_D, B1_W, b1_level
 from src.building2 import B2_D, B2_W, b2_level
 from src.openings import WIN_GEOM
 from src.framing import TRUSS_OC
-from lib.draw.kit import E, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import E, X0, X1, Y0, Y1, c
 from src.sheets.e_common import grey_context
-from lib.draw.kit import _fits
+from arkitect.lib.draw.kit import _fits
 from src.sheets.a601 import FB
 from src.sheets.a101 import draw_b1_stair
 from src.sheets.a102 import draw_u5_stair
-from lib.draw.detail import _D, _detail_title, _hatch_band
-from codes.ohio.rco.bracing_draw import _PORTAL_ANCHOR, _bracing, _dim_h, _dim_v, _heading, _plan_title
-from codes.ohio.rco.bracing_draw import _schedule
-from codes.ohio.rco.bracing_draw import _portal_levels
-from codes.ohio.rco.bracing_draw import _lines
-from codes.ohio.rco.bracing_draw import _notes
-from codes.ohio.rco import bracing as bracing_shared
+from arkitect.lib.draw.detail import _D, _detail_title, _hatch_band
+from arkitect.codes.ohio.rco.bracing_draw import _PORTAL_ANCHOR, _bracing, _dim_h, _dim_v, _heading, _plan_title
+from arkitect.codes.ohio.rco.bracing_draw import _schedule
+from arkitect.codes.ohio.rco.bracing_draw import _portal_levels
+from arkitect.codes.ohio.rco.bracing_draw import _lines
+from arkitect.codes.ohio.rco.bracing_draw import _notes
+from arkitect.codes.ohio.rco import bracing as bracing_shared
 
 HEEL_NOM, ROOF_PITCH = br.HEEL_NOM, levels.ROOF_PITCH
 

@@ -32,7 +32,7 @@ class StackBayPlanTests(unittest.TestCase):
 
     def setUp(self):
         from src import building2 as b2, drainage as dr, envelope, mechanical as me
-        from lib.model import pipe
+        from arkitect.lib.model import pipe
         self.b2, self.dr, self.env, self.me, self.pipe = b2, dr, envelope, me, pipe
 
     def violations(self, **kw):
@@ -63,7 +63,7 @@ class StackBayPlanTests(unittest.TestCase):
         self.assertAlmostEqual(wd[0]+wd[2], 19.5-self.env.stack_bay_projection())
 
     def test_the_panel_back_where_it_was_is_caught(self):
-        from lib.model.regrid import PARTITION
+        from arkitect.lib.model.regrid import PARTITION
         f = [(x[0], self.b2.Y_BEAR+PARTITION+2.3, x[2], x[3])+tuple(x[4:]) if x[4] == 'panel' else x
              for x in self.b2.F_B2]
         old, self.b2.F_B2[:] = list(self.b2.F_B2), f

@@ -7,9 +7,9 @@ on A-603, grading on C-103, framing, roof and bracing on the S sheets, devices o
 sheets. A figure quoted here is read from the model that checks it, which is why the list
 lives beside the sheet that prints it.
 """
-from lib.draw.text import textsheet
-from lib.model.dimensions import wc_clearances
-from lib.units import fmt, inches
+from arkitect.lib.draw.text import textsheet
+from arkitect.lib.model.dimensions import wc_clearances
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.units import inch
 from src import clearances as CL
 from src.building1 import DR_CLR_MIN, b1_dryer, b1_glazing
@@ -18,7 +18,7 @@ from src.finishes import BOARD
 from src.openings import WIN_GEOM, WIN_HEAD, WIN_W
 from src.schedules import LOUVERED
 from src.services import EQUIPMENT
-from lib.draw.kit import c
+from arkitect.lib.draw.kit import c
 from src.stairs import B1_STAIR
 
 GLAZING_MIN, OPENABLE_MIN = 8.0, 4.0          # percent of the floor area, RCO 303.1

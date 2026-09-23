@@ -23,7 +23,7 @@ class NetFloorAreaTests(unittest.TestCase):
     def test_the_framed_zones_are_the_models_own_faces(self):
         """Not typed: Unit 1's two levels of study frame, Units 2/3 from the W4 line to the
            rear studs, Units 4/5 inside Building 2's studs."""
-        from lib.model.regrid import EXT_STUD
+        from arkitect.lib.model.regrid import EXT_STUD
         from src.building1 import D_STUD, W_STUD, Y_SEP_BOT
         from src.building2 import B2_D, B2_W
         from src.mirror import B1_W
@@ -37,7 +37,7 @@ class NetFloorAreaTests(unittest.TestCase):
     def test_a_deeper_separation_takes_it_out_of_units_2_and_3(self):
         """The check the coordinator asked for: the printed area follows the wall. With W4
            two walls, Units 2/3's framed zone is 4-3/4" shallower than one stud row gave."""
-        from lib.model.regrid import EXT_STUD
+        from arkitect.lib.model.regrid import EXT_STUD
         from src.partywall import SEP_STUD, W4_STUD
         from src.building1 import Y_SEP_TOP
         from src.mirror import B1_W

@@ -49,7 +49,7 @@ class Calls:
         s.log = []          # (layer, method, args, kwargs)
 
     def __getattr__(s, n):
-        from lib.draw.context import current_layer
+        from arkitect.lib.draw.context import current_layer
         a = getattr(s._c, n)
         if not callable(a):
             return a
@@ -63,7 +63,7 @@ class Calls:
         """Every call made while `layer` was in force, the layer itself dropped: two
            streams that compare equal are the same drawing on that layer.
 
-           Floats are rounded to 1e-6, which is lib/verify/trace.py's own tolerance and
+           Floats are rounded to 1e-6, which is arkitect/lib/verify/trace.py's own tolerance and
            for its reason: the same arithmetic re-associated — a room face reached as
            26 - EXT/2 - EXT/2 rather than 26 - EXT — differs in the last bit and is not
            a difference in the drawing. 1e-6 pt is 1/72,000,000 of an inch on paper."""
@@ -81,7 +81,7 @@ def _canvas():
 
 
 def _plan(c):
-    from lib.draw.plan import PlanDraw
+    from arkitect.lib.draw.plan import PlanDraw
     return PlanDraw(c, 100, 100, 18.0, 26, 48)
 
 
@@ -95,7 +95,7 @@ def _unit_1_windows(level, c):
 
 def _greyed_b1_level(k, c):
     """A whole Building 1 level as a trade sheet draws it: greyed, unannotated."""
-    from lib.draw.sheets import draw_level
+    from arkitect.lib.draw.sheets import draw_level
     from src.building1 import _b1_level
     from src.sheets.plans import B1_DRAWING
     lv = _b1_level(k, [], [], [], units=[], u3stair=(k == 1), annotate=False, **B1_DRAWING)

@@ -6,32 +6,32 @@ and pipe-size table, the slab penetration schedules, the invert table and the no
 Every figure printed here is read from src/drainage.py, which check_model() has
 already passed."""
 import math
-from lib.draw.page import GREY, LAY, LGREY, Sheet, end_plans
-from lib.draw.sheets import draw_level
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import GREY, LAY, LGREY, Sheet, end_plans
+from arkitect.lib.draw.sheets import draw_level
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from src import drainage as dr
-from lib.model import drains as drains
-from codes.ohio import opc_drainage as opc_drainage
-from lib.model import runs as runs
+from arkitect.lib.model import drains as drains
+from arkitect.codes.ohio import opc_drainage as opc_drainage
+from arkitect.lib.model import runs as runs
 from src import levels
 from src import radon as RN
 from src.building1 import B1_D, B1_W, b1_level
 from src.building2 import B2_D, B2_W, b2_level
 from src.sheets.a101 import draw_b1_stair
 from src.sheets.a102 import draw_u5_stair
-from lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 from src.sheets.e_common import grey_context
-from lib.draw.kit import _fits, title
-from lib.draw.plumbing_kit import run_label
-from lib.draw.drainage_kit import (WIDTH, _P, _at, _between, _dim, _text, box_out, cleanout, drain_line,
+from arkitect.lib.draw.kit import _fits, title
+from arkitect.lib.draw.plumbing_kit import run_label
+from arkitect.lib.draw.drainage_kit import (WIDTH, _P, _at, _between, _dim, _text, box_out, cleanout, drain_line,
                                    flow_arrow, junction, pen_mark, sleeve_line, stack_tag, strip_band)
-from codes.ohio import opc_separation
-from lib.draw.drainage_kit import S, notes
+from arkitect.codes.ohio import opc_separation
+from arkitect.lib.draw.drainage_kit import S, notes
 from functools import partial
-from lib.draw.drainage_kit import _serves_text as _shared_serves_text
-from lib.draw.drainage_kit import water_line
+from arkitect.lib.draw.drainage_kit import _serves_text as _shared_serves_text
+from arkitect.lib.draw.drainage_kit import water_line
 
 KIND = {'stack': 'STACK FOOT', 'wc': 'CLOSET FLANGE', 'tub': 'TUB TRAP, BOX-OUT', 'drop': 'DRAIN DROP',
         'co': 'FLOOR CLEANOUT', 'exit': 'EXIT, SLEEVED'}

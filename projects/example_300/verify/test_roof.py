@@ -2,7 +2,7 @@
 import os
 import sys
 import unittest
-from codes.ohio.rco import roof_checks as roof_checks_shared
+from arkitect.codes.ohio.rco import roof_checks as roof_checks_shared
 
 HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,8 +18,8 @@ class RoofTests(unittest.TestCase):
 
     def test_both_roofs_span_the_side_walls_and_bear_only_there(self):
         from src import roof as r
-        from codes.ohio.rco import roof_checks as rco_roof
-        from lib.model.regrid import EXT_STUD
+        from arkitect.codes.ohio.rco import roof_checks as rco_roof
+        from arkitect.lib.model.regrid import EXT_STUD
         for rf in r.ROOFS:
             (b,) = rf.bays
             self.assertAlmostEqual(b.x0, EXT_STUD); self.assertAlmostEqual(b.x1, rf.W-EXT_STUD)
@@ -55,7 +55,7 @@ class RoofTests(unittest.TestCase):
 
     def test_three_hatches_at_their_true_size_on_the_page(self):
         from src import roof as r
-        from codes.ohio.rco import roof_checks as rco_roof
+        from arkitect.codes.ohio.rco import roof_checks as rco_roof
         from src.building1 import U1_ATTIC, site_x, site_y
         self.assertEqual([h.unit for h in r.HATCHES], ['UNIT 1', 'UNIT 3', 'UNIT 5'])
         self.assertEqual([h.sheet for h in r.HATCHES], ['A-102', 'A-102', 'A-103'])
@@ -99,7 +99,7 @@ class CheckTests(unittest.TestCase):
 
     def _hatch(self, cx, cy, page=None):
         from src import roof as r
-        from codes.ohio.rco import roof_checks as rco_roof
+        from arkitect.codes.ohio.rco import roof_checks as rco_roof
         page = page or (cx-rco_roof.HATCH_L/2.0, cy-rco_roof.HATCH_W/2.0, cx+rco_roof.HATCH_L/2.0, cy+rco_roof.HATCH_W/2.0)
         return r.Hatch('U', 'A', 'R', cx, cy, 'u1', page)
 
@@ -166,7 +166,7 @@ class VentTests(unittest.TestCase):
 
     def test_no_run_enters_the_w4_band(self):
         from src import roof as r
-        from codes.ohio.rco import attic_ventilation as rco_attic
+        from arkitect.codes.ohio.rco import attic_ventilation as rco_attic
         lo, hi = r.B1_ROOF.w4_band
         runs = rco_attic.vent_runs(r.B1_ROOF, r.penetrations(r.B1_ROOF))
         self.assertTrue(runs)
@@ -175,7 +175,7 @@ class VentTests(unittest.TestCase):
 
     def test_both_eaves_run_from_a_foot_inside_the_gable_to_the_band(self):
         from src import roof as r
-        from codes.ohio.rco import attic_ventilation as rco_attic
+        from arkitect.codes.ohio.rco import attic_ventilation as rco_attic
         lo, hi = r.B1_ROOF.w4_band
         runs = rco_attic.vent_runs(r.B1_ROOF, r.penetrations(r.B1_ROOF))
         eaves = sorted((u.x, u.y0, u.y1) for u in runs if u.kind == 'EAVE')
@@ -190,7 +190,7 @@ class VentTests(unittest.TestCase):
             self.assertAlmostEqual(y0, hi); self.assertAlmostEqual(y1, 48.0-rco_attic.SLOT_STOP)
 
     def test_a_penetration_near_the_ridge_breaks_the_ridge_run(self):
-        from codes.ohio.rco import attic_ventilation as rco_attic
+        from arkitect.codes.ohio.rco import attic_ventilation as rco_attic
         rf = self._roof()
         (a,) = rf.attics
         whole = [u for u in rco_attic.vent_runs(rf, []) if u.kind == 'RIDGE']
@@ -202,7 +202,7 @@ class VentTests(unittest.TestCase):
 
     def test_every_real_attic_meets_one_one_fiftieth_with_the_runs_left(self):
         from src import roof as r
-        from codes.ohio.rco import attic_ventilation as rco_attic
+        from arkitect.codes.ohio.rco import attic_ventilation as rco_attic
         for rf in r.ROOFS:
             for v in rco_attic.attic_vents(rf, r.penetrations(rf)):
                 self.assertGreaterEqual(v.provided, v.required, v)
@@ -212,7 +212,7 @@ class VentTests(unittest.TestCase):
 
     def test_stack_e_and_ef_5_break_their_ridges(self):
         from src import roof as r
-        from codes.ohio.rco import attic_ventilation as rco_attic
+        from arkitect.codes.ohio.rco import attic_ventilation as rco_attic
         pens1 = r.penetrations(r.B1_ROOF); pens2 = r.penetrations(r.B2_ROOF)
         self.assertTrue(any('STACK E' in p[2] for p in pens1))
         self.assertTrue(any('EF-5' in p[2] for p in pens2))
@@ -223,7 +223,7 @@ class VentTests(unittest.TestCase):
 
     def test_an_under_ventilated_attic_fails(self):
         from src import roof as r
-        from codes.ohio.rco import attic_ventilation as rco_attic
+        from arkitect.codes.ohio.rco import attic_ventilation as rco_attic
         rf = self._roof(attics=[rco_attic._attic('BIG', 26.0, 0.0, 200.0)], D=200.0)
         rf = rf._replace(bays=[r.Bay('T', STUD, 0.0, 26.0-STUD, 200.0, ('A', 'B'))],
                          bearing=[(0.0, 0.0, STUD, 200.0, 'A'), (26.0-STUD, 0.0, 26.0, 200.0, 'B')],
@@ -234,7 +234,7 @@ class VentTests(unittest.TestCase):
 
     def _roof(self, **kw):
         from src import roof as r
-        from codes.ohio.rco import attic_ventilation as rco_attic
+        from arkitect.codes.ohio.rco import attic_ventilation as rco_attic
         base = dict(name='T', W=26.0, D=20.0, ridge_x=13.0,
                     bays=[r.Bay('T', STUD, 0.0, 26.0-STUD, 20.0, ('A', 'B'))],
                     bearing=[(0.0, 0.0, STUD, 20.0, 'A'), (26.0-STUD, 0.0, 26.0, 20.0, 'B')],

@@ -4,21 +4,21 @@ Bound as A-102, after the house's A-101 (the designer, 2026-09-18); on 300, wher
 from, it was A-103. Moved out of src/sheets/plans.py (300's plan module) so that drawing
 Building 2 no longer loads 300's Building 1 plan code. The two functions are unchanged.
 """
-from lib.draw.page import GREY, LAY, POCHE, Sheet
-from lib.draw.sheets import draw_level
-from lib.units import fmt, inches
-from lib.model.water import _mirror
+from arkitect.lib.draw.page import GREY, LAY, POCHE, Sheet
+from arkitect.lib.draw.sheets import draw_level
+from arkitect.lib.units import fmt, inches
+from arkitect.lib.model.water import _mirror
 from src import envelope, levels
 from src.building2 import B2U, U2_SOFFIT_DROP, U2_SOFFIT_ROOMS, stack_bay_rect
 from reportlab.lib.colors import black
 from reportlab.lib.units import inch
-from lib.model.regrid import PARTITION
+from arkitect.lib.model.regrid import PARTITION
 from src.building2 import (B2_W, PLAN_B2, U5_FLIGHT_X0, U5_LAND_D, U5_LAND_LEN, U5_LAND_X0,
                            U5_LAND_X1, U5_STOOP_X0, U5_TREADS, Y_BEAR, b2_level,
                            check_u5_stair_clear)
 from src.schedules import door_tags
 from src.sheets.common import draw_door_tags
-from lib.draw.kit import Q, X0, X1, Y1, _fits, c
+from arkitect.lib.draw.kit import Q, X0, X1, Y1, _fits, c
 
 
 def draw_u5_stair(p,W,above=False):
@@ -126,7 +126,7 @@ def sheet_a102():
         draw_door_tags(p, PLAN_B2, B2_W, door_tags(2, k+1))                        # the marks A-602 schedules
         draw_stack_bay(p, B2_W)                              # the same bay on both levels: stack F rises through both
         if k == 0:                                           # Unit 2's bath: the soffit under the rated ceiling
-            from lib.model.water import _mirror
+            from arkitect.lib.model.water import _mirror
             for r in B2U:
                 if r[4] in U2_SOFFIT_ROOMS:
                     x, y, w, h = _mirror(PLAN_B2.rect(r), B2_W)[:4]

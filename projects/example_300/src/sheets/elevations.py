@@ -3,9 +3,9 @@
    They share elev() and face(), which is why they share a module: opposite faces of
    a building read in opposite directions, and getting that wrong stays invisible
    until two elevations disagree about which end a window is on. It has happened."""
-from lib.draw.page import GREY, Sheet
-from lib.model.regrid import EXT_STUD
-from lib.units import IN, fmt, inches
+from arkitect.lib.draw.page import GREY, Sheet
+from arkitect.lib.model.regrid import EXT_STUD
+from arkitect.lib.units import IN, fmt, inches
 from reportlab.lib.colors import Color, black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
@@ -19,8 +19,8 @@ from src.roof import B1_ROOF, B2_ROOF, EAVE_OVERHANG, rake
 from src.grading import STOOP_STEP
 from src.schedules import B1, B2
 from src.sheets import roofdrain
-from lib.draw.kit import datum_labels, knockout
-from lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import datum_labels, knockout
+from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 
 
 RY1, RY2 = Y1-6.4*inch, Y1-14.6*inch

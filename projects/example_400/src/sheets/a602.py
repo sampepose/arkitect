@@ -1,7 +1,7 @@
 """A-602 — the window, door and room finish schedules, energy compliance, and the life
 safety summary. Quantities are src/schedules.py's, counted from the plans' own lists."""
-from lib.draw.page import Sheet
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import Sheet
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.units import inch
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from src import finishes, schedules
@@ -10,8 +10,8 @@ from src import envelope, levels
 from src.envelope import EXTERIOR_FRAME_WALLS, VR_CLASS, perm_text
 from src.exterior import WINDOW_COLOUR
 from src.openings import WIN_FIXED, WIN_GEOM, WIN_HEAD, WIN_W
-from codes.ohio.rco.egress import EGRESS_MIN_H, EGRESS_MIN_SF, EGRESS_MIN_W
-from lib.draw.kit import X0, X1, Y0, Y1, c
+from arkitect.codes.ohio.rco.egress import EGRESS_MIN_H, EGRESS_MIN_SF, EGRESS_MIN_W
+from arkitect.lib.draw.kit import X0, X1, Y0, Y1, c
 
 UNITS = 3
 _NUM = {7: "SEVEN"}
@@ -38,7 +38,7 @@ def bedroom_areas():
     """(least, most) sleeping-room floor area, SF, from the plans' own polygons."""
     a = [v[1] for k, v in b1_glazing().items() if "BEDROOM" in k]
     from src.building2 import PLAN_B2, OA_B2
-    from lib.model import geom
+    from arkitect.lib.model import geom
     a += [geom.area(poly[0]) for poly in PLAN_B2.poly(OA_B2)[1:]]
     return min(a), max(a)
 

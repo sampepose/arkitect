@@ -39,7 +39,7 @@ class CheckTests(unittest.TestCase):
            lets a green check mean 'no water closet reached it'."""
         from src import clearances as CL
         from src.finishes import BOARD
-        from codes import clearances as code_clearances
+        from arkitect.codes import clearances as code_clearances
         _bad, seen = code_clearances.wc_violations(CL.project_plans(), BOARD)
         self.assertGreaterEqual(len(seen), 6, seen)
         for _label, got in seen:
@@ -51,8 +51,8 @@ class CheckTests(unittest.TestCase):
            the next reader to find it in a build log."""
         from src import clearances as CL
         from src.finishes import BOARD
-        from codes.clearances import WC_SIDE
-        from lib.model.dimensions import wc_clearances
+        from arkitect.codes.clearances import WC_SIDE
+        from arkitect.lib.model.dimensions import wc_clearances
         got = [min(m['cl'] - m['lo'], m['hi'] - m['cl'])
                for lab, r, po, fu in CL.project_plans() if lab == 'UNIT 1 LEVEL 1'
                for m in wc_clearances(r, po, fu, BOARD)]
@@ -64,8 +64,8 @@ class CheckTests(unittest.TestCase):
            the code minimum each side: measured to the studs it passes, measured to the
            finished wall it cannot. If the deduction is ever dropped, this goes green
            for the wrong reason and fails."""
-        from codes import clearances as code_clearances
-        from lib.units import IN
+        from arkitect.codes import clearances as code_clearances
+        from arkitect.lib.units import IN
         m = code_clearances.WC_SIDE.minimum
         room = (0.0, 0.0, 2 * m, 6.0, 'BATH')
         pan = (m - 0.5, 0.0, 1.0, 2.5, 'wc', 'n')      # centerline at exactly m
@@ -81,8 +81,8 @@ class CheckTests(unittest.TestCase):
         """The other half of the rule, and why the ADU's 15-1/4" to its tub was never
            wrong: a fixture stands in the room with its finished face where it is drawn,
            so the deduction applies to the wall behind it and not to the fixture."""
-        from codes import clearances as code_clearances
-        from lib.units import IN
+        from arkitect.codes import clearances as code_clearances
+        from arkitect.lib.units import IN
         m = code_clearances.WC_SIDE.minimum
         room = (0.0, 0.0, 10.0, 6.0, 'BATH')
         pan = (4.0, 0.0, 1.0, 2.5, 'wc', 'n')          # centerline at 4.5
@@ -109,8 +109,8 @@ class SheetTests(unittest.TestCase):
 
     def test_note_7_prints_the_measured_clearance(self):
         from src.sheets import a001
-        from codes import clearances as code_clearances
-        from lib.units import inches
+        from arkitect.codes import clearances as code_clearances
+        from arkitect.lib.units import inches
         note = [n for n in a001.plan_notes() if n.startswith('7.')]
         self.assertEqual(len(note), 1, 'A-001 note 7 not found')
         self.assertIn(inches(a001._wc_side()), note[0])
@@ -118,7 +118,7 @@ class SheetTests(unittest.TestCase):
 
     def test_the_measured_clearance_actually_clears_the_minimum(self):
         from src.sheets import a001
-        from codes import clearances as code_clearances
+        from arkitect.codes import clearances as code_clearances
         self.assertGreaterEqual(a001._wc_side(), code_clearances.WC_SIDE.minimum)
 
 

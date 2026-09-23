@@ -8,7 +8,7 @@
    "title": "COVER, CODE DATA, GENERAL NOTES",
    "status": "drawn",
    "guards": [
-    "codes.columbus.fit"
+    "arkitect.codes.columbus.fit"
    ],
    "notes": ""
   },
@@ -17,8 +17,8 @@
    "title": "SITE PLAN",
    "status": "pending",
    "guards": [
-    "codes.columbus.fit",
-    "codes.ohio.opc_separation"
+    "arkitect.codes.columbus.fit",
+    "arkitect.codes.ohio.opc_separation"
    ],
    "notes": ""
   },
@@ -27,8 +27,8 @@
    "title": "GRADING AND DRAINAGE PLAN",
    "status": "pending",
    "guards": [
-    "lib.model.grade",
-    "codes.ohio.rco.site_steps"
+    "arkitect.lib.model.grade",
+    "arkitect.codes.ohio.rco.site_steps"
    ],
    "notes": ""
   },
@@ -37,7 +37,7 @@
    "title": "FLOOR PLAN GENERAL NOTES",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.egress"
+    "arkitect.codes.ohio.rco.egress"
    ],
    "notes": ""
   },
@@ -46,9 +46,9 @@
    "title": "BUILDING 1 \u2014 FLOOR PLANS",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.egress",
-    "codes.clearances",
-    "lib.model.fit"
+    "arkitect.codes.ohio.rco.egress",
+    "arkitect.codes.clearances",
+    "arkitect.lib.model.fit"
    ],
    "notes": ""
   },
@@ -57,9 +57,9 @@
    "title": "BUILDING 2 \u2014 FLOOR PLANS",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.egress",
-    "codes.clearances",
-    "lib.model.fit"
+    "arkitect.codes.ohio.rco.egress",
+    "arkitect.codes.clearances",
+    "arkitect.lib.model.fit"
    ],
    "notes": ""
   },
@@ -68,7 +68,7 @@
    "title": "BUILDING 1 \u2014 EXTERIOR ELEVATIONS",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.fire_separation"
+    "arkitect.codes.ohio.rco.fire_separation"
    ],
    "notes": ""
   },
@@ -77,7 +77,7 @@
    "title": "BUILDING 2 \u2014 EXTERIOR ELEVATIONS",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.fire_separation"
+    "arkitect.codes.ohio.rco.fire_separation"
    ],
    "notes": ""
   },
@@ -86,7 +86,7 @@
    "title": "BUILDING SECTIONS AND HEIGHT SCHEDULE",
    "status": "pending",
    "guards": [
-    "lib.model.stairs"
+    "arkitect.lib.model.stairs"
    ],
    "notes": ""
   },
@@ -95,7 +95,7 @@
    "title": "ASSEMBLIES AND FIRE SEPARATION SCHEDULE",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.fire_separation"
+    "arkitect.codes.ohio.rco.fire_separation"
    ],
    "notes": ""
   },
@@ -104,7 +104,7 @@
    "title": "WINDOW, DOOR AND FINISH SCHEDULES",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.egress"
+    "arkitect.codes.ohio.rco.egress"
    ],
    "notes": ""
   },
@@ -113,8 +113,8 @@
    "title": "FOUNDATION PLANS",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.concrete",
-    "codes.ohio.opc_service_entry"
+    "arkitect.codes.ohio.rco.concrete",
+    "arkitect.codes.ohio.opc_service_entry"
    ],
    "notes": ""
   },
@@ -123,9 +123,9 @@
    "title": "FLOOR FRAMING PLANS",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.headers",
-    "codes.ohio.rco.floor_checks",
-    "lib.model.fit"
+    "arkitect.codes.ohio.rco.headers",
+    "arkitect.codes.ohio.rco.floor_checks",
+    "arkitect.lib.model.fit"
    ],
    "notes": ""
   },
@@ -134,8 +134,8 @@
    "title": "ROOF FRAMING PLANS AND DETAILS",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.roof_checks",
-    "codes.ohio.rco.attic_ventilation"
+    "arkitect.codes.ohio.rco.roof_checks",
+    "arkitect.codes.ohio.rco.attic_ventilation"
    ],
    "notes": ""
   },
@@ -144,7 +144,7 @@
    "title": "WALL BRACING PLANS AND DETAILS",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.bracing"
+    "arkitect.codes.ohio.rco.bracing"
    ],
    "notes": ""
   },
@@ -153,7 +153,7 @@
    "title": "BUILDING 1 \u2014 MECHANICAL PLANS",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.mechanical"
+    "arkitect.codes.ohio.rco.mechanical"
    ],
    "notes": ""
   },
@@ -162,7 +162,7 @@
    "title": "BUILDING 2 \u2014 MECHANICAL PLANS",
    "status": "pending",
    "guards": [
-    "codes.ohio.rco.mechanical"
+    "arkitect.codes.ohio.rco.mechanical"
    ],
    "notes": ""
   },
@@ -171,8 +171,8 @@
    "title": "BUILDING 1 \u2014 ELECTRICAL PLANS",
    "status": "pending",
    "guards": [
-    "codes.nec.dwelling",
-    "codes.nec.load"
+    "arkitect.codes.nec.dwelling",
+    "arkitect.codes.nec.load"
    ],
    "notes": ""
   },
@@ -181,8 +181,8 @@
    "title": "BUILDING 2 \u2014 ELECTRICAL PLANS",
    "status": "pending",
    "guards": [
-    "codes.nec.dwelling",
-    "codes.nec.load"
+    "arkitect.codes.nec.dwelling",
+    "arkitect.codes.nec.load"
    ],
    "notes": ""
   },
@@ -191,8 +191,8 @@
    "title": "SANITARY / UNDER-SLAB PLANS",
    "status": "pending",
    "guards": [
-    "codes.ohio.opc_drainage",
-    "lib.model.drains"
+    "arkitect.codes.ohio.opc_drainage",
+    "arkitect.lib.model.drains"
    ],
    "notes": ""
   },
@@ -201,7 +201,7 @@
    "title": "BUILDING 1 \u2014 WATER SUPPLY PLANS",
    "status": "pending",
    "guards": [
-    "codes.ohio.water_supply"
+    "arkitect.codes.ohio.water_supply"
    ],
    "notes": ""
   },
@@ -210,7 +210,7 @@
    "title": "BUILDING 2 \u2014 WATER SUPPLY PLANS",
    "status": "pending",
    "guards": [
-    "codes.ohio.water_supply"
+    "arkitect.codes.ohio.water_supply"
    ],
    "notes": ""
   },
@@ -219,7 +219,7 @@
    "title": "PLUMBING RISER DIAGRAM AND NOTES",
    "status": "pending",
    "guards": [
-    "codes.ohio.opc_vents"
+    "arkitect.codes.ohio.opc_vents"
    ],
    "notes": ""
   },
@@ -228,7 +228,7 @@
    "title": "ZONING SITE PLAN \u2014 11 x 17, ISSUED SEPARATELY",
    "status": "drawn",
    "guards": [
-    "codes.columbus.fit"
+    "arkitect.codes.columbus.fit"
    ],
    "notes": ""
   }

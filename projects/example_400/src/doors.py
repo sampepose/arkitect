@@ -1,6 +1,6 @@
 """Every door leaf on the set against what stands on the floor it swings over.
 
-The geometry is `lib/model/fit.py`'s (`leaf_quadrant`, `door_swing_violations`); this module
+The geometry is `arkitect/lib/model/fit.py`'s (`leaf_quadrant`, `door_swing_violations`); this module
 only hands it the set's own doors and furniture, in the coordinates the PLANS draw them in.
 That is the point: a swing that clears in model feet can foul once the stud grid has stretched
 a band, and a check reading the authored numbers would not see it.
@@ -10,8 +10,8 @@ its own room, over the washer that stands across the last 9-1/2" of the opening 
 A working space is left out of the obstructions: NEC 110.26 and RCO M1305.1 are about reaching
 equipment, and an open door is not what they bar.
 """
-from lib.model import fit
-from lib.model.mirror import mdoors, mfurn
+from arkitect.lib.model import fit
+from arkitect.lib.model.mirror import mdoors, mfurn
 from src import building1, building2
 
 SKIP = ('clear',)              # any kind whose name carries this is a working space, not an object

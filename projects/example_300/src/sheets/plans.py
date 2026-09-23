@@ -3,15 +3,15 @@
    The exterior stairs are here rather than with the model because they are DRAWN in
    true feet, outside the regrid: the stud-grid map stretches that band of the plan
    by 8 percent, which drew a 3'-6" landing 3'-7-7/8" long."""
-from lib.draw.page import GREY, LAY, POCHE, Sheet
-from lib.draw.sheets import draw_level, plan_sheet
-from lib.units import fmt
+from arkitect.lib.draw.page import GREY, LAY, POCHE, Sheet
+from arkitect.lib.draw.sheets import draw_level, plan_sheet
+from arkitect.lib.units import fmt
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src.building1 import F_U23, LIVE_WALL_X, LST_ARROW, LST_LONG, LST_SHORT, OA_U23, PLAN_L1, PLAN_L2, U23, U2_ENTRY, U3_ENTRY, U3_FLIGHT_HI, U3_LAND_D, U3_LAND_HI, U3_LAND_LEN, U3_LAND_LO, U3_STAIR_RATED, U3_STAIR_W, U3_STOOP_HI, U3_TREADS, _b1_level, b1_chains
 from src.building2 import B2_W, PLAN_B2, U5_FLIGHT_X0, U5_LAND_D, U5_LAND_LEN, U5_LAND_X0, U5_LAND_X1, U5_STOOP_X0, U5_TREADS, Y_BEAR, b2_level, check_u5_stair_clear
-from lib.model.regrid import PARTITION
+from arkitect.lib.model.regrid import PARTITION
 from src.mirror import LIVE_SIDE, rnotes, rtags
 import math
 from src.building1 import (LB, B0, B1, D_STUD, EXT, FZ, NOSING, NS_FACES, NT, P, R0, SX, TREAD, W_STUD,
@@ -20,12 +20,12 @@ from src.building1 import (LB, B0, B1, D_STUD, EXT, FZ, NOSING, NS_FACES, NT, P,
                            U1_ATTIC, U1_ATTIC_LABEL,
                            U1_DR_DUCT, U1_DR_TERM)
 from reportlab.lib.colors import Color
-from lib.units import IN
-from lib.units import inches
+from arkitect.lib.units import IN
+from arkitect.lib.units import inches
 from src import levels
 from src.grading import STOOP_STEP, STOOP_TOP
 from src.sheets.common import draw_attic_hatch
-from lib.draw.kit import Q, X0, Y1, c
+from arkitect.lib.draw.kit import Q, X0, Y1, c
 from src.roof import HATCHES
 
 

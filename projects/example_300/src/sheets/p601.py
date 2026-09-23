@@ -1,29 +1,29 @@
 """P-601 — the plumbing riser diagram and plumbing notes. The drainage fixture units and
    everything below the slabs are P-101's; the water supply is P-102 / P-103's; the
    dwelling and service load calculations are E-101 / E-102's."""
-from lib.draw.page import GREY, LAY, Sheet
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import GREY, LAY, Sheet
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
-from codes.ohio import opc_vents as VENT
+from arkitect.codes.ohio import opc_vents as VENT
 from src import criteria as crit
 from src import drainage as dr
 from src import levels
 from src import plumbing as pm
 from src.foundation import (BAR_COVER, EDGE_INSUL_RUN, FTG_BAR, FTG_BAR_DIA, FTG_PROJ,
                             FTG_W, GRAVEL_T, INSUL_T, SLAB_T, WALL_T)
-from codes.ohio.opc_service_entry import entry_for
-from codes.ohio.opc_service_entry_draw import (service_entry_elevation, service_entry_notes,
+from arkitect.codes.ohio.opc_service_entry import entry_for
+from arkitect.codes.ohio.opc_service_entry_draw import (service_entry_elevation, service_entry_notes,
                                                service_entry_section)
 from src.mirror import BED_SIDE, LIVE_SIDE
-from lib.draw.kit import X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import X0, X1, Y0, Y1, c
 
 
 # ============================= P-601 PLUMBING RISER =============================
 def _vent_notes():
     """Notes 1v, 1w and 1x, wrapped to the column P-601's assert holds them to."""
-    from lib.draw.text import wrap_notes
+    from arkitect.lib.draw.text import wrap_notes
     out = []
     for t in (
         "1v. VENTING, OPC CHAPTER 9. A FIXTURE MARKED * DRAINS BELOW THE SLAB, P-101, AND IS VENTED BY THE DRY VENT DRAWN BESIDE "

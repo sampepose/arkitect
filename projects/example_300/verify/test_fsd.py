@@ -53,7 +53,7 @@ class LineTests(unittest.TestCase):
 
     def test_the_stair_keeps_six_inches_over_its_minimum(self):
         from src import fsd
-        from codes.ohio.rco import fire_separation as rco_fsd
+        from arkitect.codes.ohio.rco import fire_separation as rco_fsd
         self.assertAlmostEqual(fsd.U5_CLEAR, 5.5)
         self.assertAlmostEqual(fsd.U5_CLEAR-rco_fsd.PROJ_FREE, 0.5)
         self.assertEqual(rco_fsd.projection_rating(fsd.U5_CLEAR), 'NONE')
@@ -61,7 +61,7 @@ class LineTests(unittest.TestCase):
     def test_the_rear_wall_is_rated_and_its_openings_fit(self):
         """38 SF in a 26'-0" x 9'-0" story, 16.2 percent against 25."""
         from src import fsd
-        from codes.ohio.rco import fire_separation as rco_fsd
+        from arkitect.codes.ohio.rco import fire_separation as rco_fsd
         from src.sitework import L2_STOREY, REAR_OPEN_PCT
         from src.mirror import B1_W
         self.assertEqual(rco_fsd.wall_rating(fsd.OFF_B1), '1 HOUR')
@@ -73,7 +73,7 @@ class LineTests(unittest.TestCase):
 
     def test_building_two_is_clear_of_the_table(self):
         from src import fsd
-        from codes.ohio.rco import fire_separation as rco_fsd
+        from arkitect.codes.ohio.rco import fire_separation as rco_fsd
         self.assertEqual(rco_fsd.wall_rating(fsd.OFF_B2), 'NONE')
         self.assertIsNone(rco_fsd.opening_max(fsd.OFF_B2))
 
@@ -92,7 +92,7 @@ class WindowTests(unittest.TestCase):
         """The six inches are the stair's whichever way it spends them: wider, or
            further out from Building 2's face."""
         from src import fsd
-        from codes.ohio.rco import fire_separation as rco_fsd
+        from arkitect.codes.ohio.rco import fire_separation as rco_fsd
         self.assertAlmostEqual(fsd.stair_clear(fsd.OFF_B2, fsd.STAIR_W+0.5), rco_fsd.PROJ_FREE)
         self.assertLess(fsd.stair_clear(fsd.OFF_B2, fsd.STAIR_W+0.5+1.0/12.0), rco_fsd.PROJ_FREE)
 
@@ -116,7 +116,7 @@ class ProjectionTests(unittest.TestCase):
 
     def test_the_rear_rake_is_six_inches_over_an_unvented_gable(self):
         from src import fsd
-        from codes.ohio.rco import fire_separation as rco_fsd
+        from arkitect.codes.ohio.rco import fire_separation as rco_fsd
         from src.roof import B1_ROOF, gable_vented, rake
         self.assertAlmostEqual(rake(B1_ROOF, 'REAR')*12, 6.0)
         self.assertFalse(gable_vented(B1_ROOF, 'REAR'))
@@ -153,7 +153,7 @@ class LeaderTests(unittest.TestCase):
 
     def test_ds1_is_on_that_wall_and_clears_the_projection_floor(self):
         from src import fsd
-        from codes.ohio.rco import fire_separation as rco_fsd
+        from arkitect.codes.ohio.rco import fire_separation as rco_fsd
         from src.downspouts import DOWNSPOUTS, LEADER_D
         from src.sitework import B1_REAR_Y
         on = [d.mark for d in DOWNSPOUTS
@@ -172,7 +172,7 @@ class EdgeTests(unittest.TestCase):
     """Every eave and rake of both buildings, sitework.roof_edges()."""
 
     def test_the_model_passes(self):
-        from codes.ohio.rco import fire_separation as rco_fsd
+        from arkitect.codes.ohio.rco import fire_separation as rco_fsd
         from src.sitework import roof_edges
         self.assertEqual(rco_fsd.edge_violations(roof_edges()), [])
 
@@ -186,7 +186,7 @@ class EdgeTests(unittest.TestCase):
             'BUILDING 2 COURTYARD RAKE': 96.0, 'BUILDING 2 ALLEY RAKE': 204.0})
 
     def test_the_parcel_eaves_would_need_their_fireblock_an_inch_further_out(self):
-        from codes.ohio.rco import fire_separation as rco_fsd
+        from arkitect.codes.ohio.rco import fire_separation as rco_fsd
         from src.sitework import roof_edges
         edges = [(n, k, w, o+(1.0/12.0 if 'PARCEL' in n else 0.0), False, v) for n, k, w, o, _b, v in roof_edges()]
         bad = rco_fsd.edge_violations(edges)

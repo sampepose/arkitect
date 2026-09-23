@@ -62,7 +62,7 @@ class ParcelFaceTests(unittest.TestCase):
     def test_an_outdoor_unit_under_the_c101_minimum_fails(self):
         """C-101 note 5b's 4" above grade is the only thing left setting an outdoor
            unit's height now that no gas leg runs under one."""
-        from lib.units import IN
+        from arkitect.lib.units import IN
         from src import sitework
         from src.faces import face_violations
         keep = dict(sitework.SVC_Z)

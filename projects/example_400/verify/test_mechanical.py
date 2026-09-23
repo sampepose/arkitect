@@ -3,7 +3,7 @@
 import unittest
 
 from projects.example_400.verify import enter, leave
-from codes.ohio.rco import mechanical as mechanical_shared
+from arkitect.codes.ohio.rco import mechanical as mechanical_shared
 
 
 def setUpModule():
@@ -22,7 +22,7 @@ class MechanicalTests(unittest.TestCase):
 
     def test_the_terminations(self):
         from src import mechanical as m
-        from codes.ohio.rco import mechanical as rco_mech
+        from arkitect.codes.ohio.rco import mechanical as rco_mech
         got = {r['term'].mark: r['term'].wall for r in mechanical_shared.terminations(levels=m.LEVELS, walls=m.WALLS)}
         self.assertEqual(got, {'DR-1': 'REAR WALL', 'EF-1A': 'NORTH WALL', 'EF-1B': 'ROOF',
                                'DR-2': 'NORTH WALL', 'EF-2': 'SOUTH WALL', 'DR-3': 'NORTH WALL', 'EF-3': 'ROOF'})
@@ -34,7 +34,7 @@ class MechanicalTests(unittest.TestCase):
 
     def test_table_m1505_4_3_1(self):
         from src import mechanical as m
-        from codes.ohio.rco import mechanical as rco_mech
+        from arkitect.codes.ohio.rco import mechanical as rco_mech
         self.assertEqual(rco_mech.whole_house_cfm(1, 1500), 30)
         self.assertEqual(rco_mech.whole_house_cfm(3, 1320), 45)
         self.assertEqual(rco_mech.whole_house_cfm(2, 660), 45)
@@ -54,7 +54,7 @@ class MechanicalTests(unittest.TestCase):
         """An air handler per level, hung in that level's hall soffit with its ducts, every
            register inside the room it names, and the soffit still a legal ceiling."""
         from src import mechanical as m, building1 as B1
-        from lib.units import IN
+        from arkitect.lib.units import IN
         self.assertEqual(m.ducted_violations(m.UNIT_1), [])
         self.assertEqual(sorted(m.AHU_MARK.values()), ['AHU-1', 'AHU-2'])
         for level in (1, 2):
@@ -73,7 +73,7 @@ class MechanicalTests(unittest.TestCase):
            thermostat each and the ADUs a wall control, each on an interior wall of a room
            its system serves and clear of the supply air."""
         from src import mechanical as m
-        from codes.ohio.rco import mechanical as rco_mech
+        from arkitect.codes.ohio.rco import mechanical as rco_mech
         systems = m._systems()
         self.assertEqual([s['name'] for s in systems],
                          ['UNIT 1 LEVEL 1 ZONE', 'UNIT 1 LEVEL 2 ZONE', 'UNIT 2', 'UNIT 3'])
@@ -86,7 +86,7 @@ class MechanicalTests(unittest.TestCase):
 
     def test_a_cap_is_pushed_off_an_opening(self):
         from src import mechanical as m
-        from codes.ohio.rco import mechanical as rco_mech
+        from arkitect.codes.ohio.rco import mechanical as rco_mech
         wall = m.Wall('T', 'v', 0.0, 0.0, 30.0, [m.Opening(10.0, 13.0, 3.0, 8.0, 'W')])
         a = m.cap_position(wall, 5.0, 11.0, m.EXH_CLR)
         self.assertAlmostEqual(min(abs(a-(10.0-m.EXH_CLR-rco_mech.CAP_R)), abs(a-(13.0+m.EXH_CLR+rco_mech.CAP_R))), 0.0)
@@ -147,7 +147,7 @@ class MechanicalTests(unittest.TestCase):
         """A cap is placed in page feet and a face reads flipped or not: its clearance to the
            face's nearest opening, measured on the face, is the model's."""
         from src import mechanical as m
-        from codes.ohio.rco import mechanical as rco_mech
+        from arkitect.codes.ohio.rco import mechanical as rco_mech
         from src.sheets import elevations as el
         for n, which, name in ((2, 'NORTH', 'NORTH WALL'), (2, 'SOUTH', 'SOUTH WALL'), (1, 'REAR', 'REAR WALL')):
             for x, z, mark, _k in el.face_terms(n, which):

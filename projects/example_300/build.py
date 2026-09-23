@@ -18,14 +18,14 @@ Importing this module draws nothing, writes nothing and prints nothing.
 import sys, os, contextlib
 HERE = os.path.dirname(os.path.abspath(__file__))        # this project
 ROOT = os.path.dirname(os.path.dirname(HERE))            # the repository
-for _p in (ROOT, HERE):                                  # lib/ and codes/, then src/
+for _p in (ROOT, HERE):                                  # arkitect/lib/ and arkitect/codes/, then src/
     if _p not in sys.path:
         sys.path.insert(0, _p)
 # drawing primitives
-from lib.draw import page
-from lib.draw.page import DA, PH, PW
+from arkitect.lib.draw import page
+from arkitect.lib.draw.page import DA, PH, PW
 from src import project
-from lib.units import fmt
+from arkitect.lib.units import fmt
 # the sheet mirror and the fixed Units 2/3 reflection
 # Unit 1's anchors, Units 2 and 3, the Unit 3 stair, the terminations
 from src.building1 import (check_u23_beds, check_u23_terms, check_u3_stair_clear,
@@ -47,7 +47,7 @@ from src.bracing import check_bracing
 from src.fireblocking import check_fireblocking
 # W-A, the one egress unit: its frame can host the net clear minimums every product must give
 from src.openings import WIN_GEOM, WIN_W
-from codes.ohio.rco.egress import check_egress_window
+from arkitect.codes.ohio.rco.egress import check_egress_window
 from src.sitework import check_fsd, check_height, check_setbacks, check_wheel_stops
 # the separation in section: W4A and W4B, their tiers, rims and fireblocks, A-603
 from src.separation import check_w4
@@ -72,7 +72,7 @@ OUT=os.path.join(HERE,"300-S-Elm-permit-set.pdf")
 # which is not this set's sheet size, and Building and Zoning Services takes it on its
 # own. It is listed in the G-001 index because it is part of the submittal.
 ZONING_OUT=os.path.join(HERE,"300-S-Elm-zoning-site-plan.pdf")
-# Read by lib/export/dxf.py, which loads this module to re-run the build and otherwise
+# Read by arkitect/lib/export/dxf.py, which loads this module to re-run the build and otherwise
 # has no name for the project's tracked DXF deliverable -- it may not import a project.
 # Without this it falls back to deriving a name from the build script's own path, which
 # writes a throwaway build.dxf next to this file instead of the file the set ships.
@@ -86,7 +86,7 @@ DXF_OUT=os.path.join(HERE,project.DXF_OUT)
 # drawing calls across 41 functions — and each read resolves to the canvas of the
 # document THIS THREAD is drawing. So the name stays where every sheet already expects
 # it while the thing behind it is per-document, and build_set() and build_zoning_sheet()
-# can run at the same time. See lib/draw/page.py's BuildContext for why that is a
+# can run at the same time. See arkitect/lib/draw/page.py's BuildContext for why that is a
 # ContextVar and not a module attribute with a lifetime.
 c=page.canvas_proxy()
 X0,Y0,X1,Y1=DA
@@ -284,14 +284,14 @@ def build_zoning_sheet(output_path=None, make_canvas=None):
 
 # Every file this project writes, in the order it writes them. A tool that re-runs the
 # build reads this rather than the __main__ block below, so it can hand each function a
-# scratch path and its own canvas; see lib/buildscript.py.
+# scratch path and its own canvas; see arkitect/lib/buildscript.py.
 DOCUMENTS = (build_set, build_zoning_sheet)
 
 
 if __name__ == "__main__":
-    # Deliberately NOT sys.argv[1]. lib/export/dxf.py and lib/verify/trace.py run this
+    # Deliberately NOT sys.argv[1]. arkitect/lib/export/dxf.py and arkitect/lib/verify/trace.py run this
     # file with exec() and __name__ == "__main__", under THEIR argv — so reading argv
-    # here means `python3 lib/export/dxf.py build.py out.dxf` writes the PDF over
+    # here means `python3 arkitect/lib/export/dxf.py build.py out.dxf` writes the PDF over
     # build.py. The output path is a parameter of build_set(), which is where a caller
     # that wants one already is.
     print("saved", build_set())

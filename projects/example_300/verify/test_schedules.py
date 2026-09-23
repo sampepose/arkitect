@@ -19,11 +19,11 @@ if PROJ not in sys.path:
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-from lib.units import IN
+from arkitect.lib.units import IN
 from src import openings as O
-from codes.ohio.rco import egress as rco_egress
+from arkitect.codes.ohio.rco import egress as rco_egress
 from src import schedules as S
-from codes.ohio.rco import egress as egress_shared
+from arkitect.codes.ohio.rco import egress as egress_shared
 
 
 class WindowMarkTests(unittest.TestCase):

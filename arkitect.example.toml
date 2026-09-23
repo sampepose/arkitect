@@ -1,10 +1,10 @@
 # arkitect's settings: copy to arkitect.toml (this checkout), ~/.config/arkitect/config.toml
 # (you), or projects/<slug>/arkitect.toml (one project), and change what you need. Every key
-# is optional; harness/config.py holds the defaults and `python3 -m harness.config show`
+# is optional; arkitect/harness/config.py holds the defaults and `python3 -m arkitect.harness.config show`
 # prints what is in force.
 
 [designer]
-# Who confirms a decision among code-legal options (python3 -m harness.decisions): only this
+# Who confirms a decision among code-legal options (python3 -m arkitect.harness.decisions): only this
 # person's words move a record to `confirmed`.
 name = "Jane Doe"
 role = "designer of record"
@@ -23,7 +23,7 @@ design = ["the cheapest code-compliant option", "all-electric", "every figure on
 house = "style/house-style.md"
 
 [hooks]
-# The Stop hook, once installed (python3 -m harness.hooks install). "advise" shows the problem
+# The Stop hook, once installed (python3 -m arkitect.harness.hooks install). "advise" shows the problem
 # and lets the turn end; "block" holds the turn until it is fixed. A stricter setting:
 #   green_uncommitted = "block"  and  red = "block-unattended"  (a background job must leave
 #   its work committed and green; a watched session may stop on a red "what if").
@@ -35,6 +35,6 @@ red = "advise"                    # block | block-unattended | advise | off  -- 
 private_words = []
 
 [verify]
-# Lines two of your projects may carry word for word (python3 lib/verify/twins.py). 0 is
-# the rule: share a definition in lib/ or codes/ instead of copying it.
+# Lines two of your projects may carry word for word (python3 arkitect/lib/verify/twins.py). 0 is
+# the rule: share a definition in arkitect/lib/ or arkitect/codes/ instead of copying it.
 twins_ceiling = 0

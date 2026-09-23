@@ -2,7 +2,7 @@
 a bad commit in this repository. Exit 2 with the reason on stderr; Claude reads it.
 
 Each rule is a function of (segment, context) returning a reason or None, so
-lib/verify/test_hooks.py can hold every rule to one command it must refuse and one it
+arkitect/lib/verify/test_hooks.py can hold every rule to one command it must refuse and one it
 must let through.
 """
 import os
@@ -14,8 +14,8 @@ import hooklib  # noqa: E402
 
 ORACLES = ('build.py', 'dxf.py', 'trace.py', 'run_tests.py', 'gate.py', 'sheet_text.py')
 # the same tools run as modules, the form that works in the engine and in a projects repository
-MODULES = ('lib.verify.gate', 'lib.verify.trace', 'lib.verify.run_tests', 'lib.export.dxf',
-           'lib.verify.sheet_text')
+MODULES = ('arkitect.lib.verify.gate', 'arkitect.lib.verify.trace', 'arkitect.lib.verify.run_tests', 'arkitect.lib.export.dxf',
+           'arkitect.lib.verify.sheet_text')
 
 
 def _words(seg):
@@ -47,7 +47,7 @@ def rule_test_runner(seg, ctx):
     w = _words(seg)
     if 'pytest' in w or ('unittest' in w and 'discover' in w) or \
             any(x.endswith('pytest') for x in w[:1]):
-        return ("run `python3 -m lib.verify.run_tests` (or `python3 -m lib.verify.gate --full`): "
+        return ("run `python3 -m arkitect.lib.verify.run_tests` (or `python3 -m arkitect.lib.verify.gate --full`): "
                 "`unittest discover` with a mistyped pattern and `pytest -k` that deselects "
                 "everything both exit 0 after running nothing.")
     return None
@@ -62,7 +62,7 @@ def rule_hidden_stderr(seg, ctx):
     if hides:
         return ("do not discard an oracle's stderr: the DXF exporter was dead for several "
                 "commits behind `>/dev/null 2>&1 && echo rebuilt`. Run it plainly, or run "
-                "`python3 -m lib.verify.gate`, which reads every exit status and keeps stderr.")
+                "`python3 -m arkitect.lib.verify.gate`, which reads every exit status and keeps stderr.")
     return None
 
 
@@ -71,7 +71,7 @@ def rule_masked_exit(segs, ctx):
     for (seg, op), (nxt, _op) in zip(segs, segs[1:]):
         if _runs_oracle(seg) and op in ('||', '&&') and re.fullmatch(r'(true|:|echo\b.*)', nxt):
             return ("do not follow an oracle with `|| true` or `&& echo`: the exit status is "
-                    "the result. Run it plainly, or run `python3 -m lib.verify.gate`.")
+                    "the result. Run it plainly, or run `python3 -m arkitect.lib.verify.gate`.")
     return None
 
 
@@ -87,23 +87,23 @@ def rule_worktree_deliverables(seg, ctx):
         script = args[0]
         if re.search(r'(^|/)projects/[^/]+/build\.py$', script):
             return ("a worktree does not rewrite the tracked PDFs: the merger regenerates them. "
-                    "To look at a sheet: `python3 -m lib.verify.gate render --sheets A-101` "
-                    "(PNGs outside the checkout); to check the build: `python3 -m lib.verify.gate`.")
+                    "To look at a sheet: `python3 -m arkitect.lib.verify.gate render --sheets A-101` "
+                    "(PNGs outside the checkout); to check the build: `python3 -m arkitect.lib.verify.gate`.")
         if script.endswith('export/dxf.py') and len(args) < 3:
-            return ("in a worktree, give lib/export/dxf.py an output path outside the checkout "
-                    "(`python3 -m lib.export.dxf <build.py> /tmp/x.dxf`); without one it rewrites "
+            return ("in a worktree, give arkitect/lib/export/dxf.py an output path outside the checkout "
+                    "(`python3 -m arkitect.lib.export.dxf <build.py> /tmp/x.dxf`); without one it rewrites "
                     "the tracked DXF, which the merger regenerates.")
     return None
 
 
 # Files one tool writes, and what to say to anything else that tries.
 TOOL_WRITTEN = {
-    'trace.md5': ("trace.md5 is written by `python3 -m lib.verify.gate accept` and nothing else: "
+    'trace.md5': ("trace.md5 is written by `python3 -m arkitect.lib.verify.gate accept` and nothing else: "
                   "review what moved first (`gate.py`, `gate.py render --moved`), then accept, and "
                   "name the sheets it prints in the commit message."),
-    'progress.json': ("progress.json is written by `python3 -m harness.progress set / add / drop` "
+    'progress.json': ("progress.json is written by `python3 -m arkitect.harness.progress set / add / drop` "
                       "and nothing else: `set` refuses a claim the build does not prove."),
-    'review.json': ("review.json is written by `python3 -m harness.review ingest / set` and nothing "
+    'review.json': ("review.json is written by `python3 -m arkitect.harness.review ingest / set` and nothing "
                     "else: `set ... fixed` refuses unless the finding's sheet has changed."),
 }
 

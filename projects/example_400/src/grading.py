@@ -41,16 +41,16 @@ the Oak lot line toward the alley.
 """
 import math
 from collections import namedtuple
-from lib.units import IN, fmt, inches
+from arkitect.lib.units import IN, fmt, inches
 from src import levels
 from src.building2 import U5_FLIGHT_X0, U5_LAND_D, U5_LAND_X0, U5_STAIR
 from src.foundation import B1 as B1_FOUNDATION, B2 as B2_FOUNDATION, FLATWORK, FLATWORK_KINDS, LANDING, ROOF_OVERHANG
 from src.sitework import (B1_X, B1_Y, B2_X, B2_Y, PARK_X0, PARK_X1, PARK_Y0, PARK_Y1, SITE_BLDG, SITE_D,
                           SITE_W, WALK_COURT, WALK_PARK, WALK_SIDE, WALK_U1)
 from src.stairs import STOOP_TOP as _PAD_TOP
-from lib.model.grade import (Band, LANDING_MAX, TOL, _overlaps, _split, _touch, grade_along, point, signed,
+from arkitect.lib.model.grade import (Band, LANDING_MAX, TOL, _overlaps, _split, _touch, grade_along, point, signed,
                              stations)
-from codes.ohio.rco.site_steps import RISER_MAX, feet, stair_risers, stair_violations, step_summary
+from arkitect.codes.ohio.rco.site_steps import RISER_MAX, feet, stair_risers, stair_violations, step_summary
 
 # ---------------- the rules ----------------
 FALL, FALL_RUN = IN(6), 10.0          # R401.3: 6" within the first 10'-0"

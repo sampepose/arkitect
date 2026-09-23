@@ -21,15 +21,15 @@ No product is named, so the area provided is computed at the minimum ratings S-1
 note 7 states for the submittal.
 """
 from collections import namedtuple
-from lib.units import IN
-from lib.model.regrid import EXT_STUD
+from arkitect.lib.units import IN
+from arkitect.lib.model.regrid import EXT_STUD
 from src.partywall import W4_FACE
 from src import levels
 from src.building1 import PLAN_L2, U1_ATTIC, U23_E_RISER, Y_SEP_BOT, Y_SEP_TOP, site_x, site_y
 from src.building2 import B2_D, B2_W, PLAN_B2
 from src.mirror import B1_W
-from codes.ohio.rco.attic_ventilation import _attic
-from codes.ohio.rco.roof_checks import HATCH_L, HATCH_W, roof_violations as _shared_roof_violations
+from arkitect.codes.ohio.rco.attic_ventilation import _attic
+from arkitect.codes.ohio.rco.roof_checks import HATCH_L, HATCH_W, roof_violations as _shared_roof_violations
 from functools import partial
 
 # ---------------- basis ----------------

@@ -2,7 +2,7 @@
    tables read as transcribed, and the rules fire."""
 import unittest
 
-from lib.units import IN
+from arkitect.lib.units import IN
 from projects.example_400.verify import enter, leave
 
 
@@ -37,7 +37,7 @@ class BracingTests(unittest.TestCase):
 
     def test_a_wall_with_no_opening_is_two_panels_and_a_long_segment_is_one(self):
         from src import bracing as b
-        from codes.ohio.rco import bracing as rco_bracing
+        from arkitect.codes.ohio.rco import bracing as rco_bracing
         whole = [b.Panel(0.0, 33.0, rco_bracing.METHOD, IN(27), 33.0)]
         self.assertEqual(b.location_violations(33.0, whole), [])
         beside_a_door = [b.Panel(5.0, 20.0, rco_bracing.METHOD, IN(27), 15.0)]

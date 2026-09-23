@@ -1,7 +1,7 @@
 # House style
 
 The rules every sheet in this repository is held to. The plan reviewer
-(`harness/review.py`) reads this file into its brief, so a rule written here is a rule
+(`arkitect/harness/review.py`) reads this file into its brief, so a rule written here is a rule
 the reviewer enforces.
 
 - **American spelling on every sheet** (2026-09-16: British spelling is the single biggest
@@ -27,7 +27,7 @@ the reviewer enforces.
   **Before deleting a restatement, check the rule HAS a home.** One set's A-602 carried
   "LANDING AT EACH EXTERIOR DOOR PER RCO 311.3" and nothing else on that set said a
   landing was required; trimming it would have taken the requirement off the set. It
-  moved to the grading sheet instead. A grep sweep found it; `lib/verify/sheet_text.py`
+  moved to the grading sheet instead. A grep sweep found it; `arkitect/lib/verify/sheet_text.py`
   could not, because a rule that stops being stated cites nothing and overlaps nothing.
   The cheap oracle for a trim is a VOCABULARY diff of the two `sheet_text` dumps rather
   than a line diff: pull every RCO / OPC / NEC citation and every dimension out of each,
@@ -36,11 +36,11 @@ the reviewer enforces.
   of `re.findall`.
 - **RCO sections are cited without the IRC's R prefix**: "RCO 311.7", "TABLE 602.7(1)",
   "302.2.6" — the Residential Code of Ohio numbers them that way. "IRC R313" keeps its
-  R because it names the IRC. `lib/verify` pins some table keys, so a key and its lookup
+  R because it names the IRC. `arkitect/lib/verify` pins some table keys, so a key and its lookup
   change together; never reintroduce a lone "RCO R…".
 - **Chapter 15 is the 2018 IRC's arrangement, not the 2015 IRC's** (2026-09-20, after
   the M sheets cited M1507). The filed rule — OAC 4101:8-15-01, eff. 7-1-2019, downloaded
-  from codes.ohio.gov, not a summary — numbers them **1503.3** exhaust discharge (the
+  from arkitect.codes.ohio.gov, not a summary — numbers them **1503.3** exhaust discharge (the
   ductless hood exception), **1504.3** exhaust openings (3'-0" to a property line, an
   opening, a door), **1505.4** whole-house mechanical ventilation, **TABLE 1505.4.3(1)**
   continuous whole-house rates and **TABLE 1505.4.4** local exhaust rates. M1506.3 and
@@ -62,7 +62,7 @@ the reviewer enforces.
   door type should give the framer a number to build to rather than a document to go and
   find. Do not delete the number for want of a section.
 - **A note that cites a note on its OWN sheet is checked by nothing.**
-  `lib/verify/sheet_text.py` matches "X-000 NOTE n" across sheets and the tests hold its
+  `arkitect/lib/verify/sheet_text.py` matches "X-000 NOTE n" across sheets and the tests hold its
   findings at zero, but a bare "note 7" is matched by neither, and the number it names
   usually EXISTS — so an existence check would not catch it either. The same sheet can be
   numbered differently in two projects (one has a note the other has no need of, so every

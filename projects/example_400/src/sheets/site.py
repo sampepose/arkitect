@@ -7,12 +7,12 @@ for 1/16" = 1'-0" and C-101 enlarges at 1" = 10'-0".
 """
 from math import cos, radians, sin
 
-from lib.draw.context import LAY, current_layer
-from lib.draw.page import GREY, PlanDraw
-from lib.units import fmt
+from arkitect.lib.draw.context import LAY, current_layer
+from arkitect.lib.draw.page import GREY, PlanDraw
+from arkitect.lib.units import fmt
 from reportlab.lib.colors import black, white
 from reportlab.pdfbase import pdfmetrics
-from lib.draw.kit import c
+from arkitect.lib.draw.kit import c
 from src.sitework import (ALLEY_W, FRONT_YARD, NORTH_NEIGHBOUR, PARK_D, PARK_N, PARK_PITCH,
                           PARK_X0, PARK_X1, PARK_Y0, PARK_Y1, SIDE_YARD, SITE_BLDG, SITE_D,
                           SITE_W, SOUTH_NEIGHBOUR, STAIR, TRUE_NORTH, WALKS)

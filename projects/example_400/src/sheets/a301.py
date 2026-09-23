@@ -7,18 +7,18 @@ edge, all from src/building1.py's b1_stair(). Building 2's shows the rated floor
 Units 2 and 3 on its bearing wall, and the Unit 3 stair's landing end-on at the courtyard
 face. Every height is src/levels.py's.
 """
-from lib.draw.page import GREY, POCHE, Sheet
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import GREY, POCHE, Sheet
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from src import levels
 from src.building1 import B1_D, B1_W, PLAN_B1_L2, Y_FOOT_RISER, Y_TOP_RISER, Y_WELL, b1_stair
 from src.building2 import B2_D, B2_W, U45_BEARING_WALL, U5_LAND_D
 from src.foundation import FROST_DEPTH, FTG_PROJ, FTG_T, FTG_W, SLAB_T, WALL_T
-from lib.model.regrid import PARTITION
+from arkitect.lib.model.regrid import PARTITION
 from src.roof import B1_ROOF, B2_ROOF, rake
-from lib.draw.kit import datum_labels
-from lib.draw.kit import Q, X0, Y1, c
+from arkitect.lib.draw.kit import datum_labels
+from arkitect.lib.draw.kit import Q, X0, Y1, c
 from src.sheets.g001 import UNITS, gross_sf
 from src.stairs import B1_STAIR
 

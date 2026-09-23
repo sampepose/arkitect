@@ -4,7 +4,7 @@
 import importlib
 import unittest
 
-from lib.units import IN
+from arkitect.lib.units import IN
 from projects.example_400.verify import enter, leave
 
 
@@ -76,7 +76,7 @@ class FramingTests(unittest.TestCase):
 
     def test_unit_2s_fan_and_bath_light_hang_in_the_soffit(self):
         from src import electrical as e, building2 as b2
-        from codes.nec import dwelling as nec_dwelling
+        from arkitect.codes.nec import dwelling as nec_dwelling
         in_soffit = [d.kind for d in e.LEVEL_U2.devices if d.mount == 'c' and nec_dwelling._room_at((d.x, d.y), e.LEVEL_U2) in b2.U2_SOFFIT_ROOMS]
         self.assertIn('fanc', in_soffit)
         elsewhere = [d.kind for d in e.LEVEL_U2.devices if d.mount == 'c' and nec_dwelling._room_at((d.x, d.y), e.LEVEL_U2) not in b2.U2_SOFFIT_ROOMS]
@@ -150,7 +150,7 @@ class FramingTests(unittest.TestCase):
         """S-104 note 9's CS-PF header governs over Table 602.7 at the opening the portal
            frame stands beside, so S-102 prints it. Unit 2's entry, Building 2's courtyard
            wall at Level 1: the gravity table asks 2-2x6 and the portal asks 3" x 11-1/4"."""
-        from codes.ohio.rco.bracing import PORTAL_HEADER, header_depth, portal_header_size
+        from arkitect.codes.ohio.rco.bracing import PORTAL_HEADER, header_depth, portal_header_size
         f = fresh()
         pf = [h for h in f.HEADERS if f.is_portal(h.building, h.level, h.wall, h.width)]
         self.assertEqual(len(pf), 1, [h.tag for h in pf])
@@ -174,7 +174,7 @@ class FramingTests(unittest.TestCase):
         """S-104 note 9 reads "not less than the S-102 header", and detail 4 draws the
            figure's depth, so the schedule may not outgrow it either — the guard that was
            already in src/bracing.py, now with something on the other side of it."""
-        from codes.ohio.rco.bracing import PORTAL_HEADER, header_depth
+        from arkitect.codes.ohio.rco.bracing import PORTAL_HEADER, header_depth
         f = fresh()
         for h in f.HEADERS:
             if f.is_portal(h.building, h.level, h.wall, h.width):

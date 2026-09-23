@@ -26,7 +26,7 @@ class StairSheetTests(unittest.TestCase):
     def test_the_notes_are_this_lots(self):
         from src.sheets import a603
         from src import stairs
-        from lib.units import fmt
+        from arkitect.lib.units import fmt
         text = " ".join(a603.NOTES)
         for stale in ("A-001", "A-604", "UNIT 5", "BOTH STAIRS", "BOTH EXTERIOR", "13a"):
             self.assertNotIn(stale, text)
@@ -40,7 +40,7 @@ class StairSheetTests(unittest.TestCase):
     def test_the_projection_limit_is_the_lines(self):
         from src.sheets import a603
         from src import fsd
-        from lib.units import fmt
+        from arkitect.lib.units import fmt
         self.assertIn(fmt(fsd.PROJ_MAX), a603.NOTES[6])
         self.assertGreaterEqual(fsd.PROJ_MAX, a603.WIDTH)
 

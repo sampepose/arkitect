@@ -18,7 +18,7 @@ def tearDownModule():
 class CoverTests(unittest.TestCase):
 
     def test_the_index_is_what_the_set_binds(self):
-        from lib import buildscript
+        from arkitect.lib import buildscript
         b = buildscript.load(os.path.join(PROJ, "build.py"))
         from src.sheets.g001 import SEPARATE, SHEET_INDEX
         bound = ['%s-%s' % (f.__name__[6].upper(), f.__name__[7:]) for f in b.SHEETS]
@@ -40,7 +40,7 @@ class CoverTests(unittest.TestCase):
         self.assertIn('14" OPEN-WEB WOOD FLOOR TRUSSES', scope["STRUCTURAL"][3])
 
     def test_the_set_builds(self):
-        from lib import buildscript
+        from arkitect.lib import buildscript
         b = buildscript.load(os.path.join(PROJ, "build.py"))
         with tempfile.TemporaryDirectory() as d:
             out = b.build_set(output_path=os.path.join(d, "set.pdf"))

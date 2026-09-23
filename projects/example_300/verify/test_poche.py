@@ -46,7 +46,7 @@ class Recorder:
         return s._c.setFillColor(col, *a, **k)
 
     def rect(s, x, y, w, h, fill=0, stroke=1):
-        from lib.draw.context import current_layer
+        from arkitect.lib.draw.context import current_layer
         if fill:
             s.rects.append((current_layer(), s.fill, (x, y, w, h)))
         return s._c.rect(x, y, w, h, fill=fill, stroke=stroke)
@@ -62,7 +62,7 @@ class Recorder:
 def _greyed_b1_level(k, c):
     """The Building 1 background a trade sheet draws: the level greyed, no annotation,
        an overlay that draws nothing. Built the way M-101 and E-101 build it."""
-    from lib.draw.sheets import draw_level
+    from arkitect.lib.draw.sheets import draw_level
     from src.building1 import _b1_level
     from src.sheets.plans import B1_DRAWING
     lv = _b1_level(k, [], [], [], units=[], u3stair=(k == 1), annotate=False, **B1_DRAWING)
@@ -79,7 +79,7 @@ class WallPocheTests(unittest.TestCase):
 
     def test_a_greyed_trade_plan_draws_every_wall_in_one_grey(self):
         """The bug as the designer saw it: two greys on one plan, Unit 1's the darker."""
-        from lib.draw.page import GREY, LGREY
+        from arkitect.lib.draw.page import GREY, LGREY
         for k in (1, 2):
             c = _canvas()
             _greyed_b1_level(k, c)
@@ -97,8 +97,8 @@ class WallPocheTests(unittest.TestCase):
     def test_a_unit_1_wall_takes_the_poche_the_shell_is_filled_with(self):
         """Ungreyed — on A-101 and A-102 — a Unit 1 wall is the library's poche, which is
            what makes the two agree once GreyPen lightens them together."""
-        from lib.draw.page import POCHE
-        from lib.draw.plan import PlanDraw
+        from arkitect.lib.draw.page import POCHE
+        from arkitect.lib.draw.plan import PlanDraw
         from src.sheets.plans import PlanArtist, wall
         c = _canvas()
         p = PlanDraw(c, 100, 100, 18.0, 26, 48)
@@ -109,7 +109,7 @@ class WallPocheTests(unittest.TestCase):
 
     def test_the_poche_the_facade_names_is_the_poche_the_library_draws(self):
         """Named once. Two independent 0.15s would drift apart without a word said."""
-        from lib.draw.page import POCHE
+        from arkitect.lib.draw.page import POCHE
         from src.sheets.plans import _RGBA
         self.assertEqual(_RGBA['poche'], (POCHE.red, POCHE.green, POCHE.blue, 1.0))
 

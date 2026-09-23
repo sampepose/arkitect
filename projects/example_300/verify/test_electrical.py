@@ -21,7 +21,7 @@ class Nec220_82Tests(unittest.TestCase):
         """The three amperes P-601 prints now that every dwelling heats its water
            electrically: 107, 93, 92, on the panels the set already had."""
         from src.electrical import NEC_UNITS, WH_VA
-        from codes.nec.load import nec220_82
+        from arkitect.codes.nec.load import nec220_82
         got = {nm: round(nec220_82(a, r, d, w, wh, h)['amps']) for nm, a, r, d, w, wh, h, p in NEC_UNITS}
         self.assertEqual(got, {"UNIT 1": 107, "UNITS 2 / 3": 93, "UNITS 4 / 5": 92})
         self.assertEqual([p for *_r, p in NEC_UNITS], [125, 100, 100])
@@ -31,7 +31,7 @@ class Nec220_82Tests(unittest.TestCase):
         """4,500 VA belongs in 220.82(B)(3) with the fastened-in-place appliances. Put
            in (C) instead it would ride at 100 % and Unit 1 would pass its 125 A panel."""
         from src.electrical import NEC_UNITS, WH_VA
-        from codes.nec.load import nec220_82
+        from arkitect.codes.nec.load import nec220_82
         u = NEC_UNITS[0]
         with_wh = nec220_82(*u[1:7])
         without = nec220_82(u[1], u[2], u[3], u[4], 0, u[6])
@@ -42,7 +42,7 @@ class Nec220_82Tests(unittest.TestCase):
         """The water heater added a 2-pole circuit to every dwelling. Unit 1 needs 24
            spaces, not the 20 the other four take."""
         from src.electrical import CIRCUITS_U1, CIRCUITS_U23, CIRCUITS_U45
-        from codes.nec.dwelling import PANEL_MIN, panel_spaces
+        from arkitect.codes.nec.dwelling import PANEL_MIN, panel_spaces
         self.assertEqual(panel_spaces(CIRCUITS_U1), (22, 24))
         self.assertEqual(panel_spaces(CIRCUITS_U23), (18, 20))
         self.assertEqual(panel_spaces(CIRCUITS_U45), (17, 20))
@@ -65,17 +65,17 @@ class RealUnitsTests(unittest.TestCase):
 
     def test_units_2_3_pass(self):
         from src import electrical as e
-        from codes.nec import dwelling as nec_dwelling
+        from arkitect.codes.nec import dwelling as nec_dwelling
         self.assertEqual(nec_dwelling.check_unit(e.UNIT_23), [])
 
     def test_units_4_5_pass(self):
         from src import electrical as e
-        from codes.nec import dwelling as nec_dwelling
+        from arkitect.codes.nec import dwelling as nec_dwelling
         self.assertEqual(nec_dwelling.check_unit(e.UNIT_45), [])
 
     def test_unit_1_passes_on_both_levels(self):
         from src import electrical as e
-        from codes.nec import dwelling as nec_dwelling
+        from arkitect.codes.nec import dwelling as nec_dwelling
         self.assertEqual(nec_dwelling.check_unit(e.UNIT_1), [])
         # the stair is switched from both levels, and its Level 2 switch is in the hall list
         self.assertEqual(sum(1 for lv in e.UNIT_1.levels for d in lv.devices if d.kind == 'sw3' and d.tag == 'S'), 2)
@@ -86,7 +86,7 @@ class RealUnitsTests(unittest.TestCase):
 
     def test_the_house_lists_pass_and_carry_only_exterior_devices(self):
         from src import electrical as e
-        from codes.nec import dwelling as nec_dwelling
+        from arkitect.codes.nec import dwelling as nec_dwelling
         for h in (e.HOUSE_1, e.HOUSE_2):
             self.assertEqual(nec_dwelling.check_unit(h), [])
             self.assertEqual({d.kind for lv in h.levels for d in lv.devices}, {'ext', 'wp'})
@@ -95,7 +95,7 @@ class RealUnitsTests(unittest.TestCase):
 
     def test_the_services(self):
         from src import electrical as e
-        from codes.nec import load as nec_load
+        from arkitect.codes.nec import load as nec_load
         b1, b2 = e.SERVICES
         std, opt, gov, size = nec_load.service_loads(b1)
         # by hand: lighting 3*(1248+624+624)+3*4500 = 20988 -> 3000+0.35*17988 = 9295.8; three ranges 14000;
@@ -125,7 +125,7 @@ class RealUnitsTests(unittest.TestCase):
         """The designer, 2026-09-19: Ohio's minimum. RCO 3401.1 adds 210.8(F) Exception No. 2 for listed
            HVAC equipment and narrows 210.8(A) to 125 V 15/20 A receptacles."""
         from src import electrical as e
-        from codes.nec import dwelling as nec_dwelling
+        from arkitect.codes.nec import dwelling as nec_dwelling
         hps = [c for cks in (e.CIRCUITS_U1, e.CIRCUITS_U23, e.CIRCUITS_U45) for c in cks if c.kind == 'hp']
         self.assertEqual(len(hps), 3)
         self.assertEqual([c.prot for c in hps], ['—']*3)
@@ -147,7 +147,7 @@ class RealUnitsTests(unittest.TestCase):
     def test_the_walk_is_live_on_the_real_rooms(self):
         """Take one receptacle away from each unit type and the walk says so."""
         from src import electrical as e
-        from codes.nec import dwelling as nec_dwelling
+        from arkitect.codes.nec import dwelling as nec_dwelling
         for ut, gone in ((e.UNIT_23, (0.5, 42.0)), (e.UNIT_45, (0.5, 12.0))):
             lv = ut.levels[-1]
             kept = [d for d in lv.devices if not (d.x == gone[0] and d.y == gone[1] and d.kind == 'dup')]

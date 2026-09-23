@@ -1,17 +1,17 @@
 """M-101 — Building 1 mechanical plans: Unit 1's two levels side by side, greyed, with
 the heads, fans, ducts, caps and line sets on them; the legend, the schedules and the
 notes."""
-from lib.draw.page import Sheet, end_plans
-from lib.draw.sheets import draw_level
+from arkitect.lib.draw.page import Sheet, end_plans
+from arkitect.lib.draw.sheets import draw_level
 from reportlab.lib.units import inch
 from src.building1 import B1_D, B1_W, b1_level
 from src.mechanical import B1_LEVELS
 from src.sheets.a101 import draw_b1_stair
-from lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 from src.sheets.m_common import legend_kinds
 from src.sheets.m_common import (grey_context, notes, outdoor_schedule, place, termination_schedule, title,
                                  ventilation_schedule)
-from lib.draw.mechanical_kit import legend
+from arkitect.lib.draw.mechanical_kit import legend
 
 
 def _level(k, ox, oy):

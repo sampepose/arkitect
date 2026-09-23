@@ -16,9 +16,9 @@ box, and an outdoor unit stands clear of grade.
 import math
 import re
 from collections import namedtuple
-from lib.units import IN, fmt
+from arkitect.lib.units import IN, fmt
 from src.mechanical import TERMS, WALLS
-from codes.ohio.rco.mechanical import CAP_R
+from arkitect.codes.ohio.rco.mechanical import CAP_R
 from src.sitework import SITE_BLDG, SVC_EQUIP, SVC_Z
 
 HP_GRADE_MIN = IN(4)       # C-101 note 5b

@@ -2,9 +2,9 @@
 back, from the slab to the deck at the ridge, then the ceiling line, the floor line and
 the base at 1-1/2" = 1'-0", and the notes. Every height is src/separation.py's, read from
 src/levels.py; the fireblock tags are the fireblocking model's."""
-from lib.draw.page import LGREY, POCHE, Sheet
-from lib.draw.text import wrap_notes
-from lib.units import IN, fmt, inches
+from arkitect.lib.draw.page import LGREY, POCHE, Sheet
+from arkitect.lib.draw.text import wrap_notes
+from arkitect.lib.units import IN, fmt, inches
 from reportlab.lib.colors import black
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
@@ -13,8 +13,8 @@ from src import separation as w4
 from src.foundation import GRAVEL_T, RETARDER_MIL, SLAB_T, STRIP_D, STRIP_W
 from src.framing import JOIST_OC
 from src.roof import TRUSS_OC
-from lib.draw.kit import X0, X1, Y0, Y1, c
-from lib.draw.detail import _Det, _title
+from arkitect.lib.draw.kit import X0, X1, Y0, Y1, c
+from arkitect.lib.draw.detail import _Det, _title
 
 DETAIL = 1.5*72.0         # 1-1/2" = 1'-0": points per foot
 KEY = 0.375*72.0          # 3/8" = 1'-0"

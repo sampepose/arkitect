@@ -34,14 +34,14 @@ which needs the canvas.
 """
 from src.finishes import BOARD     # the finish on a stud face, for the clear figures
 from src.openings import WIN_HEAD, WIN_SF, WIN_W
-from lib.model import geom
+from arkitect.lib.model import geom
 from src import fsd, levels
-from codes.ohio.rco import fire_separation as rco_fsd
-from lib.units import IN, fmt
-from lib.model.records import PlanLevel
-from codes.columbus.legends import CLEARANCE_CAPTIONS
-from lib.model.regrid import EXT_STUD, PART_STUD, PARTITION, Zone, Plan
-from lib.model.dimensions import strings, wall_faces
+from arkitect.codes.ohio.rco import fire_separation as rco_fsd
+from arkitect.lib.units import IN, fmt
+from arkitect.lib.model.records import PlanLevel
+from arkitect.codes.columbus.legends import CLEARANCE_CAPTIONS
+from arkitect.lib.model.regrid import EXT_STUD, PART_STUD, PARTITION, Zone, Plan
+from arkitect.lib.model.dimensions import strings, wall_faces
 from src.stairs import EXT_STAIR
 
 # The same width as Building 1, so the two buildings share both side yards.

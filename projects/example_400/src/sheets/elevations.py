@@ -11,8 +11,8 @@ drawn as someone standing in front of it sees it:
   north (396 Oak side)                           the front on the left: elevation x = plan y
   south (404 Oak side)                           the rear on the left: flipped
 """
-from lib.draw.page import GREY, Sheet
-from lib.units import IN, fmt, inches
+from arkitect.lib.draw.page import GREY, Sheet
+from arkitect.lib.units import IN, fmt, inches
 from reportlab.lib.colors import Color, black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
@@ -23,8 +23,8 @@ from src.building1 import B1_D, B1_W
 from src.foundation import ROOF_OVERHANG
 from src.framing import TRUSS_OC
 from src.openings import WIN_FIXED, WIN_GEOM
-from lib.draw.kit import datum_labels, knockout
-from lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import datum_labels, knockout
+from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 
 EAVE_OVERHANG = ROOF_OVERHANG            # eaves and rakes alike
 DOOR_H = 6.0+8.0/12.0

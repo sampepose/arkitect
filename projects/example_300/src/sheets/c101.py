@@ -2,11 +2,11 @@
 
    Drawn at 1/8" = 1'-0" from the SITE_* geometry in src/sitework.py, which C-102
    also reads: nothing here may contradict that sheet because neither owns the lot."""
-from lib import assets
-from lib.draw.context import LAY, current_layer
-from lib.draw.page import GREY, PlanDraw, Sheet
-from lib.draw.text import table
-from lib.units import fmt, inches
+from arkitect.lib import assets
+from arkitect.lib.draw.context import LAY, current_layer
+from arkitect.lib.draw.page import GREY, PlanDraw, Sheet
+from arkitect.lib.draw.text import table
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
@@ -14,7 +14,7 @@ from src.building1 import PLAN_L1, U2_ENTRY, U2_LANDING_DROP, U2_LANDING_MAX, U3
 from src.building2 import U5_FLIGHT_X0, U5_LAND_D, U5_LAND_X0, U5_LAND_X1, U5_STAIR_TAG, U5_STOOP_X0, U5_STOOP_Z, U5_TREADS
 from src.foundation import B2 as B2_FOUNDATION
 from src import exterior as X, fsd, grading as G
-from codes.ohio.rco import fire_separation as rco_fsd
+from arkitect.codes.ohio.rco import fire_separation as rco_fsd
 from src.mirror import LIVE_SIDE
 from src.mechanical import ODU_TERM_CLR
 from src.sitework import ALLEY_W, HP_WIN_CLR, MANEUVER, PARK_X1, REQ_NO, SAFF_WALL_X, SIDE_FACE, SIDE_MIN, SIDE_PARCEL, BLDG_DIM_IN, PARK_D, PARK_N, PARK_PITCH, PARK_SETBACK, PARK_SETBACK_REQ, PARK_X0, PARK_Y0, PARK_Y1, SAN_CROSS, SAN_MAIN_Y, SAN_X, SITE_BANDS, SITE_BLDG, SITE_D, SITE_LIVE_X, SITE_STAIR, SITE_W, SITE_WALK, SVC_EQUIP, SVC_HP_MARKS, SVC_SAFFORD, TREE_R, TREE_X, TREE_Y, VISION, VISION_CLR, VISION_ST, VISION_ST_AREA, VISION_ST_CLR, VISION_ST_IN, check_b1_service, check_b2_service, check_site_clearances, zoning_relief, zoning_rows
@@ -22,14 +22,14 @@ from src.building1 import ENTRY_LEFT
 from src.sitework import B1_REAR_Y, B2_COURT_Y, FSD_LINE_Y
 from src.sitework import WHEEL_STOPS, WSTOP_H, WSTOP_L, WSTOP_SET, b2_openings
 from src.drainage import BUILDINGS as DRAIN_BUILDINGS, sewer, total_dfu
-from lib.model.drains import exit_site
-from codes.ohio.opc_drainage import SLOPES as DRAIN_SLOPES, T710_1_1
+from arkitect.lib.model.drains import exit_site
+from arkitect.codes.ohio.opc_drainage import SLOPES as DRAIN_SLOPES, T710_1_1
 from src.grading import STOOP_STEP, U5_STOOP
 from src.sheets import roofdrain
 from src.roof import B1_ROOF, rake
 from src.sheets.common import RELIEF_W
-from lib.draw.kit import draw_runs, fmt_in
-from lib.draw.kit import DH, E, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import draw_runs, fmt_in
+from arkitect.lib.draw.kit import DH, E, X0, X1, Y0, Y1, c
 
 _REAR_RAKE = rake(B1_ROOF, 'REAR')
 

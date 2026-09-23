@@ -6,17 +6,17 @@ A plan mark sits beside its leader on lawn. Where it sits is chosen per leader, 
 each corner has something different beside it — the Unit 3 stoop at DS-1, the parking
 pad at DS-3 — and the choice is asserted clear of the paving and the stairs, so a moved
 walk fails the build rather than printing a mark across it."""
-from lib.draw.page import GREY
-from lib.units import fmt
+from arkitect.lib.draw.page import GREY
+from arkitect.lib.units import fmt
 from reportlab.lib.colors import black, white
 from reportlab.pdfbase import pdfmetrics
 from src import downspouts as DS
 from src import grading as G
-from lib.model import grade as grade
+from arkitect.lib.model import grade as grade
 from src import levels
 from src.roof import EAVE_OVERHANG
-from lib.draw.kit import knockout
-from lib.draw.kit import c
+from arkitect.lib.draw.kit import knockout
+from arkitect.lib.draw.kit import c
 
 SYM = 0.5                 # the plan symbol, feet square, on the wall line
 MARK_SIZE = 4.2

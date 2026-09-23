@@ -20,18 +20,18 @@ face — and heights are feet above finished grade, the elevations' datum.
 """
 import math
 from collections import namedtuple
-from lib.model import fit
-from lib.units import IN, fmt
-from lib.symbols.mechanical import HEAD_L
+from arkitect.lib.model import fit
+from arkitect.lib.units import IN, fmt
+from arkitect.lib.symbols.mechanical import HEAD_L
 from src import building1 as B1M, building2 as B2M, levels, services
 from src.openings import WIN_GEOM
 from src.electrical import LEVEL_U1_L1, LEVEL_U1_L2, LEVEL_U2, LEVEL_U3, NEC_UNITS, UNIT_1, UNIT_23
-from codes.nec.dwelling import HABITABLE, room_of
+from arkitect.codes.nec.dwelling import HABITABLE, room_of
 from src.sitework import COURT, DOOR_H, FRONT_YARD, PARK_D, SIDE_YARD
-from codes.ohio.rco.mechanical import (CAP_R, DRYER_ELBOW, DRYER_MAX, _dist, bedrooms, dwelling, odu_gap,
+from arkitect.codes.ohio.rco.mechanical import (CAP_R, DRYER_ELBOW, DRYER_MAX, _dist, bedrooms, dwelling, odu_gap,
                                        whole_house_cfm)
-from codes.ohio.rco.mechanical import terminations
-from codes.ohio.rco import mechanical as rco_mech
+from arkitect.codes.ohio.rco.mechanical import terminations
+from arkitect.codes.ohio.rco import mechanical as rco_mech
 
 
 # ================================ the tables ================================
@@ -205,7 +205,7 @@ def registers(unit, level, returns=False):
 
 
 HALL_CEILING_MIN = 7.0            # RCO 305.1: a hall, like a habitable room, keeps 7'-0"
-AHU_L, AHU_D = 3.75, 2.0          # the cabinet lib.symbols.mechanical draws, plan feet
+AHU_L, AHU_D = 3.75, 2.0          # the cabinet arkitect.lib.symbols.mechanical draws, plan feet
 
 
 def soffit_clear(level):
@@ -217,7 +217,7 @@ def soffit_clear(level):
 def ducted_violations(ut, unit_no=1):
     """Unit 1's two zones: one air handler per level in its hall soffit, one return with it,
        every register inside the room it names, and the soffit still a legal ceiling."""
-    from codes.nec import dwelling as nec_dwelling
+    from arkitect.codes.nec import dwelling as nec_dwelling
     bad = []
     for level, lv in enumerate(ut.levels, 1):
         ahus = [d for d in lv.devices if d.kind == 'ahu']
@@ -459,9 +459,9 @@ EXT_FACE = 0.75                   # within this of an outside stud face is an ex
 
 
 def _systems():
-    """What RCO 1103.1 counts as a system here, ready for codes.ohio.rco.mechanical's rule:
+    """What RCO 1103.1 counts as a system here, ready for arkitect.codes.ohio.rco.mechanical's rule:
        each of Unit 1's two ducted zones, and each ADU's one ductless system."""
-    from codes.nec import dwelling as nec_dwelling
+    from arkitect.codes.nec import dwelling as nec_dwelling
     out = []
     for m in LEVELS:
         lv, W, D = m.elec, _W[m.bldg], B1M.Y_REAR if m.bldg == 1 else B2M.Y_REAR

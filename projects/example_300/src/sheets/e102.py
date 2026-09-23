@@ -1,14 +1,14 @@
 """E-102 — Building 2 electrical plans: Unit 4 and Unit 5 side by side, greyed, with
 every device on them; the legend, the panel schedules, the one-line and the notes."""
-from lib.draw.page import Sheet, end_plans
-from lib.draw.sheets import draw_level
+from arkitect.lib.draw.page import Sheet, end_plans
+from arkitect.lib.draw.sheets import draw_level
 from reportlab.lib.units import inch
 from src.building2 import B2_W, PLAN_B2, b2_level
 from src.electrical import CIRCUITS_HOUSE, CIRCUITS_U45, E_HOUSE_2, E_U45, E_U4_ONLY, LEVEL_U4, NEC_UNITS, SERVICES
-from lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 from src.sheets.e_common import grey_context, legend, notes, one_line, schedule
-from lib.draw.electrical_kit import place
-from lib.draw.kit import title
+from arkitect.lib.draw.electrical_kit import place
+from arkitect.lib.draw.kit import title
 from src.sheets.plans import draw_u5_stair
 
 

@@ -5,12 +5,12 @@
    carries no construction information, deliberately."""
 from math import cos, radians, sin
 
-from lib import assets
-from lib.draw import page
-from lib.draw.context import LAY, current_layer
-from lib.draw.page import GREY, PlanDraw, Sheet
-from lib.draw.text import table
-from lib.units import fmt
+from arkitect.lib import assets
+from arkitect.lib.draw import page
+from arkitect.lib.draw.context import LAY, current_layer
+from arkitect.lib.draw.page import GREY, PlanDraw, Sheet
+from arkitect.lib.draw.text import table
+from arkitect.lib.units import fmt
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
@@ -20,8 +20,8 @@ from src.sitework import ALLEY_W, BLDG_DIM_IN, MANEUVER, PARK_D, PARK_N, PARK_PI
 from src.building1 import ENTRY_LEFT
 from src import grading as G
 from src.sheets.common import RELIEF_W
-from lib.draw.kit import draw_runs
-from lib.draw.kit import c
+from arkitect.lib.draw.kit import draw_runs
+from arkitect.lib.draw.kit import c
 
 
 # The drawing is turned so true north is up the sheet, as a zoning site plan is read.

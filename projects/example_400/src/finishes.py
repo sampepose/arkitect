@@ -8,7 +8,7 @@ is not a cheap one. The spec is docs/superpowers/specs/2026-09-16-a602-paint-fin
 """
 from collections import namedtuple
 
-from lib.units import IN, inches
+from arkitect.lib.units import IN, inches
 
 Paint = namedtuple("Paint", "tag sheen mpi scrub mildew where")
 

@@ -19,23 +19,23 @@ above finished grade, the elevations' datum.
 """
 import math
 from collections import namedtuple
-from lib.model import fit
-from lib.units import IN, fmt
+from arkitect.lib.model import fit
+from arkitect.lib.units import IN, fmt
 from src import levels
 from src.openings import WIN_GEOM
 from src.electrical import (LEVEL_U1_L1, LEVEL_U1_L2, LEVEL_U23, LEVEL_U4, LEVEL_U5, NEC_UNITS, UNIT_1,
                             UNIT_23, UNIT_45)
-from codes.nec.dwelling import HABITABLE, room_of
+from arkitect.codes.nec.dwelling import HABITABLE, room_of
 from src.building1 import (ENTRY_LEFT, ENTRY_WIDTH, F_U23, LIVE_WALL_X, PLAN_L1, PLAN_L2,
                            REAR_Y, U1_DR_DUCT, U1_DR_TERM_Z, U23WIN_U2, U23WIN_U3,
                            U23_DR_TERM, U23_DUCT_RISE, U2_ENTRY, U3_ENTRY, W_STUD, Y_SEP_BOT,
                            Y_SEP_TOP, site_x, site_y, windows)
-from codes.ohio.rco import mechanical as rco_mech
+from arkitect.codes.ohio.rco import mechanical as rco_mech
 from src.building2 import (B2_D, B2_DR_BAY, B2_W, F_B2, PLAN_B2, U5_DOOR_X0, U5_DOOR_X1, b2_wins)
 from src.sitework import LOT_W, PARCEL_WALL_X, SAFF_WALL_X, SITE_BLDG, SITE_D, SVC_EQUIP
-from codes.ohio.rco.mechanical import (CAP_R, DRYER_ELBOW, DRYER_MAX, _dist, bedrooms, dwelling, odu_gap,
+from arkitect.codes.ohio.rco.mechanical import (CAP_R, DRYER_ELBOW, DRYER_MAX, _dist, bedrooms, dwelling, odu_gap,
                                        whole_house_cfm)
-from codes.ohio.rco.mechanical import terminations
+from arkitect.codes.ohio.rco.mechanical import terminations
 
 
 # ================================ the tables ================================
@@ -412,8 +412,8 @@ EXT_FACE = 0.75                   # within this of an outside stud face is an ex
 
 def _systems():
     """RCO 1103.1's systems here: every dwelling is ductless, so each is one system with
-       one wall control -- Unit 1's two levels included. The rule is codes/ohio/rco."""
-    from codes.nec import dwelling as nec_dwelling
+       one wall control -- Unit 1's two levels included. The rule is arkitect/codes/ohio/rco."""
+    from arkitect.codes.nec import dwelling as nec_dwelling
     out = {}
     for m in LEVELS:
         lv, W = m.elec, _W[m.bldg]
@@ -432,8 +432,8 @@ def _systems():
 def head_violations(levs=None):
     """A wall head hangs above 7'-0" and the window heads stand at 8'-0": a head on an exterior
        wall cannot share its length of wall with an opening on its own level. Seven did, until
-       400 Oak's copy of this check was run here (2026-09-18). lib/model/fit.py measures."""
-    from lib.symbols.mechanical import HEAD_L
+       400 Oak's copy of this check was run here (2026-09-18). arkitect/lib/model/fit.py measures."""
+    from arkitect.lib.symbols.mechanical import HEAD_L
     bad = []
     for m in (LEVELS if levs is None else levs):
         for hx, hy, _mt, room in m.heads:

@@ -14,7 +14,7 @@ Coordinates: FINAL SHEET x (from the Sage face) and plan y, in feet — the syst
 C-101 draws the pads in and Unit 1's study is authored in. Nothing here is mirrored.
 """
 from collections import namedtuple
-from lib.units import IN, fmt
+from arkitect.lib.units import IN, fmt
 from src import levels
 from src.mirror import B1_W
 from src.building1 import (Y_SEP_TOP, Y_SEP_BOT, U1_STAIR_WALL, U23_BEARING_WALL, ENTRY_LEFT, PLAN_L1,
@@ -97,8 +97,8 @@ def check_basis():
     check_termite()
 
 
-# concrete, RCO Table R402.2: shared, see codes/ohio/rco/concrete.py
-from codes.ohio.rco.concrete import (Concrete, INTERIOR_SLAB, NOT_EXPOSED, PORCH_STEPS, VERTICAL_EXPOSED,
+# concrete, RCO Table R402.2: shared, see arkitect/codes/ohio/rco/concrete.py
+from arkitect.codes.ohio.rco.concrete import (Concrete, INTERIOR_SLAB, NOT_EXPOSED, PORCH_STEPS, VERTICAL_EXPOSED,
                                      psi, table_violations)
 
 

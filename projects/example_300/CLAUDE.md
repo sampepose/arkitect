@@ -9,8 +9,8 @@ set is all-electric, and every figure a sheet prints is derived from `src/`.
 This is an ANONYMIZED copy of a real set drawn with this engine: the names, addresses,
 parcel, owner and contractor are fictional; the design, the checks and the sheets are the
 real set's. `example_400` was drawn next, as a copy of this one, which is why the two share
-the code `lib/verify/twins.py` counts; what they proved in common has since moved into
-`lib/` and `codes/`.
+the code `arkitect/lib/verify/twins.py` counts; what they proved in common has since moved into
+`arkitect/lib/` and `arkitect/codes/`.
 
 - `build.py` is the document order and `check_model()`: the model checks run before a
   line is drawn, and a failing one stops the build with the rule and the room named.
@@ -18,7 +18,7 @@ the code `lib/verify/twins.py` counts; what they proved in common has since move
   mechanical, electrical, plumbing, drainage, grading, fire separation) and `src/sheets/`
   one module per sheet.
 - `verify/` holds the tests, including the pins of every transcribed code table.
-- `python3 -m lib.verify.gate --project example_300` checks it; `render --sheets A-101`
+- `python3 -m arkitect.lib.verify.gate --project example_300` checks it; `render --sheets A-101`
   shows a sheet.
 
 Read a module's docstring before changing it: most say which rule they carry and which

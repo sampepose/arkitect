@@ -1,17 +1,17 @@
 """P-103 — Building 2 water supply plans: Unit 2 and Unit 3 side by side, greyed, with
 the supply, the manifolds and every home run on them; the legend, the fixture-unit and
 pipe-size table and the supply diagram. The notes are P-102's."""
-from lib.draw.page import Sheet, end_plans
-from lib.draw.sheets import draw_level
+from arkitect.lib.draw.page import Sheet, end_plans
+from arkitect.lib.draw.sheets import draw_level
 from reportlab.lib.units import inch
 from src.building2 import B2_D, B2_W, b2_level
 from src.plumbing import BUILDING_2, sizes
 from src.sheets.a102 import draw_u5_stair
-from lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 from src.sheets.e_common import grey_context
-from lib.draw.kit import title
+from arkitect.lib.draw.kit import title
 from src.sheets.p_common import draw_service, legend, notes, supply_diagram, wsfu_table, pm
-from lib.draw.plumbing_kit import draw_unit
+from arkitect.lib.draw.plumbing_kit import draw_unit
 
 
 def _level(k, ox, oy):

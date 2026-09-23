@@ -22,7 +22,7 @@ class CapFinderTests(unittest.TestCase):
         """A cap above a window's head may come closer along the wall than one beside
            it, because the distance is taken in the wall's plane."""
         from src.mechanical import EXH_CLR, cap_position
-        from codes.ohio.rco.mechanical import CAP_R, _dist
+        from arkitect.codes.ohio.rco.mechanical import CAP_R, _dist
         w = self._wall([(8.0, 11.0, 2.5, 8.5, 'W')])
         beside = cap_position(w, 5.0, 10.0, EXH_CLR)
         above = cap_position(w, 9.9, 10.0, EXH_CLR)
@@ -58,8 +58,8 @@ class RealUnitsTests(unittest.TestCase):
         """The five WH caps went with the fuel gas: an electric storage heater vents
            nothing, so the only terminations left are dryers, baths and Unit 1's hood."""
         from src.mechanical import EXH_CLR, LEVELS, WALLS
-        from codes.ohio.rco.mechanical import terminations
-        from codes.ohio.rco.mechanical import DRYER_MAX
+        from arkitect.codes.ohio.rco.mechanical import terminations
+        from arkitect.codes.ohio.rco.mechanical import DRYER_MAX
         rows = terminations(levels=LEVELS, walls=WALLS)
         self.assertEqual(sorted(r['term'].mark for r in rows),
                          sorted(['DR-1', 'RH-1', 'EF-1A', 'EF-1B', 'DR-2', 'EF-2', 'DR-3', 'EF-3',
@@ -105,7 +105,7 @@ class RealUnitsTests(unittest.TestCase):
         """RCO 1103.1 (the designer, 2026-09-19): one wall control per ductless system -- five of
            them, Unit 1's two levels counting as the one system they are."""
         from src import mechanical as m
-        from codes.ohio.rco import mechanical as rco_mech
+        from arkitect.codes.ohio.rco import mechanical as rco_mech
         systems = m._systems()
         self.assertEqual([s['name'] for s in systems], ['UNIT %d' % u for u in range(1, 6)])
         for s in systems:
@@ -143,7 +143,7 @@ class OutdoorUnitTests(unittest.TestCase):
     def test_hp1_where_it_stood_had_dr1_over_it(self):
         """HP-1 at site y 39.95 had DR-1 inside its length, which is why it moved."""
         from src.mechanical import TERMS
-        from codes.ohio.rco.mechanical import odu_gap
+        from arkitect.codes.ohio.rco.mechanical import odu_gap
         caps = {t.mark: t for t in TERMS[1]['SAGE WALL']}
         self.assertEqual(odu_gap(39.95-20.0, 2.75, caps['DR-1'].along), 0.0)
 

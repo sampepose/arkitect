@@ -23,32 +23,32 @@ for the stacks, 708.1 for cleanouts. Water closets are taken at 1.6 gpf or less.
 Nothing here draws.
 """
 import math
-from lib.model import fit
-from lib.units import IN, fmt, inches
+from arkitect.lib.model import fit
+from arkitect.lib.units import IN, fmt, inches
 from src import criteria as crit
 from src import levels
 from src import plumbing as pm
-from lib.model import water as water
+from arkitect.lib.model import water as water
 from src.building1 import BX0, EXT_STUD, PLAN_L1, U23_E_RISER, WET, WW0, site_x
 from src.foundation import (B1 as FDN_B1, B2 as FDN_B2, BAR_COVER, FROST_DEPTH, FTG_BAR_DIA, FTG_T,
                             GRAVEL_T, INSUL_T, SLAB_T, WALL_T)
 from src.mirror import B1_W
 from src.sitework import ALLEY_W, SAN_CROSS, SAN_X, SITE_BLDG, SITE_D
-from lib.model.runs import (grow as _grow, in_rect as _inside, length as _len, on_path as _on_path,
+from arkitect.lib.model.runs import (grow as _grow, in_rect as _inside, length as _len, on_path as _on_path,
                             rects_overlap as _overlap, parallel as _parallel, points as _points,
                             pt_rect_dist as _pt_rect_dist, pt_seg_dist as _pt_seg_dist, same_point as _same,
                             seg_rect_dist as _seg_rect_dist)
 
-# the tables: shared, see codes/ohio/opc_drainage.py
-from codes.ohio.opc_drainage import (DRAIN_KINDS, SIZES, SIZE_IN, SLOPES, T710_1_1, T710_1_2, WC_MIN,
+# the tables: shared, see arkitect/codes/ohio/opc_drainage.py
+from arkitect.codes.ohio.opc_drainage import (DRAIN_KINDS, SIZES, SIZE_IN, SLOPES, T710_1_1, T710_1_2, WC_MIN,
                                      WC_PER_INTERVAL_3, WC_PER_STACK_3)
-from lib.model.drains import (Building, Pen, Run, Stack, _cy, _need, _strip_rect, _to_site, drain_name,
+from arkitect.lib.model.drains import (Building, Pen, Run, Stack, _cy, _need, _strip_rect, _to_site, drain_name,
                               exit_pen, exit_run, exit_site, feeds, fixture, receiver, run_kinds)
-from codes.ohio.opc_drainage import slope_of, fall, tail_invert, invert_at, exit_invert
-from codes.ohio.opc_drainage import interval_dfu, run_dfu, stack_dfu
-from codes.ohio.opc_drainage import DFU
-from codes.ohio import opc_vents
-from codes.ohio.opc_service_entry import bury_depth, entries_violations, entry_for
+from arkitect.codes.ohio.opc_drainage import slope_of, fall, tail_invert, invert_at, exit_invert
+from arkitect.codes.ohio.opc_drainage import interval_dfu, run_dfu, stack_dfu
+from arkitect.codes.ohio.opc_drainage import DFU
+from arkitect.codes.ohio import opc_vents
+from arkitect.codes.ohio.opc_service_entry import bury_depth, entries_violations, entry_for
 from collections import namedtuple
 
 
@@ -98,7 +98,7 @@ def total_dfu():
 # ================================ the network ================================
 
 
-# Inverts: codes/ohio/opc_drainage.py, from the COVER this project states.
+# Inverts: arkitect/codes/ohio/opc_drainage.py, from the COVER this project states.
 
 
 def below_grade(v):
@@ -151,8 +151,8 @@ KS1 = (U1_KS.x+U1_KS.w-IN(7.75), _cy(U1_KS))
 # their rear jamb instead, a trap arm's reach from the sink (stack_violations(), found 2026-09-18
 # by the check 400 Oak's Stack E taught).
 from src.building1 import windows as _u1_windows
-from codes.ohio.opc_drainage import unit_dfu
-from codes.ohio.opc_separation import (Ground, SEWER_SEP, highest_top_near, site_crossings, sleeves,
+from arkitect.codes.ohio.opc_drainage import unit_dfu
+from arkitect.codes.ohio.opc_separation import (Ground, SEWER_SEP, highest_top_near, site_crossings, sleeves,
                                        water_crossings)
 _A_WINS = [w for lv in (1, 2) for w in _u1_windows(lv) if w[3] == 'v' and w[0] > B1_W/2.0 and w[1] <= KS1[1] <= w[1]+w[2]]
 STACK_CLEAR = IN(3)                # a stack off a window's or door's jamb, for the casing
@@ -316,7 +316,7 @@ def _sewers():
             ('BUILDING 2 LATERAL', s['lateral'], lambda t: s['exit2']-(s['exit2']-s['junction'])*t/L, exit_run(b2).size)]
 
 
-# What OPC 603.2 is checked against here: codes/ohio/opc_separation.py reads nothing else.
+# What OPC 603.2 is checked against here: arkitect/codes/ohio/opc_separation.py reads nothing else.
 GROUND = Ground(cover=COVER, wall_t=WALL_T, water_bed=WATER_BED, frost_depth=FROST_DEPTH,
                 water_below=water_below, water_lines=water_lines, strips=strips, sewers=_sewers,
                 service_size=lambda b: pm.sizes(_pm(b))['service'],
@@ -344,7 +344,7 @@ def service_to_sewer(b):
 # ================================ the checker ================================
 def stack_violations():
     """A stack rises through every level, so it may not stand at a wall where ANY level has an
-       opening. lib/model/fit.py measures; src/mechanical.py has the walls' openings."""
+       opening. arkitect/lib/model/fit.py measures; src/mechanical.py has the walls' openings."""
     from src import mechanical as M
     v = []
     for b in BUILDINGS:

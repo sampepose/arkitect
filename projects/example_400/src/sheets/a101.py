@@ -4,18 +4,18 @@ Laid out like A-102, with the street at the top of the sheet. The interior stair
 here, over each level's plan, from src/stairs.py's B1_STAIR at the positions
 src/building1.py pins it to.
 """
-from lib.draw.page import GREY, LAY, Sheet
-from lib.draw.sheets import draw_level
-from lib.model.regrid import EXT_STUD
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import GREY, LAY, Sheet
+from arkitect.lib.draw.sheets import draw_level
+from arkitect.lib.model.regrid import EXT_STUD
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black
 from reportlab.lib.units import inch
-from lib.model.regrid import PARTITION
+from arkitect.lib.model.regrid import PARTITION
 from src.building1 import (B1_W, LEVEL, LEVELS, PLAN_B1_L1, PLAN_B1_L2, Y_CL, Y_FOOT_RISER,
                              Y_TOP_RISER, Y_WELL, b1_level)
 from src.schedules import door_tags
 from src.sheets.common import draw_attic_hatch, draw_door_tags
-from lib.draw.kit import Q, X0, Y1, c
+from arkitect.lib.draw.kit import Q, X0, Y1, c
 from src.stairs import B1_STAIR
 from src.mechanical import soffit_clear
 

@@ -31,7 +31,7 @@ class W4SectionTests(unittest.TestCase):
         self.assertAlmostEqual(s.PLATE_STEP*12, 2.125)
 
     def test_a_pair_that_does_not_match_the_plans_fails(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         from src import separation as s
         self.assertTrue(any('the plans are drawn to' in x for x in s.w4_violations(finished=s.FINISHED+IN(1))))
 

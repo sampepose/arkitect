@@ -2,16 +2,16 @@
 walks and the parking pad, drawn by sheets/site.py as C-102 draws them, with what C-102
 leaves out — the pads and piers, the RCO 302.1 imaginary line, the floor datum and the
 construction notes — and the zoning tabulation. Turned so true north is up the sheet."""
-from lib import assets
-from lib.draw.page import GREY, Sheet
-from lib.draw.text import table
-from lib.units import fmt, inches
+from arkitect.lib import assets
+from arkitect.lib.draw.page import GREY, Sheet
+from arkitect.lib.draw.text import table
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from src import drainage, fsd, levels, plumbing, services, stairs
 from src.foundation import B1, B2, FLATWORK
-from lib.draw.kit import draw_runs
-from lib.draw.kit import X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import draw_runs
+from arkitect.lib.draw.kit import X0, X1, Y0, Y1, c
 from src.sheets.site import TURN, draw_site, frame
 from src.sitework import (ALLEY_W, B1_X, B1_Y, B2_X, B2_Y, FSD_LINE_Y, PARK_D, PARK_N,
                           PARK_PITCH, PARK_T, SITE_BLDG, SITE_W, WALK_T, WALK_W, WALKS, zoning_rows)

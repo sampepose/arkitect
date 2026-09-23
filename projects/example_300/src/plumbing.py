@@ -18,13 +18,13 @@ Drainage is P-601's. Nothing here draws.
 """
 import math
 from collections import namedtuple
-from lib.units import IN, fmt
+from arkitect.lib.units import IN, fmt
 from src import levels
 
-# ================================ the tables: shared, see codes/ohio/water_supply.py
-from codes.ohio.water_supply import (BATH_GROUP, FIXTURE_KINDS, MIN_SUPPLY, SUPPLY_KINDS, WSFU, pipe_size,
+# ================================ the tables: shared, see arkitect/codes/ohio/water_supply.py
+from arkitect.codes.ohio.water_supply import (BATH_GROUP, FIXTURE_KINDS, MIN_SUPPLY, SUPPLY_KINDS, WSFU, pipe_size,
                                      row_for)
-from lib.model.water import (_inside_any, _length, _mirror, _one, _overlap, _overlap_box, _rects,
+from arkitect.lib.model.water import (_inside_any, _length, _mirror, _one, _overlap, _overlap_box, _rects,
                              run_fixtures, stub, unit_names)
 
 

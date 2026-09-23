@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Adversarial plan reviewer for this repository's permit sets. Give it the path of a review directory made by `python3 -m harness.review prepare` (its brief.md and the sheet images); it reads ONLY those images and the brief, never the source, and returns a JSON array of findings. Use for the review-sheets skill.
+description: Adversarial plan reviewer for this repository's permit sets. Give it the path of a review directory made by `python3 -m arkitect.harness.review prepare` (its brief.md and the sheet images); it reads ONLY those images and the brief, never the source, and returns a JSON array of findings. Use for the review-sheets skill.
 tools: Read, Glob
 ---
 
@@ -14,7 +14,7 @@ set is held to, and the JSON you must return.
 Rules that are yours alone:
 
 - **Read only the brief and the images it lists.** Never open a `.py`, `.json` or any file
-  under `projects/`, `lib/`, `codes/` or `harness/`, even if Glob shows you one. The source
+  under `projects/`, `arkitect/lib/`, `arkitect/codes/` or `arkitect/harness/`, even if Glob shows you one. The source
   says what the drawing MEANT; your job is what it SHOWS. A reviewer who reads the code
   stops seeing the sheet.
 - Read every tile of every sheet. Text on the whole-sheet image is too small to read; the

@@ -13,8 +13,8 @@ if PROJ not in sys.path:
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-from lib.model import grade
-from codes.ohio.rco import site_steps
+from arkitect.lib.model import grade
+from arkitect.codes.ohio.rco import site_steps
 
 
 def _swap(bands, i, **kw):
@@ -31,7 +31,7 @@ class RealModelTests(unittest.TestCase):
         self.assertIn("401.3 EXCEPTION", out.getvalue())
 
     def test_the_code_figures(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         from src import grading as g
         self.assertEqual((g.FALL, g.FALL_RUN, g.IMPERVIOUS_MIN), (IN(6), 10.0, 0.02))
         self.assertEqual((grade.LANDING_MAX, g.RISER_MAX, g.WALK_MAX), (0.02, IN(8.25), 0.05))
@@ -57,7 +57,7 @@ class RealModelTests(unittest.TestCase):
 
     def test_every_landing_and_stoop_has_its_step(self):
         """The designer's point: the step off each stoop is checked and held, not left to the lawn."""
-        from lib.units import IN
+        from arkitect.lib.units import IN
         from src import grading as g
         self.assertEqual(g.step_violations(), [])
         rows = {r[0]: r for r in site_steps.step_summary(g.STEPS, g.BANDS, g.STOOP_STEP)}
@@ -75,7 +75,7 @@ class RealModelTests(unittest.TestCase):
     def test_the_stairs_pitch_with_their_stoops(self):
         """The designer's choice: treads and landings fall as the stoop does, so the bottom riser is
            the same at both stringers: 121" over 15, 8-1/16"."""
-        from lib.units import IN
+        from arkitect.lib.units import IN
         from src import grading as g
         self.assertEqual(site_steps.stair_violations(g.STAIRS, g.STEPS), [])
         self.assertEqual([n for n, _p, _r in site_steps.stair_risers(g.STAIRS, g.STEPS)], ["UNIT 3 STAIR", "UNIT 5 STAIR"])
@@ -86,7 +86,7 @@ class RealModelTests(unittest.TestCase):
 
     def test_a_level_stair_over_a_pitched_stoop_fails(self):
         """The condition the designer had fixed: a level bottom tread over the stoop's 2% cross-fall."""
-        from lib.model.stairs import ExteriorStair
+        from arkitect.lib.model.stairs import ExteriorStair
         from src import grading as g
         s = g.U3_STAIR
         level = ExteriorStair(s.risers, s.treads, s.tread, s.width, s.landing_len, s.landing_depth,
@@ -129,7 +129,7 @@ class RealModelTests(unittest.TestCase):
     def test_the_curb_outlet(self):
         """Standard Drawing 2320: 3" pipes at 1.56%, as many as the 10-year flow needs and
            no more, under the sidewalk with cover, falling to the curb."""
-        from lib.units import IN
+        from arkitect.lib.units import IN
         from src import grading as g
         self.assertEqual((g.STD2320_D, g.STD2320_SLOPE), (IN(3), 0.0156))
         o = g.outlet()
@@ -148,7 +148,7 @@ class RealModelTests(unittest.TestCase):
         self.assertGreater(xs[0][3], g.GUTTER_DEPTH)
 
     def test_signed(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         self.assertEqual((grade.signed(IN(5.5)), grade.signed(0.0), grade.signed(-IN(6))), ('+5-1/2"', '0"', '-6"'))
 
     def test_grade_along_a_step(self):
@@ -171,13 +171,13 @@ class MutationTests(unittest.TestCase):
         self.assertTrue(any(needle in x for x in v), "%r not in %r" % (needle, v[:4]))
 
     def test_five_inches_in_ten_feet_fails(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         g = self.g
         sec = lambda s: [(0.0, 0.0, None), (10.0, -IN(5), "lawn"), (20.0, g.FRONT_LOT, "lawn")]
         self.fails("under the 6\"", _swap(g.BANDS, self.front, section=sec))
 
     def test_five_inches_to_the_safford_line_fails(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         g = self.g
         sec = lambda s: [(0.0, 0.0, None), (8.0, -IN(5), "lawn")]
         self.fails("under the 6\"", _swap(g.BANDS, self.saff, section=sec))
@@ -208,7 +208,7 @@ class MutationTests(unittest.TestCase):
         self.fails("not 2%", _swap(g.BANDS, self.saff, section=sec))
 
     def test_a_tall_step_fails(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         g = self.g
         sec = lambda s: [(0.0, 0.45, None), (3.0, 0.39, "landing"), (3.0, 0.39-IN(8.5), "step"), (8.0, 0.39-IN(8.5)-0.12, "walk")]
         self.fails("311.7.5.1", _swap(g.BANDS, self.saff, section=sec))
@@ -310,7 +310,7 @@ class MutationTests(unittest.TestCase):
         self.assertTrue(any("Standard Drawing 2320" in x and "1.56%" in x for x in v), v)
 
     def test_a_small_curb_pipe_fails(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         v = self.g.outlet_violations(d=IN(2))
         self.assertTrue(any('3" minimum' in x for x in v), v)
 

@@ -23,36 +23,36 @@ Nothing here draws.
 """
 import math
 from collections import namedtuple
-from codes.ohio import opc_vents
-from lib.model import fit
-from lib.model import pipe
-from lib.units import IN, fmt, inches
+from arkitect.codes.ohio import opc_vents
+from arkitect.lib.model import fit
+from arkitect.lib.model import pipe
+from arkitect.lib.units import IN, fmt, inches
 from src import envelope
 from src import criteria as crit
 from src import levels
 from src import building2 as B2M
 from src import plumbing as pm
-from lib.model import water as water
+from arkitect.lib.model import water as water
 from src.building1 import LEVEL as _B1_LEVEL, STACK_A_CHASE, X_HALL0 as _X_HALL0
 from src.foundation import (B1 as FDN_B1, B2 as FDN_B2, BAR_COVER, FROST_DEPTH, FTG_BAR_DIA, FTG_T,
                             GRAVEL_T, INSUL_T, SLAB_T, WALL_T)
 from src.sitework import B1_X, B1_Y, B2_X, B2_Y, SIDE_YARD, SITE_W
-from lib.model.runs import (along as _along, grow as _grow, in_rect as _inside, length as _len, on_path as
+from arkitect.lib.model.runs import (along as _along, grow as _grow, in_rect as _inside, length as _len, on_path as
                             _on_path, rects_overlap as _overlap, parallel as _parallel, points as _points,
                             pt_rect_dist as _pt_rect_dist, pt_seg_dist as _pt_seg_dist, same_point as _same,
                             seg_rect_dist as _seg_rect_dist)
 
-# the tables: shared, see codes/ohio/opc_drainage.py
-from codes.ohio.opc_drainage import (DFU, DRAIN_KINDS, SIZES, SIZE_IN, SLOPE, SLOPES, T710_1_1, T710_1_2, WC_MIN,
+# the tables: shared, see arkitect/codes/ohio/opc_drainage.py
+from arkitect.codes.ohio.opc_drainage import (DFU, DRAIN_KINDS, SIZES, SIZE_IN, SLOPE, SLOPES, T710_1_1, T710_1_2, WC_MIN,
                                      WC_PER_INTERVAL_3, WC_PER_STACK_3)
-from lib.model.drains import (Building, Pen, Run, Stack, _cy, _need, _strip_rect, _to_site, drain_name,
+from arkitect.lib.model.drains import (Building, Pen, Run, Stack, _cy, _need, _strip_rect, _to_site, drain_name,
                               exit_pen, exit_run, exit_site, feeds, fixture, receiver, run_kinds)
-from codes.ohio.opc_drainage import slope_of, fall, tail_invert, invert_at, exit_invert
-from codes.ohio.opc_drainage import interval_dfu, run_dfu, stack_dfu
-from codes.ohio.opc_service_entry import (bury_depth, entries_violations, entry_for, thickened_zone,
+from arkitect.codes.ohio.opc_drainage import slope_of, fall, tail_invert, invert_at, exit_invert
+from arkitect.codes.ohio.opc_drainage import interval_dfu, run_dfu, stack_dfu
+from arkitect.codes.ohio.opc_service_entry import (bury_depth, entries_violations, entry_for, thickened_zone,
                                           zone_violations)
-from codes.ohio.opc_drainage import unit_dfu, washer_violations
-from codes.ohio.opc_separation import (Ground, SEWER_SEP, highest_top_near, site_crossings, sleeves,
+from arkitect.codes.ohio.opc_drainage import unit_dfu, washer_violations
+from arkitect.codes.ohio.opc_separation import (Ground, SEWER_SEP, highest_top_near, site_crossings, sleeves,
                                        water_crossings)
 
 
@@ -99,7 +99,7 @@ def total_dfu():
 # ================================ the network ================================
 
 
-# Inverts: codes/ohio/opc_drainage.py, from the COVER this project states.
+# Inverts: arkitect/codes/ohio/opc_drainage.py, from the COVER this project states.
 
 
 def below_grade(v):
@@ -309,7 +309,7 @@ CAVITY_STACKS = ('F',)
 
 
 def cavity_runs():
-    """Every drain standing in an exterior wall's stud cavity, as lib/model/fit.py sees it:
+    """Every drain standing in an exterior wall's stud cavity, as arkitect/lib/model/fit.py sees it:
        the pipe's OUTSIDE diameter (a "3 inch" stack is 3-1/2" across), the cavity's depth,
        how far the pipe stands off the cavity's interior face, and what the bay is filled
        with behind it. A-601 draws the section and prints the fill beside its wall rows."""
@@ -926,7 +926,7 @@ def _sewers():
             ('BUILDING 1 LATERAL', s['lateral'], lambda t: s['exit1']-(s['exit1']-s['junction'])*t/L, exit_run(b1).size)]
 
 
-# What OPC 603.2 is checked against here: codes/ohio/opc_separation.py reads nothing else.
+# What OPC 603.2 is checked against here: arkitect/codes/ohio/opc_separation.py reads nothing else.
 GROUND = Ground(cover=COVER, wall_t=WALL_T, water_bed=WATER_BED, frost_depth=FROST_DEPTH,
                 water_below=water_below, water_lines=water_lines, strips=strips, sewers=_sewers,
                 service_size=lambda b: pm.sizes(_pm(b))['service'],

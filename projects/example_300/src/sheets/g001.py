@@ -1,25 +1,25 @@
 """G-001 — the cover: code data, the area tabulation, the general notes, the scope of
    work, the sheet index and the zoning variance table."""
-from lib.draw.page import Sheet
-from lib.draw.text import table
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import Sheet
+from arkitect.lib.draw.text import table
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src import bracing, criteria as crit, drainage, levels, plumbing, stairs
-from codes.ohio.rco import bracing as rco_bracing
+from arkitect.codes.ohio.rco import bracing as rco_bracing
 from src.building1 import U2_ENTRY
 from src.electrical import SERVICES
-from codes.nec.load import service_loads
+from arkitect.codes.nec.load import service_loads
 from src.foundation import FROST_DEPTH, FTG_T, FTG_W, STRIP_D, STRIP_W, WALL_T, TERMITE, TERMITE_TREATMENT, WEATHERING
 from src.framing import F1_JOIST, F2_JOIST, JOIST_OC
 from src.mechanical import outdoor_units
 from src.mirror import LIVE_SIDE
 from src.openings import WIN_GEOM, WIN_HEAD, WIN_W
-from codes.ohio.rco.egress import EGRESS_MIN_H, EGRESS_MIN_SF, EGRESS_MIN_W
+from arkitect.codes.ohio.rco.egress import EGRESS_MIN_H, EGRESS_MIN_SF, EGRESS_MIN_W
 from src.roof import B1_ROOF, EAVE_OVERHANG, RAKE_OVERHANG, ROOF_PITCH, TRUSS_OC, rake
 from src.sitework import COVERAGE, LOT_AREA, MANEUVER, MANEUVER_HAVE, NET_SF, PARK_D, PARK_N, PARK_PITCH, SIDE_YARD_TEXT, VARIANCES, VARIANCE_WORD, VISION_ST, VISION_ST_CLR
-from lib.draw.page import ARCH_C
-from lib.draw.kit import X0, X1, Y1, c
+from arkitect.lib.draw.page import ARCH_C
+from arkitect.lib.draw.kit import X0, X1, Y1, c
 
 
 def note_8a():
@@ -46,7 +46,7 @@ def scope_of_work():
     """The scope of work the City of Columbus asks for, in its four trades, as
        (trade, the sheets it is drawn on, items). Every figure is read from the model the
        trade's own sheets are drawn from, so a service, a heat pump or a stack that
-       changes there changes here; lib/verify/test_g001.py holds each one to its source."""
+       changes there changes here; arkitect/lib/verify/test_g001.py holds each one to its source."""
     dwellings = len(NET_SF)
     assert EAVE_OVERHANG == RAKE_OVERHANG, "G-001 scope of work gives the eaves and rakes one overhang"
     structural = [
@@ -120,7 +120,7 @@ def scope_of_work():
 # ============================= G-001 =============================
 # The sheet index, as a module constant so that the thing which decides what the set
 # CONTAINS and the thing which checks what it BOUND can read the same list.
-# lib/verify/test_trace.py compares build_set()'s order against this.
+# arkitect/lib/verify/test_trace.py compares build_set()'s order against this.
 SHEET_INDEX = [("G-001","COVER, CODE DATA, AREA TABULATION, GENERAL NOTES, SCOPE OF WORK"),("C-101","SITE PLAN"),
     ("C-102","ZONING SITE PLAN — 11 x 17, ISSUED SEPARATELY"),("C-103","GRADING AND DRAINAGE PLAN"),
     ("A-001","FLOOR PLAN GENERAL NOTES"),

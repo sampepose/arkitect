@@ -1,7 +1,7 @@
 """A-301 — building sections and the unit-stacking diagram."""
-from lib.draw.page import GREY, POCHE, Sheet
+from arkitect.lib.draw.page import GREY, POCHE, Sheet
 from src.partywall import W4_CORE, W4_FACE, W4_STUD
-from lib.units import fmt, inches
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from src import levels
@@ -11,8 +11,8 @@ from src.building2 import B2_W
 from src.roof import B1_ROOF, B2_ROOF, rake
 from src.building1 import HEADROOM_LABEL, U1_HEADER_FACE, U1_NOSING, U1_RISER, U1_STAIR_BOT_Y, U1_STAIR_TOP_Y, U1_TREAD, U1_TREADS, U1_WELL_EDGE_Y, U1_WELL_Y, u1_nosing_height
 import math
-from lib.draw.kit import datum_labels
-from lib.draw.kit import Q, X0, Y1, c
+from arkitect.lib.draw.kit import datum_labels
+from arkitect.lib.draw.kit import Q, X0, Y1, c
 
 
 

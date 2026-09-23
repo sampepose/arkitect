@@ -78,7 +78,7 @@ class WidthTests(unittest.TestCase):
     def test_every_line_fits_every_page_size(self):
         from reportlab.pdfbase import pdfmetrics
         from reportlab.lib.units import inch
-        from lib.draw import page as pg
+        from arkitect.lib.draw import page as pg
         from src.project import TITLEBLOCK
         for name in ("ARCH_C", "ANSI_B"):
             page = getattr(pg, name)

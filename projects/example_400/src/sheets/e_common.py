@@ -1,12 +1,12 @@
 """What E-101 and E-102 share: putting a unit's devices on a greyed plan, the panel
 schedules, the one-line diagram and the notes. Every figure printed here is read from
 src/electrical.py, which check_model() has already passed."""
-from lib.draw.page import LAY, GREY
-from lib.draw.text import wrap_notes
-from lib.symbols import electrical as es
-from lib.units import inches
-from codes.columbus.legends import DEVICE_KINDS as _KINDS
-from lib.draw.kit import _fits, title
+from arkitect.lib.draw.page import LAY, GREY
+from arkitect.lib.draw.text import wrap_notes
+from arkitect.lib.symbols import electrical as es
+from arkitect.lib.units import inches
+from arkitect.codes.columbus.legends import DEVICE_KINDS as _KINDS
+from arkitect.lib.draw.kit import _fits, title
 # Columbus's legend text, with the one line that cited 300's M-101 pointed at this set's
 # own note instead.
 DEVICE_KINDS = dict(_KINDS, fanc='BATH FAN, CONTINUOUS DUTY; ITS SWITCH BOOSTS IT — NOTE 8',
@@ -15,11 +15,11 @@ from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src.electrical import CIRCUITS_U1, CIRCUITS_U23, NEC_UNITS
-from codes.nec.load import GEC_CEE, feeders, service_loads
-from codes.nec.load import nec220_82
-from codes.nec.dwelling import panel_spaces
-from lib.draw.kit import c
-from lib.draw.kit import notes_block
+from arkitect.codes.nec.load import GEC_CEE, feeders, service_loads
+from arkitect.codes.nec.load import nec220_82
+from arkitect.codes.nec.dwelling import panel_spaces
+from arkitect.lib.draw.kit import c
+from arkitect.lib.draw.kit import notes_block
 
 def legend(p, x, y, devs, width):
     kinds = [k for k in DEVICE_KINDS if any(d.kind == k for d in devs)]

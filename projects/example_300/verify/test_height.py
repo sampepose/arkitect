@@ -16,7 +16,7 @@ if HERE not in sys.path:
 class RoofHeightTests(unittest.TestCase):
 
     def test_the_ridge_stands_on_the_raised_heel(self):
-        from lib.units import fmt
+        from arkitect.lib.units import fmt
         from src import levels
         from src.roof import HEEL_NOM
         self.assertAlmostEqual(levels.EAVE, levels.ROOF_PLATE+HEEL_NOM)
@@ -24,7 +24,7 @@ class RoofHeightTests(unittest.TestCase):
         self.assertEqual((fmt(levels.EAVE), fmt(levels.ridge(26.0))), ('21\'-0-1/4"', '25\'-4-1/4"'))
 
     def test_height_is_the_mean_of_eave_and_ridge(self):
-        from lib.units import fmt
+        from arkitect.lib.units import fmt
         from src import levels
         self.assertAlmostEqual(levels.height(26.0), (levels.EAVE+levels.ridge(26.0))/2.0)
         self.assertEqual(fmt(levels.height(26.0)), '23\'-2-1/4"')

@@ -1,6 +1,6 @@
 """400 Oak Ave — the lot, and everything on a sheet that names it.
 
-The one place a different project starts. Nothing in lib/ knows any of this; the
+The one place a different project starts. Nothing in arkitect/lib/ knows any of this; the
 title block is handed in, and the output names come from here.
 """
 

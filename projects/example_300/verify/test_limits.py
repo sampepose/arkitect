@@ -25,7 +25,7 @@ if PROJ not in sys.path:
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
-from lib.units import IN
+from arkitect.lib.units import IN
 
 
 class FramingLimits(unittest.TestCase):
@@ -50,7 +50,7 @@ class BracingLimits(unittest.TestCase):
 
     def test_the_minimum_braced_panel_is_R602_10_5(self):
         """48 inches, for the method this project braces with."""
-        from codes.ohio.rco.bracing import ONE_PANEL_MIN
+        from arkitect.codes.ohio.rco.bracing import ONE_PANEL_MIN
         self.assertEqual(ONE_PANEL_MIN, IN(48))
 
     def test_the_wind_speed_still_matches_the_transcribed_tables(self):
@@ -92,7 +92,7 @@ class ClearanceLimits(unittest.TestCase):
            a rule names a checker that owns its own constant, the two must be the same
            number -- otherwise the table documents one rule and the build enforces
            another."""
-        from codes import clearances as code_clearances
+        from arkitect.codes import clearances as code_clearances
         from src.plumbing import WH_WORK
         wh = [r for r in code_clearances.RULES['wh'] if 'M1305.1' in r.citation]
         self.assertEqual(len(wh), 1)
@@ -104,7 +104,7 @@ class EgressLimits(unittest.TestCase):
     def test_the_emergency_escape_minimums_are_RCO_310_1(self):
         """5.7 SF net clear, 24 inches high, 20 inches wide. A-602 and G-001 both print
            these and every W-A product has to meet them."""
-        from codes.ohio.rco.egress import EGRESS_MIN_SF, EGRESS_MIN_H, EGRESS_MIN_W
+        from arkitect.codes.ohio.rco.egress import EGRESS_MIN_SF, EGRESS_MIN_H, EGRESS_MIN_W
         self.assertAlmostEqual(EGRESS_MIN_SF, 5.7)
         self.assertEqual(EGRESS_MIN_H, IN(24))
         self.assertEqual(EGRESS_MIN_W, IN(20))

@@ -4,7 +4,7 @@
 import importlib
 import unittest
 
-from lib.units import IN
+from arkitect.lib.units import IN
 from projects.example_400.verify import enter, leave
 
 

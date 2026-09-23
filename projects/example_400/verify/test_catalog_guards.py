@@ -1,14 +1,14 @@
-"""400 Oak against harness/catalog.py: a complete set runs every guard the catalog lists.
+"""400 Oak against arkitect/harness/catalog.py: a complete set runs every guard the catalog lists.
 
-harness/progress.py's probe runs Oak's build under a profiler; every guard of every catalog
+arkitect/harness/progress.py's probe runs Oak's build under a profiler; every guard of every catalog
 sheet must have been CALLED, except the zoning fit, which Oak checks in its tests
 (test_zoning_fit.py) rather than its build. A guard no real set ever runs would leave its
-sheet unable to pass. Moved here from harness/verify/ in phase 1 of the public release: the
+sheet unable to pass. Moved here from arkitect/harness/verify/ in phase 1 of the public release: the
 engine's own tests may not lean on a project the public engine does not ship.
 """
 import unittest
 
-from harness import catalog, progress
+from arkitect.harness import catalog, progress
 
 
 class CatalogGuardTests(unittest.TestCase):
@@ -16,7 +16,7 @@ class CatalogGuardTests(unittest.TestCase):
     def test_a_real_set_runs_every_guard(self):
         ran = set(progress.probe('example_400')['ran'])
         guards = {g for _n, _t, gs in catalog.SHEETS for g in gs}
-        self.assertEqual(guards - ran, {'codes.columbus.fit'})
+        self.assertEqual(guards - ran, {'arkitect.codes.columbus.fit'})
 
 
 if __name__ == '__main__':

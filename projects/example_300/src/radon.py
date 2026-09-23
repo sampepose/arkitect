@@ -25,16 +25,16 @@ face), the frame src/drainage.py places the stacks in. Heights in feet above gra
 """
 import math
 from collections import namedtuple
-from lib.units import IN, fmt, inches
+from arkitect.lib.units import IN, fmt, inches
 from src import levels
 from src import drainage as dr
-from lib.model import drains as drains
-from lib.model import runs as runs
+from arkitect.lib.model import drains as drains
+from arkitect.lib.model import runs as runs
 from src import foundation as F
 from src.openings import WIN_HEAD
 from src.sitework import SITE_BLDG, SITE_W
-from codes.irc_appendix_f import PIPE_OD, TOL, _attic_of, _clear, _in, _rect_edges, _segs_cross, _strip
-from codes.irc_appendix_f import areas
+from arkitect.codes.irc_appendix_f import PIPE_OD, TOL, _attic_of, _clear, _in, _rect_edges, _segs_cross, _strip
+from arkitect.codes.irc_appendix_f import areas
 
 # ---------------- basis ----------------
 ZONE = 1                          # EPA Map of Radon Zones, Franklin County, Ohio
@@ -112,7 +112,7 @@ def _exit_clear_of_band(p, band, clr):
 
 def _risers():
     from src.roof import B1_ROOF
-    from codes.ohio.rco.attic_ventilation import VENT_CLR
+    from arkitect.codes.ohio.rco.attic_ventilation import VENT_CLR
     band = B1_ROOF.w4_band
     return [
         Riser('RR-1', 'BUILDING 1', 'UNIT 1', 'B', _u1, _exit_clear_of_band(_u1, band, VENT_CLR), [],
@@ -172,7 +172,7 @@ def _points(path, step=0.05):
 def radon_violations(risers=None):
     risers = RISERS if risers is None else risers
     from src.roof import ROOFS, penetrations
-    from codes.ohio.rco.attic_ventilation import VENT_CLR
+    from arkitect.codes.ohio.rco.attic_ventilation import VENT_CLR
     v = []
     for bname in ('BUILDING 1', 'BUILDING 2'):
         b, fb = _bldg(bname)

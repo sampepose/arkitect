@@ -1,6 +1,6 @@
 """RCO 307.1 is a rule the build enforces, not a sentence in a docstring.
 
-The water closet's required clearances were stated in lib/symbols/plumbing.py's
+The water closet's required clearances were stated in arkitect/lib/symbols/plumbing.py's
 WaterCloset docstring, which said they were "checked in build.py, not drawn here".
 Nothing in build.py checked them: no constant, no assertion, no test. wc_dims() measured
 the real clearance and printed it on A-101 and A-102 without ever comparing it to the
@@ -24,7 +24,7 @@ if HERE not in sys.path:
 
 from src import clearances as CL
 from src.finishes import BOARD
-from codes import clearances as code_clearances
+from arkitect.codes import clearances as code_clearances
 
 
 class CheckTests(unittest.TestCase):
@@ -67,7 +67,7 @@ class SheetTests(unittest.TestCase):
            of one figure. If the note ever states a number the model does not measure,
            this fails."""
         from src.sheets.a001 import PLAN_NOTES, _wc_side
-        from lib.units import fmt, inches
+        from arkitect.lib.units import fmt, inches
         note = [n for n in PLAN_NOTES if n.startswith('11a.')]
         self.assertEqual(len(note), 1, 'A-001 note 11a not found')
         self.assertIn(fmt(_wc_side()), note[0])

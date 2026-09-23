@@ -32,19 +32,19 @@ adjacent parcel, y from the S Elm lot line toward the alley.
 """
 import math
 from collections import namedtuple
-from lib.units import IN, fmt, inches
+from arkitect.lib.units import IN, fmt, inches
 from src import levels
 from src.building1 import ENTRY_LEFT, PLAN_L1, U2_ENTRY, U2_LANDING_DROP, U3_FLIGHT_HI, U3_LAND_HI, U3_STAIR, U3_STOOP_HI, U3_STOOP_Z
 from src.building2 import U5_FLIGHT_X0, U5_LAND_D, U5_LAND_X0, U5_STAIR, U5_STOOP_X0, U5_STOOP_Z
 from src.drainage import BUILDINGS as DRAIN_BUILDINGS, SEWER_SLOPE, sewer
-from lib.model.drains import exit_site
-from codes.ohio.opc_drainage import SIZE_IN
+from arkitect.lib.model.drains import exit_site
+from arkitect.codes.ohio.opc_drainage import SIZE_IN
 from src.foundation import B2 as B2_FOUNDATION, FLATWORK, FLATWORK_KINDS, LANDING
 from src.sitework import (PARK_X0, PARK_X1, PARK_Y0, PARK_Y1, SAN_CROSS, SAN_X, SITE_BLDG, SITE_D,
                           SITE_LIVE_X, SITE_STAIR, SITE_W, TREE_R, TREE_X, TREE_Y)
-from lib.model.grade import (Band, LANDING_MAX, TOL, _overlaps, _split, _touch, grade_along, point, signed,
+from arkitect.lib.model.grade import (Band, LANDING_MAX, TOL, _overlaps, _split, _touch, grade_along, point, signed,
                              stations, top_at)
-from codes.ohio.rco.site_steps import RISER_MAX, feet, stair_risers, stair_violations, step_summary
+from arkitect.codes.ohio.rco.site_steps import RISER_MAX, feet, stair_risers, stair_violations, step_summary
 
 # ---------------- the rules ----------------
 FALL, FALL_RUN = IN(6), 10.0          # R401.3: 6" within the first 10'-0"

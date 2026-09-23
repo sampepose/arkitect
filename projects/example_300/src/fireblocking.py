@@ -2,12 +2,12 @@
    note and W4 detail print, read from the plates, the floors and the W4 line they depend on.
 
    Ohio's 302.11 is the IRC's with item 6 widened to any building of more than one dwelling
-   unit (OAC 4101:8-3-01, codes.ohio.gov). Nothing here is typed from a sheet."""
+   unit (OAC 4101:8-3-01, arkitect.codes.ohio.gov). Nothing here is typed from a sheet."""
 import math
 from collections import OrderedDict
 
-from lib.model.regrid import EXT_STUD
-from lib.units import IN, fmt
+from arkitect.lib.model.regrid import EXT_STUD
+from arkitect.lib.units import IN, fmt
 from src import levels
 from src.building1 import W_STUD
 from src.framing import FLOORS

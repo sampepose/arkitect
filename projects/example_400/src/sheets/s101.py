@@ -3,25 +3,25 @@
 Draws src/foundation.py and nothing it does not hold. The plans are in final sheet
 coordinates already (see that module), so PlanDraw takes them straight: no mirror.
 """
-from lib.draw.page import GREY, LAY, Sheet
-from lib.draw.plan import PlanDraw
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import GREY, LAY, Sheet
+from arkitect.lib.draw.plan import PlanDraw
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src import radon as RN
-from codes.ohio.opc_service_entry import entry_for
+from arkitect.codes.ohio.opc_service_entry import entry_for
 from src import criteria as crit
 from src import drainage as _dr
 from src import levels
-from lib.draw.text import wrap_notes
+from arkitect.lib.draw.text import wrap_notes
 from src.foundation import (B1, B2, BAR_COVER, CONCRETE, EDGE_INSUL_RUN, ENERGY_R, FLATWORK, FTG_BAR, PIER_DIA, POST_IN,
                             FROST_DEPTH, GRAVEL_T, RETARDER_MIL, FTG_PROJ, FTG_T, FTG_W, INSUL_NAME,
                             INSUL_R_NOM, INSUL_T, PAD_EDGE, PAD_T, SLAB, SLAB_T, STRIP_D, STRIP_W, TERMITE,
                             TERMITE_METHOD, TERMITE_METHODS, TERMITE_TREATMENT, WALL_T, WEATHERING)
-from codes.ohio.rco.concrete import ACI_DEICING, AIR_MAX, AIR_MIN, psi
-from lib.draw.kit import Q, X0, X1, Y0, Y1, c
-from lib.draw.foundation_kit import _band
+from arkitect.codes.ohio.rco.concrete import ACI_DEICING, AIR_MAX, AIR_MIN, psi
+from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.foundation_kit import _band
 
 TERMITE_SIZE = 6.6
 TERMITE_LEAD = 0.112*inch
@@ -366,7 +366,7 @@ def sheet_s101():
         c.drawString(nx, ny, t); ny -= 0.102*inch
     # The detail: its grade datum sits 0.50 in under the last note line (its highest
     # label is 0.5 in above that datum, so the two are all but touching -- the sweep in
-    # lib/verify/sheet_text.py is what proves they do not); its lowest line, the scale
+    # arkitect/lib/verify/sheet_text.py is what proves they do not); its lowest line, the scale
     # under the footing, is derived from the model's frost depth and held above the
     # drawing area. The gap and the 0.102 in note leading above it both came in to buy
     # note 8 the line the water service entry needed.

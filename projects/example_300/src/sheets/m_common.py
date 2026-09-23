@@ -1,19 +1,19 @@
 """What M-101 and M-102 share: a unit's mechanical work on a greyed plan, the three
 schedules and the notes. Every figure printed here is read from src/mechanical.py,
 which check_model() has already passed."""
-from lib.draw.page import LAY
-from lib.symbols import mechanical as ms
-from lib.units import fmt
+from arkitect.lib.draw.page import LAY
+from arkitect.lib.symbols import mechanical as ms
+from arkitect.lib.units import fmt
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src.mechanical import (DRYER_OUT_Z, DRYER_PHYS_MAX, EXH_CLR, LOCAL_CFM, ODU_TERM_CLR, W4_ROOF_BAND,
                             WALLS, outdoor_units, ventilation, LEVELS)
-from codes.ohio.rco.mechanical import terminations
-from codes.ohio.rco.mechanical import DRYER_ELBOW, DRYER_MAX
+from arkitect.codes.ohio.rco.mechanical import terminations
+from arkitect.codes.ohio.rco.mechanical import DRYER_ELBOW, DRYER_MAX
 from src.sheets.e_common import grey_context
-from lib.draw.kit import title
-from lib.draw.mechanical_kit import S, _head, _para, _room, _row
-from lib.draw.kit import notes_block
+from arkitect.lib.draw.kit import title
+from arkitect.lib.draw.mechanical_kit import S, _head, _para, _room, _row
+from arkitect.lib.draw.kit import notes_block
 
 # Neither building is ducted: the legend leaves out the air handler and its registers.
 DUCTLESS = [k for k, _t in ms.KINDS if k not in ('ahu', 'reg')]

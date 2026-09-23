@@ -5,11 +5,11 @@ A water closet needs its 15 inches wherever it stands; a water heater needs its 
 working space in every closet in the project. Before this module those rules lived in
 three different shapes and only one of them ran:
 
-  - `lib/symbols/plumbing.py`'s WaterCloset docstring stated RCO 307.1's 15 and 21
+  - `arkitect/lib/symbols/plumbing.py`'s WaterCloset docstring stated RCO 307.1's 15 and 21
     inches and said "those are checked in build.py, not drawn here". Nothing in build.py
     checked them. There was no constant, no assertion, and no test -- the rule existed
     only as prose, and the prose reassured the next reader that someone else had it.
-  - `lib/model/dimensions.py`'s wc_dims() measured the real clearance and printed it on
+  - `arkitect/lib/model/dimensions.py`'s wc_dims() measured the real clearance and printed it on
     A-101 and A-102, and never compared it to the minimum it was answering.
   - `src/plumbing.py`'s check_working_spaces() did it properly for the heaters: a named
     constant, a generic check over all three cases, the one place the minimum genuinely
@@ -21,17 +21,17 @@ RULE lives here, keyed by the `kind` string the plan items and the symbol regist
 already share, and the number a sheet prints and the number a check asserts come from
 the same record.
 
-WHY THE RULE AND NOT THE RECTANGLE. The geometry stays in the model. `lib/symbols` draws
+WHY THE RULE AND NOT THE RECTANGLE. The geometry stays in the model. `arkitect/lib/symbols` draws
 in page points after the mirror and knows nothing of its neighbours, and the working-space
 rectangles in `src/building1.py` are SOLVED against the stud grid rather than derived --
 the file says so. What co-locates is the requirement; the symbol's tie to it is the kind
 string it already declares.
 """
-from lib.units import fmt, inches
+from arkitect.lib.units import fmt, inches
 
 
-# class Clear:: shared, see codes/clearances.py
-from codes.clearances import WC_SIDE, wc_violations
+# class Clear:: shared, see arkitect/codes/clearances.py
+from arkitect.codes.clearances import WC_SIDE, wc_violations
 
 
 def check_clearances(plans, finish):

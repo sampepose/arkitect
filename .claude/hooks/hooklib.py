@@ -5,7 +5,7 @@ command well enough to judge it.
 The hooks are a seatbelt, not a sandbox. They read the command Claude is about to run and
 refuse the handful of shapes that have cost this repository real time -- `git add -A`, an
 oracle whose stderr went to /dev/null, a hand-written trace.md5, a worktree rewriting the
-deliverables. A determined `python3 -c` gets past every one of them; lib/verify/gate.py,
+deliverables. A determined `python3 -c` gets past every one of them; arkitect/lib/verify/gate.py,
 which recomputes everything, is what cannot be talked past.
 """
 import json
@@ -25,7 +25,7 @@ def read_input():
 
 
 # The engine these hook scripts belong to: the checkout they fired in, or -- in a projects
-# repository that installed them from outside (python3 -m harness.hooks install) -- the
+# repository that installed them from outside (python3 -m arkitect.harness.hooks install) -- the
 # engine that repository uses.
 ENGINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

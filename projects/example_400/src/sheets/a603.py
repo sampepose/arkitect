@@ -8,21 +8,21 @@ stands behind it, so the things a fabricator would work out are drawn here: the 
 in section, the guard post attachment, the ledger and flashing at Building 2's W1R wall,
 and the pier connection. Every figure is the model's.
 """
-from lib.draw.page import GREY, Sheet
-from lib.draw.text import wrap_notes
+from arkitect.lib.draw.page import GREY, Sheet
+from arkitect.lib.draw.text import wrap_notes
 import math
-from lib.units import IN, fmt, inches, inches32
+from arkitect.lib.units import IN, fmt, inches, inches32
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src import fsd, stairs
-from codes.ohio.rco import fire_separation as rco_fsd
+from arkitect.codes.ohio.rco import fire_separation as rco_fsd
 from src.framing import GROUND_SNOW
 U3_STAIR = stairs.EXT_STAIR      # the Unit 3 stair, the lot's one exterior stair
 from src.foundation import FROST_DEPTH
-from lib.draw.detail import _Det, _title
-from lib.draw.kit import X0, X1, Y0, Y1, c
-from lib.draw.detail import _break
+from arkitect.lib.draw.detail import _Det, _title
+from arkitect.lib.draw.kit import X0, X1, Y0, Y1, c
+from arkitect.lib.draw.detail import _break
 
 FLIGHT_SC = 1.5*72.0       # 1-1/2" = 1'-0"
 BIG = 3.0*72.0             # 3" = 1'-0", for the two connection details

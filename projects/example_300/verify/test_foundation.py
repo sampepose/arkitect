@@ -11,7 +11,7 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
 
-from codes.ohio.rco import concrete as rco_concrete
+from arkitect.codes.ohio.rco import concrete as rco_concrete
 
 class U1StairWallTests(unittest.TestCase):
 
@@ -101,7 +101,7 @@ class GeometryTests(unittest.TestCase):
            between them bears, and the strip sits under it for the grouping's full depth."""
         from src import foundation as f
         from src import building1 as b
-        from lib.model.regrid import EXT_STUD
+        from arkitect.lib.model.regrid import EXT_STUD
         bays = sorted((j[0], j[2]) for j in b._B1_JOISTS)
         self.assertEqual(len(bays), 2)
         wx0, wy0, wx1, wy1 = b.U23_BEARING_WALL

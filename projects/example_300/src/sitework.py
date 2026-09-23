@@ -20,11 +20,11 @@ heat pumps were on the parcel side when one has always been on Sage.
 SIDE_YARD is everything standing in the 8'-0" side street yard, which C.C. 3332.22(a)(1)
 governs and which G-001 and C-101 both tabulate from here.
 """
-from lib.model.regrid import EXT_STUD
-from lib.units import IN, fmt, inches
-from codes.columbus import zoning as ZONING
+from arkitect.lib.model.regrid import EXT_STUD
+from arkitect.lib.units import IN, fmt, inches
+from arkitect.codes.columbus import zoning as ZONING
 from src import envelope, fsd, levels
-from codes.ohio.rco import fire_separation as rco_fsd
+from arkitect.codes.ohio.rco import fire_separation as rco_fsd
 from src import roof as ROOF
 from src.mirror import B1_W, rx
 from src.building1 import D_STUD, PLAN_L1, REAR_WALL, U1_DR_TERM, U23WIN_U2, U2_ENTRY, U3_LAND_LO, U3_STAIR_W, U3_STOOP_HI, W_STUD, Y_SEP_TOP, Y_SEP_BOT, site_y, windows

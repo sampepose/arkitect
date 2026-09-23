@@ -2,11 +2,11 @@
 greyed Level 2 plan, from src/roof.py; five details; the roof design loads, the RCO
 806 attic ventilation and the notes. Every figure printed is the model's."""
 import re
-from lib.draw.page import GREY, LAY, Sheet, end_plans
-from lib.draw.sheets import draw_joist_span, draw_level
-from lib.draw.text import wrap_notes
-from lib.model.regrid import EXT_STUD, PART_STUD
-from lib.units import fmt, inches, IN
+from arkitect.lib.draw.page import GREY, LAY, Sheet, end_plans
+from arkitect.lib.draw.sheets import draw_joist_span, draw_level
+from arkitect.lib.draw.text import wrap_notes
+from arkitect.lib.model.regrid import EXT_STUD, PART_STUD
+from arkitect.lib.units import fmt, inches, IN
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
@@ -22,22 +22,22 @@ from src.criteria import WIND
 from src.roof import (BC_DEAD, B1_ROOF, B2_ROOF, HEEL_NOM, INSUL_DEPTH, EAVE_OVERHANG, RAKE_OVERHANG,
                       dripline, rake, ROOFS, ROOF_DEFLECTION, ROOF_LIVE, ROOF_PITCH, TC_DEAD, TRUSS_OC,
                       W4_BAND, penetrations)
-from codes.ohio.rco.roof_checks import truss_lines
-from codes.ohio.rco.roof_checks import HATCH_L, HATCH_W, truss_span
-from codes.ohio.rco.attic_ventilation import EAVE_NFA, RIDGE_NFA, SLOT_STOP, VENT_CLR, VENT_RATIO, vent_runs
+from arkitect.codes.ohio.rco.roof_checks import truss_lines
+from arkitect.codes.ohio.rco.roof_checks import HATCH_L, HATCH_W, truss_span
+from arkitect.codes.ohio.rco.attic_ventilation import EAVE_NFA, RIDGE_NFA, SLOT_STOP, VENT_CLR, VENT_RATIO, vent_runs
 from src.sheets.common import draw_attic_hatch
-from lib.draw.kit import E, X0, X1, Y0, Y1, c
+from arkitect.lib.draw.kit import E, X0, X1, Y0, Y1, c
 from src.sheets.e_common import grey_context
-from lib.draw.kit import _fits
+from arkitect.lib.draw.kit import _fits
 from src.sheets.plans import B1_DRAWING, draw_u5_stair
-from lib.draw.detail import _D, _detail_title, _hatch_band
-from lib.draw.framing_kit import _in0
-from lib.model.geom import sloped_area
+from arkitect.lib.draw.detail import _D, _detail_title, _hatch_band
+from arkitect.lib.draw.framing_kit import _in0
+from arkitect.lib.model.geom import sloped_area
 from src.roof import plan_area
-from codes.ohio.rco.roof_draw import _ventilation
-from codes.ohio.rco.roof_draw import _loads
-from lib.draw.kit import notes_block
-from lib.draw.framing_kit import _plan_title
+from arkitect.codes.ohio.rco.roof_draw import _ventilation
+from arkitect.codes.ohio.rco.roof_draw import _loads
+from arkitect.lib.draw.kit import notes_block
+from arkitect.lib.draw.framing_kit import _plan_title
 
 SH  = IN(0.5)        # wall and roof sheathing, drawn
 GYP = IN(0.625)      # 5/8" gypsum

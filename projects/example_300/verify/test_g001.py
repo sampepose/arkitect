@@ -38,7 +38,7 @@ class ScopeOfWorkTests(unittest.TestCase):
             self.assertIn(sh, self.sheets['PLUMBING'])
 
     def test_structural_figures_are_the_foundation_framing_and_roof_models(self):
-        from lib.units import inches
+        from arkitect.lib.units import inches
         from src.foundation import FROST_DEPTH, FTG_T, FTG_W, STRIP_W
         from src.framing import F1_JOIST, F2_JOIST, JOIST_OC
         from src.roof import ROOF_PITCH, TRUSS_OC
@@ -51,7 +51,7 @@ class ScopeOfWorkTests(unittest.TestCase):
         self.assertIn('SHOP DRAWING', t)
         # the wall bracing is the bracing model's: its method, portals and hold-downs
         from src import bracing
-        from codes.ohio.rco import bracing as rco_bracing
+        from arkitect.codes.ohio.rco import bracing as rco_bracing
         self.assertIn('METHOD %s' % rco_bracing.METHOD, t)
         n = sum(len(bracing.portal_openings(ln)) for ln in bracing.LINES)
         self.assertIn('%d CS-PF PORTAL FRAME%s ' % (n, '' if n == 1 else 'S'), t)
@@ -60,7 +60,7 @@ class ScopeOfWorkTests(unittest.TestCase):
 
     def test_each_service_and_panel_rating_is_the_electrical_models(self):
         from src.electrical import SERVICES
-        from codes.nec.load import service_loads
+        from arkitect.codes.nec.load import service_loads
         t = self.text['ELECTRICAL']
         for s in SERVICES:
             self.assertIn('%d A AT METER BANK %s' % (service_loads(s)[3], s['mark']), t)
@@ -75,7 +75,7 @@ class ScopeOfWorkTests(unittest.TestCase):
         self.assertIn('%d WALL HEADS' % sum(len(r['heads']) for r in rows), t)
 
     def test_plumbing_figures_are_the_water_and_drainage_models(self):
-        from lib.units import fmt
+        from arkitect.lib.units import fmt
         from src import drainage, plumbing
         t = self.text['PLUMBING']
         for b in plumbing.BUILDINGS:

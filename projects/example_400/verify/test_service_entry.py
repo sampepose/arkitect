@@ -4,7 +4,7 @@ Same fault, same figures as 300 S Elm: the supply is buried below Columbus's 32"
 line and the footing's bottom is founded at that same 32", so the foundation wall on it
 begins a footing thickness higher than the pipe. P-102 / P-103 note 2 used to say "sleeve
 through the foundation wall" and no sheet drew the entry. The rule is
-codes/ohio/opc_service_entry.py and the section is lib/draw/plumbing_kit.py's; these hold
+arkitect/codes/ohio/opc_service_entry.py and the section is arkitect/lib/draw/plumbing_kit.py's; these hold
 what THIS set does with them."""
 import os
 import unittest
@@ -17,7 +17,7 @@ STRINGS = {}
 
 def setUpModule():
     enter()
-    from lib.verify import sheet_text as st
+    from arkitect.lib.verify import sheet_text as st
     for no, items in st.read(BUILD).items():
         STRINGS[no] = [t.text for t in items]
 
@@ -29,25 +29,25 @@ def tearDownModule():
 class ServiceEntryTests(unittest.TestCase):
 
     def setUp(self):
-        from codes.ohio.opc_service_entry import entry_for
+        from arkitect.codes.ohio.opc_service_entry import entry_for
         from src import drainage as dr
         self.dr = dr
         self.e = entry_for(dr.BUILDING_1, dr.GROUND)
 
     def test_both_buildings_take_the_same_entry(self):
         # P-601 draws one detail and asserts this
-        from codes.ohio.opc_service_entry import entry_for
+        from arkitect.codes.ohio.opc_service_entry import entry_for
         self.assertEqual(entry_for(self.dr.BUILDING_2, self.dr.GROUND), self.e)
 
     def test_the_wall_begins_above_the_supply(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         self.assertAlmostEqual(self.e.pipe_top, -IN(38), places=9)   # OPC 305.4: 32 + 6
         self.assertAlmostEqual(self.e.ftg_top, -IN(24), places=9)
         self.assertTrue(self.e.sleeve_top < self.e.ftg_top,
                         'the supply would pass through the wall, which this set cannot draw')
 
     def test_the_figures_the_sheets_print(self):
-        from lib.units import IN
+        from arkitect.lib.units import IN
         self.assertEqual((self.e.service, self.e.sleeve), ('1', '1-1/2'))
         self.assertAlmostEqual(self.e.bury, IN(38), places=9)
         self.assertAlmostEqual(self.e.sleeve_od, IN(1.900), places=9)
@@ -68,7 +68,7 @@ class ServiceEntryTests(unittest.TestCase):
         self.assertLess(z1.legs[0], self.e.run)          # the leg around the corner is the short one
 
     def test_the_model_is_clean(self):
-        from codes.ohio.opc_service_entry import entries_violations
+        from arkitect.codes.ohio.opc_service_entry import entries_violations
         self.assertEqual(entries_violations(self.dr.BUILDINGS, self.dr.GROUND), [])
 
 
@@ -89,8 +89,8 @@ class SheetTextTests(unittest.TestCase):
             self.assertTrue(any('P-601' in t for t in STRINGS[no]), '%s no longer cites P-601' % no)
 
     def test_p601_prints_the_derived_figures(self):
-        from codes.ohio.opc_service_entry import entry_for
-        from lib.units import fmt, inches
+        from arkitect.codes.ohio.opc_service_entry import entry_for
+        from arkitect.lib.units import fmt, inches
         from src import drainage as dr
         e = entry_for(dr.BUILDING_1, dr.GROUND)
         joined = ' | '.join(STRINGS['P-601'])

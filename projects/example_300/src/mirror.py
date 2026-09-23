@@ -17,7 +17,7 @@ centerline, so Units 2/3 are authored once from one end and reflected as a block
 """
 # Only the kinds that have an r* wrapper below. mdims, mchains and mstair used to be
 # imported here too but no rdims/rchains/rstair was ever written, so they were dead.
-from lib.model.mirror import (mrooms, mdoors, mwins, mops, mnotes, mtags, mpoly,
+from arkitect.lib.model.mirror import (mrooms, mdoors, mwins, mops, mnotes, mtags, mpoly,
                               mfurn)
 
 # ---------------- orientation ----------------
@@ -27,7 +27,7 @@ from lib.model.mirror import (mrooms, mdoors, mwins, mops, mnotes, mtags, mpoly,
 # standing in it faces DOWN the sheet and their right hand is the sheet's LEFT — which
 # puts Sage, the side street on their right, on the LEFT of every plan. Setting it
 # the other way does not give an alternative drawing, it gives a wrong one, so
-# lib.model.mirror simply mirrors and this project does not carry a flag for it.
+# arkitect.lib.model.mirror simply mirrors and this project does not carry a flag for it.
 # ---------------- Units 2 / 3 left-right reflection ----------------
 # Units 2 and 3 are authored from the Unit 1 end of Building 1 and reflected about its
 # centreline, so the living / dining, the kitchen L, both entries and the Unit 3 stair

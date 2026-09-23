@@ -1,21 +1,21 @@
 # 100 EXAMPLE ST — working notes for agents
 
-A permit set for 100 EXAMPLE ST: BUILDING 1, principal, 24'-0" x 36'-0", 2 storeys: UNIT 1 (3 BR); BUILDING 2, ADU, 22'-0" x 24'-0", 1 storey: UNIT 2 (1 BR) on a 35'-0" x 120'-0" interior lot with a 20'-0" alley. Scaffolded from `intake.json` on 2026-09-22 by `harness/scaffold.py`. The repo-level
+A permit set for 100 EXAMPLE ST: BUILDING 1, principal, 24'-0" x 36'-0", 2 storeys: UNIT 1 (3 BR); BUILDING 2, ADU, 22'-0" x 24'-0", 1 storey: UNIT 2 (1 BR) on a 35'-0" x 120'-0" interior lot with a 20'-0" alley. Scaffolded from `intake.json` on 2026-09-22 by `arkitect/harness/scaffold.py`. The repo-level
 `CLAUDE.md` governs house style, the oracles and the working rules. **This file is only
 what is different here.**
 
 ## The loop
 
 ```sh
-python3 -m harness.progress next example_100      # the next feature: its guards, its references
-python3 -m lib.verify.gate                   # every oracle; names the sheets that moved
-python3 -m lib.verify.gate render --moved    # look at what moved
-python3 -m lib.verify.gate accept            # write trace.md5 once the move is meant
-python3 -m harness.progress set example_100 <id> passes   # refused unless the build proves it
+python3 -m arkitect.harness.progress next example_100      # the next feature: its guards, its references
+python3 -m arkitect.lib.verify.gate                   # every oracle; names the sheets that moved
+python3 -m arkitect.lib.verify.gate render --moved    # look at what moved
+python3 -m arkitect.lib.verify.gate accept            # write trace.md5 once the move is meant
+python3 -m arkitect.harness.progress set example_100 <id> passes   # refused unless the build proves it
 ```
 
 `intake.json` is the program and the ONE definition of the lot; `src/sitework.py` reads it.
-Change it, then `python3 -m harness.intake projects/example_100/intake.json`, then build.
+Change it, then `python3 -m arkitect.harness.intake projects/example_100/intake.json`, then build.
 
 ## Zoning, as scaffolded
 

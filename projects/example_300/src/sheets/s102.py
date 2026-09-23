@@ -2,10 +2,10 @@
 plan, from src/framing.py; the header schedule, the design loads and the notes."""
 import re as _re
 
-from lib.draw.page import LAY, Sheet, end_plans
-from lib.draw.sheets import draw_joist_span, draw_level
-from lib.draw.text import wrap_notes
-from lib.units import fmt, inches
+from arkitect.lib.draw.page import LAY, Sheet, end_plans
+from arkitect.lib.draw.sheets import draw_joist_span, draw_level
+from arkitect.lib.draw.text import wrap_notes
+from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
@@ -14,15 +14,15 @@ from src.building2 import B2_W, b2_level
 from src.framing import (B1_FLOOR, B2_FLOOR, DEAD_LOADS, DEFLECTION, F1_JOIST, F2_JOIST, GROUND_SNOW,
                          GUARD_LOAD, HEADERS, JOIST_OC, LIVE_LOADS, SUBFLOOR, LVL, LVL_DEPTH, LVL_PLIES,
                          LVL_PLY, header_positions)
-from codes.ohio.rco.floor_checks import joist_lines
-from codes.ohio.rco.floor_checks import bay_span
-from codes.ohio.rco.headers import HEADER_BRACING, UNBRACED_FACTOR, _factor, header_for
-from lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from arkitect.codes.ohio.rco.floor_checks import joist_lines
+from arkitect.codes.ohio.rco.floor_checks import bay_span
+from arkitect.codes.ohio.rco.headers import HEADER_BRACING, UNBRACED_FACTOR, _factor, header_for
+from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 from src.sheets.e_common import grey_context
-from lib.draw.kit import _fits, title
+from arkitect.lib.draw.kit import _fits, title
 from src.sheets.plans import B1_DRAWING, draw_u5_stair
-from lib.draw.framing_kit import _CARRIES_ABBR, _SCHED_COLS, _cut, _hanger, _in0, _sched_cols, _typical
-from lib.draw.framing_kit import _header_tags
+from arkitect.lib.draw.framing_kit import _CARRIES_ABBR, _SCHED_COLS, _cut, _hanger, _in0, _sched_cols, _typical
+from arkitect.lib.draw.framing_kit import _header_tags
 
 
 def _framing(p, floor):

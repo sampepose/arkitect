@@ -20,9 +20,9 @@ src/mechanical.py holds openings and terminations in.
 """
 import math
 from collections import namedtuple
-from lib.units import IN, fmt, inches
+from arkitect.lib.units import IN, fmt, inches
 from src import grading as G, mechanical as M
-from lib.model import grade as grade
+from arkitect.lib.model import grade as grade
 from src.building1 import U3_LAND_LO, U3_STOOP_HI
 from src.building2 import U5_LAND_D, U5_LAND_X1, U5_STOOP_X0
 from src.drainage import BUILDINGS as DRAIN_BUILDINGS, sewer, water_lines

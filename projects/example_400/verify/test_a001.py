@@ -18,7 +18,7 @@ class PlanNoteTests(unittest.TestCase):
 
     def test_the_quoted_figures_are_the_models(self):
         from src.sheets import a001
-        from lib.units import inches
+        from arkitect.lib.units import inches
         text = " ".join(a001.plan_notes())
         self.assertIn(inches(a001._wc_side()), text)
         self.assertGreaterEqual(a001._wc_side(), 15/12.0)
