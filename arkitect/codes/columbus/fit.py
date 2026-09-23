@@ -215,19 +215,8 @@ def fit(massing):
     return rows
 
 
-def failing(rows):
-    """The rules the massing does not meet and states no relief for."""
-    return [r for r in rows if r.status == FAILS]
-
-
-def summary(rows):
-    """Plain text, one rule per line, for a person or an agent to read."""
-    out = []
-    for r in rows:
-        out.append('%-15s %-34s %-28s %-30s %s%s' % (
-            r.status, r.label, r.required, r.provided, r.citation,
-            ('  -- ' + r.note) if r.note else ''))
-    return '\n'.join(out)
+failing = _massing.failing      # the rules not met with no relief stated
+summary = _massing.summary      # one rule per line, for a person or an agent
 
 
 def check(massing):

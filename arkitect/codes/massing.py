@@ -67,3 +67,18 @@ class Massing:
         if d.get('area_sf'):
             return float(d['area_sf']), False
         return b['width']*b['depth']*b.get('storeys', 1)/len(b['dwellings']), True
+
+
+def failing(rows):
+    """The rules the massing does not meet and states no relief for: what stops a build."""
+    return [r for r in rows if r.status == FAILS]
+
+
+def summary(rows):
+    """Plain text, one rule per line, for a person or an agent to read."""
+    out = []
+    for r in rows:
+        out.append('%-15s %-34s %-28s %-30s %s%s' % (
+            r.status, r.label, r.required, r.provided, r.citation,
+            ('  -- ' + r.note) if r.note else ''))
+    return '\n'.join(out)

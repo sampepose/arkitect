@@ -8,6 +8,7 @@
     arkitect sheet-text BUILD           strings printed over one another, citations not printed
     arkitect twins [--why]              definitions two projects carry word for word
     arkitect intake | scaffold | progress | review | decisions | config | hooks | hook | engine
+    arkitect jurisdiction list | check <name> | new <name>   the cities encoded, and adding one
     arkitect disclaimer                 what this engine's output is not
     arkitect --version
 
@@ -36,6 +37,7 @@ TOOLS = {
     'hook': 'arkitect.harness.hook',
     'engine': 'arkitect.harness.engine',
     'disclaimer': 'arkitect.harness.disclaimer',
+    'jurisdiction': 'arkitect.harness.jurisdiction',
 }
 
 

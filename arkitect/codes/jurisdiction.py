@@ -57,6 +57,10 @@ def problems(module):
         return out + ['%s has no fit module: %s' % (module.__name__, exc)]
     out += ['%s.fit has no %s (%s)' % (module.__name__, n, why) for n, why in FIT
             if not hasattr(fit, n)]
+    if hasattr(module, 'VERIFIED_ON') and not module.VERIFIED_ON:
+        out.append('%s has not been verified: VERIFIED_ON is empty. Record when and against what '
+                   'real permit set it was checked (VERIFIED_ON, VERIFIED_AGAINST) before an intake '
+                   'may name it' % module.__name__)
     state = getattr(module, 'STATE', None)
     if state:
         try:
