@@ -16,10 +16,12 @@ state. `arkitect` says so the first time you run it, and `arkitect disclaimer` s
 The sheets carry no disclaimer; in Ohio the title block states the one thing that is true of
 every such set, that no seal is required (ORC 3791.04(A)(2)(b)).
 
-**License.** PolyForm Noncommercial 1.0.0 for the code; CC BY-NC 4.0 for the documentation,
-the house style and the example drawings. A designer or contractor who wants to use it on
-paid work may ask the maintainer for a written commercial grant, decided case by case.
-Contributions are welcome under a contributor license agreement.
+**License.** PolyForm Noncommercial 1.0.0 for the code ([LICENSE](LICENSE)); CC BY-NC 4.0
+for the documentation, the house style and the example drawings ([LICENSE-docs](LICENSE-docs)).
+[NOTICE](NOTICE) says which paths are under which. A designer or contractor who wants to use
+it on paid work may ask the maintainer for a written commercial grant, decided case by case.
+Contributions are welcome under a contributor license agreement: [CONTRIBUTING.md](CONTRIBUTING.md)
+and [CLA.md](CLA.md).
 
 **Start here:** [docs/quickstart.md](docs/quickstart.md) goes from a clone to a new address
 that passes every check. [docs/interface.md](docs/interface.md) is the `--json` a program

@@ -1,0 +1,42 @@
+arkitect
+
+Required Notice: Copyright 2026 COPYRIGHT HOLDER TO BE NAMED
+
+This repository is under two licenses, by path.
+
+THE CODE: the PolyForm Noncommercial License 1.0.0 (LICENSE)
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
+
+    arkitect/                   the package: the drawing engine, the code rules, the tools
+    .claude/                    the hooks, skills and agents
+    .github/                    the CI workflow
+    projects/*/build.py         each example project's build script
+    projects/*/src/             each example project's model and sheet modules
+    projects/*/verify/          each example project's tests
+    projects/*/__init__.py, projects/__init__.py
+    pyproject.toml, requirements.txt, arkitect.toml, arkitect.example.toml, .gitignore
+
+THE DOCUMENTATION, THE HOUSE STYLE AND THE EXAMPLE DRAWINGS: the Creative Commons
+Attribution-NonCommercial 4.0 International license (LICENSE-docs)
+<https://creativecommons.org/licenses/by-nc/4.0/legalcode>
+
+    docs/                       the documentation
+    style/                      the house style
+    decisions/README.md
+    README.md, CLAUDE.md, CONTRIBUTING.md, projects/*/CLAUDE.md
+    projects/*/intake.json, projects/*/progress.json, projects/*/trace.md5
+                                each example project's intake, feature list and digest
+    the drawings the example projects produce: their permit sets and zoning site plans (PDF)
+    and their floor plans (DXF), wherever they are built
+
+CLA.md is a draft agreement for contributors and is not licensed to you under either.
+LICENSE, LICENSE-docs and this file are the licenses and the notice themselves.
+
+A path not named above is under the PolyForm Noncommercial License 1.0.0.
+
+COMMERCIAL USE. Neither license permits commercial use. A designer, contractor or firm that
+wants to use arkitect or its example drawings on paid work may ask the maintainer for a
+written commercial grant, decided case by case.
+
+CONTRIBUTIONS are welcome under the contributor license agreement in CLA.md; CONTRIBUTING.md
+says how.
