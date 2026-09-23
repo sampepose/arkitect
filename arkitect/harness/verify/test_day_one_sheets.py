@@ -1,4 +1,4 @@
-"""arkitect/codes/columbus/zoning_sheets.py and arkitect/lib/buildkit.py: the two day-one sheets build for an
+"""arkitect/codes/zoning_sheets.py and arkitect/lib/buildkit.py: the two day-one sheets build for an
 interior lot and a corner lot, check the model before drawing, and print no string on
 another (arkitect/lib/verify/sheet_text.py's overlap rule, read through a recording canvas)."""
 import os
@@ -7,8 +7,9 @@ import unittest
 
 from reportlab.pdfgen import canvas as _rl
 
+from arkitect.codes import columbus as J
 from arkitect.codes.columbus import fit as F
-from arkitect.codes.columbus.zoning_sheets import cover_sheet, zoning_rows, zoning_site_plan
+from arkitect.codes.zoning_sheets import cover_sheet, zoning_rows, zoning_site_plan
 from arkitect.harness import intake as I
 from arkitect.harness.verify.fixtures import example
 from arkitect.lib.buildkit import documents
@@ -67,11 +68,11 @@ class DayOneSheetTests(unittest.TestCase):
         self.assertIn('VARIANCE REQUESTED', text)
 
     def test_a_rule_not_yet_checkable_prints_pending_not_a_figure(self):
-        rows = dict(zoning_rows(F.fit(I.massing(example()))))
+        rows = dict(zoning_rows(F.fit(I.massing(example())), J))
         self.assertEqual(rows['Building height, 3332.29'], 'PENDING DESIGN')
 
     def test_an_unverified_section_is_not_printed_as_one(self):
-        labels = [a for a, _b in zoning_rows(F.fit(I.massing(example())))]
+        labels = [a for a, _b in zoning_rows(F.fit(I.massing(example())), J)]
         self.assertFalse([a for a in labels if 'UNVERIFIED' in a])
         self.assertIn('Lot coverage', labels)                 # printed with no section
 

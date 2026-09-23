@@ -74,8 +74,8 @@ def house_style(root=ROOT):
 
 BRIEF = """# Plan review: {address}
 
-You are reviewing a residential building permit set for {address}, Columbus, Ohio, as the
-city's plan reviewer would -- and as the contractor who has to build from it would. You see
+You are reviewing a residential building permit set for {address}{place}, as {reviewer} would
+-- and as the contractor who has to build from it would. You see
 only the sheets. Find what is WRONG with them. You are not here to praise; a review with no
 findings on sheets this dense is a review that did not look.
 
@@ -209,6 +209,23 @@ def prepare(slug, sheets=None, moved=False, out=None, root=ROOT):
         shutil.rmtree(scratch, ignore_errors=True)
 
 
+def jurisdiction_of(slug, root=ROOT):
+    """The jurisdiction a project is in: its intake's `"jurisdiction"`, else its
+       src/project.py's JURISDICTION = "...", else None."""
+    p = os.path.join(root, 'projects', slug, 'intake.json')
+    if os.path.exists(p):
+        with open(p) as fh:
+            name = json.load(fh).get('jurisdiction')
+        if name:
+            return name
+    p = os.path.join(root, 'projects', slug, 'src', 'project.py')
+    if os.path.exists(p):
+        with open(p) as fh:
+            m = re.search(r'^JURISDICTION = ["\']([a-z_]+)["\']', fh.read(), re.M)
+        return m.group(1) if m else None
+    return None
+
+
 def brief(slug, index, root=ROOT):
     address = slug
     for rel in ('intake.json',):
@@ -222,11 +239,19 @@ def brief(slug, index, root=ROOT):
             with open(p) as fh:
                 m = re.search(r'^ADDRESS = "([^"]+)"', fh.read(), re.M)
             address = m.group(1).title() if m else slug
+    name = jurisdiction_of(slug, root)
+    if name:
+        from arkitect.codes import jurisdiction
+        jur = jurisdiction.load(name)
+        place, reviewer = ', ' + jur.NAME, 'the ' + jur.REVIEWER
+    else:
+        place, reviewer = '', "the jurisdiction's residential plan reviewer"
     lines = []
     for no, s in index['sheets'].items():
         lines.append('- **%s**: whole `%s`; tiles %s' % (
             no, s['whole'], ', '.join('`%s`' % t for t in s['tiles'])))
-    return BRIEF.format(address=address, sheets='\n'.join(lines), cols=TILE_GRID[0],
+    return BRIEF.format(address=address, place=place, reviewer=reviewer,
+                        sheets='\n'.join(lines), cols=TILE_GRID[0],
                         rows=TILE_GRID[1], tile_dpi=TILE_DPI, style=house_style(root),
                         categories=' | '.join('"%s"' % c for c in CATEGORIES))
 

@@ -1,8 +1,10 @@
-"""The two sheets a new Columbus address draws on its first day, from its massing alone:
-G-001, the cover, and C-102, the zoning site plan on its own 11 x 17 sheet.
+"""The two sheets a new address draws on its first day, from its massing alone, in any
+jurisdiction: G-001, the cover, and C-102, the zoning site plan on its own 11 x 17 sheet.
 
-Both print arkitect/codes/columbus/fit.py's rows, which is why they are here and not in arkitect/lib/: every
-row carries a section. They draw what the intake knows and nothing it does not -- no
+Both print the jurisdiction's fit rows -- the one the intake names in `"jurisdiction"`
+(arkitect/codes/jurisdiction.py) -- which is why they are here and not in arkitect/lib/:
+every row carries a section. Every word that belongs to a place (its city, its zoning code's
+citation prefix, where an unsurveyed lot's dimensions come from) is the jurisdiction's. They draw what the intake knows and nothing it does not -- no
 north arrow before a true north is given, no height before the roof is modelled -- and a
 rule that cannot be checked yet prints PENDING DESIGN rather than a figure.
 
@@ -13,8 +15,8 @@ from reportlab.lib.colors import Color, black
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 
-from arkitect.codes import columbus as JUR
-from arkitect.codes.columbus import fit as F
+from arkitect.codes import jurisdiction
+from arkitect.codes import massing as M
 from arkitect.lib.draw import page
 from arkitect.lib.draw.kit import c
 from arkitect.lib.draw.page import Sheet
@@ -29,20 +31,22 @@ SCALES = ((9.0, '1/8" = 1\'-0"'), (6.75, '3/32" = 1\'-0"'), (4.5, '1/16" = 1\'-0
 
 def _value(r):
     """What a zoning row prints: the figure, and what stands behind it if it is not met."""
-    if r.status == F.NOT_CHECKED:
+    if r.status == M.NOT_CHECKED:
         return 'PENDING DESIGN'
-    if r.status == F.RELIEF:
+    if r.status == M.RELIEF:
         return '%s — %s' % (r.provided, r.note.split(';')[0])
-    if r.status == F.FAILS:
+    if r.status == M.FAILS:
         return '%s — DOES NOT MEET %s' % (r.provided, r.required)
     return '%s  (%s)' % (r.provided, r.required)
 
 
-def zoning_rows(rows):
-    """(label, value) for a table: the rule with its section, and what the massing gives."""
+def zoning_rows(rows, jur):
+    """(label, value) for a table: the rule with its section, and what the massing gives.
+       `jur` is the jurisdiction package; its zoning code's prefix is left off each section."""
+    unverified = jurisdiction.fit(jur.__name__.rsplit('.', 1)[1]).CITE.get('density')
     out = []
     for r in rows:
-        cite = '' if r.citation == F.CITE['density'] else ', ' + r.citation.replace('C.C. ', '')
+        cite = '' if r.citation == unverified else ', ' + r.citation.replace(jur.ZONING_CODE + ' ', '')
         out.append((r.label + cite, _value(r)))
     return out
 
@@ -52,13 +56,13 @@ def _fits(text, font, size, width, where):
     assert w <= width, '%s: %r needs %.2f in of %.2f in' % (where, text, w/inch, width/inch)
 
 
-def project_rows(d, m):
+def project_rows(d, m, jur):
     """(label, value) for the PROJECT DATA block, from the intake."""
     lot = d['lot']
     rows = [('Address', d['address']), ('Parcel', d['parcel']),
             ('Zoning district', d['district']),
             ('Lot', '%s x %s = {:,.0f} SF'.format(m.area) % (fmt(m.W), fmt(m.D))),
-            ('Lot dimensions', 'BOUNDARY SURVEY' if lot.get('survey') else "AUDITOR'S GIS, NO SURVEY"),
+            ('Lot dimensions', 'BOUNDARY SURVEY' if lot.get('survey') else jur.LOT_SOURCE_SHORT.upper() + ', NO SURVEY'),
             ('Lot type', ('CORNER' if lot.get('corner') else 'INTERIOR')
              + (', %s ALLEY' % fmt(lot['alley_width']) if lot.get('alley') else ''))]
     for b in m.buildings:
@@ -75,6 +79,9 @@ def project_rows(d, m):
 def cover_sheet(d, massing, index):
     """G-001: project data, applicable codes, the zoning fit, and the sheet index.
        `index` is [(sheet number, title)] of the sheets the set binds, this one included."""
+    jur = jurisdiction.load(d['jurisdiction'])
+    F = jurisdiction.fit(d['jurisdiction'])
+
     def sheet_g001():
         sh = Sheet(c, 'G-001', 'Cover sheet', 'N/A')
         sh.frame()
@@ -88,14 +95,14 @@ def cover_sheet(d, massing, index):
         c.drawString(x0, top-0.24*inch, d['city_line'])
         ty = top-0.75*inch
         kw = dict(width=colw, size=8, lead=0.17*inch, title_size=10, gap=0.24*inch)
-        rows = project_rows(d, massing)
+        rows = project_rows(d, massing, jur)
         for a, b in rows:
             _fits(b, 'Helvetica', 8, colw-pdfmetrics.stringWidth(a, 'Helvetica', 8)-6, 'G-001 project data')
         ya = table(c, x0, ty, 'PROJECT DATA', rows, **kw)
-        codes = [('', t.upper()) for t in JUR.CODES]
+        codes = [('', t.upper()) for t in jur.CODES]
         ya = table(c, x0, ya-0.2*inch, 'APPLICABLE CODES', codes, **kw)
         assert ya >= y0, 'G-001 first column overruns the sheet'
-        zr = zoning_rows(F.fit(massing))
+        zr = zoning_rows(F.fit(massing), jur)
         for a, b in zr:
             _fits(a+'   '+b, 'Helvetica', 7.2, colw, 'G-001 zoning')
         yb = table(c, x0+colw+0.4*inch, ty, 'ZONING — %s' % d['district'], zr,
@@ -119,6 +126,8 @@ def zoning_site_plan(d, massing):
        11 x 17. The front street is at the bottom of the plan."""
     m = massing
     lot = d['lot']
+    jur = jurisdiction.load(d['jurisdiction'])
+    F = jurisdiction.fit(d['jurisdiction'])
 
     def sheet_c102():
         PG = page.ANSI_B
@@ -191,17 +200,17 @@ def zoning_site_plan(d, massing):
         # the zoning table and the notes, right of the plan
         tx = x0+plan_w
         tw = (x1-tx-0.3*inch)/2.0
-        zr = zoning_rows(F.fit(m))
+        zr = zoning_rows(F.fit(m), jur)
         for a, b in zr:
             _fits(a+'   '+b, 'Helvetica', 6.2, tw, 'C-102 zoning')
         half = (len(zr)+1)//2
         kw = dict(width=tw, size=6.2, lead=0.135*inch, title_size=8, gap=0.2*inch)
-        ya = table(c, tx, y1-0.2*inch, 'ZONING — COLUMBUS %s' % d['district'], zr[:half], **kw)
+        ya = table(c, tx, y1-0.2*inch, 'ZONING — %s %s' % (jur.CITY, d['district']), zr[:half], **kw)
         yb = table(c, tx+tw+0.3*inch, y1-0.2*inch, 'ZONING — CONTINUED', zr[half:], **kw)
         notes = ['1.  LOT DIMENSIONS ARE FROM %s.' % ('A BOUNDARY SURVEY' if lot.get('survey')
-                                                      else "THE FRANKLIN COUNTY AUDITOR'S GIS; NO SURVEY HAS BEEN MADE"),
+                                                      else jur.LOT_SOURCE.upper() + '; NO SURVEY HAS BEEN MADE'),
                  '2.  DIMENSIONS ARE TO THE FACE OF STUD.']
-        relief = [r for r in F.fit(m) if r.status == F.RELIEF]
+        relief = [r for r in F.fit(m) if r.status == M.RELIEF]
         for r in relief:
             notes.append('%d.  %s, %s: %s.' % (len(notes)+1, r.label.upper(), r.citation,
                                                 r.note.split(';')[0]))

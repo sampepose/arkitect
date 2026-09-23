@@ -21,8 +21,11 @@ SCHEMA = 1
 
 
 def engine_version():
-    """Read as text, never imported: a .pyc is trusted on size and mtime to the second."""
+    """Read as text, never imported: a .pyc is trusted on size and mtime to the second. None
+       for an engine with no version -- a scratch copy of arkitect/lib, say."""
     p = os.path.join(workspace.ENGINE, 'arkitect', '__init__.py')
+    if not os.path.exists(p):
+        return None
     with open(p) as fh:
         m = re.search(r"^__version__ = ['\"]([^'\"]+)['\"]", fh.read(), re.M)
     return m.group(1) if m else None

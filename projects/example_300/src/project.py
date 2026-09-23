@@ -5,6 +5,7 @@ title block is handed in, and the output names come from here.
 """
 
 ADDRESS = "300 S ELM AVE"
+JURISDICTION = "columbus"      # arkitect/codes/columbus: its zoning, title block and reviewer
 
 TITLEBLOCK = [
     (None, [ADDRESS,

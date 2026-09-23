@@ -21,18 +21,14 @@ COORDINATES, in feet, as both projects' sitework.py take them: x across the lot 
 LEFT side lot line looking from the street, y from the front lot line toward the rear.
 A corner lot names which side the side street is on.
 """
-from collections import namedtuple
-
 from arkitect.codes.columbus import zoning as Z
 from arkitect.codes.ohio.rco import fire_separation as rco_fsd
 
-MEETS = 'MEETS'
-FAILS = 'DOES NOT MEET'
-RELIEF = 'RELIEF STATED'
-NOT_CHECKED = 'NOT CHECKED'
+# the shape every jurisdiction's fit answers in, and the lot it reads (arkitect/codes/massing.py)
+from arkitect.codes.massing import MEETS, FAILS, RELIEF, NOT_CHECKED, Row
+from arkitect.codes import massing as _massing
 
-# One rule's answer. `ok` is True, False or None (not checked); `status` is what prints.
-Row = namedtuple('Row', 'rule label required provided ok status citation note')
+Massing = _massing.Massing      # where every caller has always found it
 
 # ---------------- the figures, each with the line that sources it ----------------
 LOT_WIDTH_MIN = 50.0            # C.C. 3332.05; a set's G-001 / C-102: "Lot width req'd 50'-0\""
@@ -82,54 +78,6 @@ def _ft(v):
 
 def _sf(v):
     return '{:,.0f} SF'.format(v)
-
-
-class Massing:
-    """The lot and what stands on it, from plain dicts (an intake.json's `lot`,
-       `buildings`, `structures` and `parking`)."""
-
-    def __init__(s, lot, buildings, structures=(), parking=None, relief=None):
-        s.lot = dict(lot)
-        s.buildings = [dict(b) for b in buildings]
-        s.structures = [dict(t) for t in structures]
-        s.parking = dict(parking) if parking else None
-        s.relief = dict(relief or {})
-        s.W, s.D = float(s.lot['width']), float(s.lot['depth'])
-        s.area = s.W*s.D
-        s.principal = [b for b in s.buildings if b['role'] == 'principal']
-        s.adus = [b for b in s.buildings if b['role'] == 'adu']
-        assert len(s.principal) == 1, 'a massing has exactly one principal building'
-        s.P = s.principal[0]
-
-    @classmethod
-    def from_intake(cls, d):
-        """From an intake.json's dict: the one conversion every caller uses."""
-        return cls(d['lot'], d['buildings'], d.get('structures') or (), d.get('parking'),
-                   d.get('relief'))
-
-    # --- derived geometry
-    def rear_line(s):
-        return s.P['y']+s.P['depth']
-
-    def rear_yard(s):
-        return (s.D-s.rear_line())*s.W
-
-    def side_distance(s, r, side):
-        """A rectangle's distance to the left or right side lot line."""
-        return r['x'] if side == 'left' else s.W-(r['x']+r['width'])
-
-    def principal_dwellings(s):
-        return len(s.P['dwellings'])
-
-    def adu_dwellings(s):
-        return sum(len(b['dwellings']) for b in s.adus)
-
-    def dwelling_area(s, b, d):
-        """(area, estimated): the dwelling's own figure if the intake has one, else its
-           share of the building's gross floor area -- an ESTIMATE, and the row says so."""
-        if d.get('area_sf'):
-            return float(d['area_sf']), False
-        return b['width']*b['depth']*b.get('storeys', 1)/len(b['dwellings']), True
 
 
 def _row(m, rule, label, required, provided, ok, note=''):

@@ -9,9 +9,9 @@ relief the designer chose (`arkitect intake` first). It refuses a project that e
 WHAT IT WRITES, and why each is the shape it is:
 
     build.py            DOCUMENTS from arkitect/lib/buildkit.py; G-001 and C-102 from
-                        arkitect/codes/columbus/zoning_sheets.py; check_model() runs the zoning fit.
-                        Draws nothing at import.
-    src/project.py      the title block (arkitect/codes/columbus.titleblock) and the output names
+                        arkitect/codes/zoning_sheets.py; check_model() runs the zoning fit of the
+                        jurisdiction the intake names. Draws nothing at import.
+    src/project.py      the title block (the jurisdiction's titleblock()) and the output names
     src/sitework.py     INTAKE and MASSING, read from intake.json: ONE definition of the lot
     src/sheets/         empty: a project's own sheets go here, one feature at a time
     verify/             isolation and ProjectTests from arkitect/harness/testkit.py -- imported, so
@@ -55,8 +55,8 @@ ROOT = os.path.dirname(os.path.dirname(HERE))            # the repository
 for _p in (ROOT, HERE):                                  # arkitect/lib/ and arkitect/codes/, then src/
     if _p not in sys.path:
         sys.path.insert(0, _p)
-from arkitect.codes.columbus import fit
-from arkitect.codes.columbus.zoning_sheets import cover_sheet, zoning_site_plan
+from arkitect.codes.{jur} import fit
+from arkitect.codes.zoning_sheets import cover_sheet, zoning_site_plan
 from arkitect.lib.buildkit import documents
 from src import project, sitework
 
@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
 PROJECT = '''"""{address} — the title block and the output names. Everything else it knows comes
 from intake.json through src/sitework.py."""
-from arkitect.codes.columbus import titleblock
+from arkitect.codes.{jur} import titleblock
 from src.sitework import INTAKE
 
 ADDRESS = INTAKE["address"]
@@ -110,13 +110,13 @@ SITEWORK = '''"""{address} — the lot and what stands on it, read from intake.j
 the program. Change the program in intake.json and run `arkitect intake
 projects/{slug}/intake.json` before anything else; the build's zoning check reads this.
 
-Coordinates are arkitect/codes/columbus/fit.py's: feet, x from the LEFT side lot line looking from
+Coordinates are arkitect/codes/massing.py's: feet, x from the LEFT side lot line looking from
 {street}, y from the front lot line toward the rear.
 """
 import json
 import os
 
-from arkitect.codes.columbus.fit import Massing
+from arkitect.codes.massing import Massing
 
 with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "intake.json")) as _fh:
     INTAKE = json.load(_fh)
@@ -129,7 +129,7 @@ standard library, and a module here called `site.py` would resolve to CPython's 
 '''
 
 SHEETS_PKG = '''"""{address}'s own sheets, one module per sheet, added one feature at a time
-(progress.json). G-001 and C-102 are drawn by arkitect/codes/columbus/zoning_sheets.py until a
+(progress.json). G-001 and C-102 are drawn by arkitect/codes/zoning_sheets.py until a
 sheet here replaces them."""
 '''
 
@@ -212,20 +212,22 @@ def _ft(v):
 
 
 def _open(d, rows):
-    from arkitect.codes.columbus import fit as F
+    from arkitect.codes import jurisdiction
+    from arkitect.codes import massing as M
+    jur, F = jurisdiction.load(d['jurisdiction']), jurisdiction.fit(d['jurisdiction'])
     items = []
     if not d['lot'].get('survey'):
-        items.append('- **No survey.** The lot is the Auditor\'s GIS; C-102 says so.')
+        items.append('- **No survey.** The lot is from %s; C-102 says so.' % jur.LOT_SOURCE)
     if d['parcel'].upper() == 'TBD':
         items.append('- **Parcel number TBD** on the title block.')
     for r in rows:
-        if r.status == F.RELIEF:
+        if r.status == M.RELIEF:
             items.append('- **%s** (%s): %s. Stated in intake.json `relief`, not granted.'
                          % (r.label, r.citation, r.note.split(';')[0]))
-        elif r.status == F.NOT_CHECKED:
+        elif r.status == M.NOT_CHECKED:
             items.append('- %s: not checked yet (%s).' % (r.label, r.note or 'needs the model'))
     for r in rows:
-        if r.citation == F.CITE['density'] and r.status != F.NOT_CHECKED:
+        if r.citation == F.CITE.get('density') and r.status != M.NOT_CHECKED:
             items.append('- %s is held to a figure whose section is unverified.' % r.label)
     return '\n'.join(items) or '- Nothing yet.'
 
@@ -245,11 +247,12 @@ def _add_floor(slug, floor, root):
 def scaffold(intake_path, root=ROOT, accept=True):
     """Write the project. Returns (slug, [paths written]). Raises ValueError on an intake
        that is invalid, does not fit, or names a project that exists."""
-    from arkitect.codes.columbus import fit as F
+    from arkitect.codes import jurisdiction
     d = I.load(intake_path)
     bad = I.validate(d)
     if bad:
         raise ValueError('intake invalid:\n  - ' + '\n  - '.join(bad))
+    F = jurisdiction.fit(d['jurisdiction'])
     rows = F.fit(I.massing(d))
     unmet = F.failing(rows)
     if unmet:
@@ -264,6 +267,7 @@ def scaffold(intake_path, root=ROOT, accept=True):
                          % slug)
     date = datetime.date.today().isoformat()
     fmt = dict(address=d['address'], slug=slug, date=date, stem=_stem(d), street=d['street'],
+               jur=d['jurisdiction'],
                cls=''.join(w.capitalize() for w in slug.split('_')) + 'Tests')
     files = {
         '__init__.py': '"""%s."""\n' % d['address'],

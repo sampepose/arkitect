@@ -13,10 +13,21 @@ from arkitect.harness.verify.fixtures import example
 
 class CatalogTests(unittest.TestCase):
 
-    def test_every_guard_is_an_importable_module(self):
+    def test_every_guard_is_an_importable_module_in_every_jurisdiction(self):
+        from arkitect.codes import jurisdiction
+        for name in jurisdiction.available():
+            for _no, _title, guards in catalog.SHEETS:
+                for g in catalog.guards_for(guards, name):
+                    with self.subTest(jurisdiction=name, guard=g):
+                        importlib.import_module(g)
+
+    def test_a_guard_names_its_jurisdiction_only_by_zoning_and_state(self):
+        import string
         for _no, _title, guards in catalog.SHEETS:
             for g in guards:
-                importlib.import_module(g)
+                fields = {f for _t, f, _s, _c in string.Formatter().parse(g) if f}
+                self.assertLessEqual(fields, {'zoning', 'state'}, g)
+                self.assertFalse('columbus' in g or 'ohio' in g, g)
 
     def test_the_catalog_names_no_project(self):
         for entry in catalog.SHEETS:

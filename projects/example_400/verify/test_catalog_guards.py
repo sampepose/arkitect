@@ -15,7 +15,7 @@ class CatalogGuardTests(unittest.TestCase):
 
     def test_a_real_set_runs_every_guard(self):
         ran = set(progress.probe('example_400')['ran'])
-        guards = {g for _n, _t, gs in catalog.SHEETS for g in gs}
+        guards = {g for _n, _t, gs in catalog.SHEETS for g in catalog.guards_for(gs, 'columbus')}
         self.assertEqual(guards - ran, {'arkitect.codes.columbus.fit'})
 
 

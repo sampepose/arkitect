@@ -1,6 +1,6 @@
 ---
 name: new-address
-description: Start a permit set for a new address in this repository — ask the intake questions, check the Columbus zoning fit, scaffold projects/<slug>/ so it builds and passes the gate on day one, and hand off the feature list. Use when the designer asks to start, make or add a new project, address, lot or permit set.
+description: Start a permit set for a new address in this repository — ask the intake questions, check the jurisdiction's zoning fit, scaffold projects/<slug>/ so it builds and passes the gate on day one, and hand off the feature list. Use when the designer asks to start, make or add a new project, address, lot or permit set.
 ---
 
 # Start a new address
@@ -13,8 +13,10 @@ Everything below is a command. Do not re-derive what a command tells you.
 
 ## 1. Ask what a drawing cannot start without
 
-The questions are `arkitect/harness/intake.py`'s `QUESTIONS` — read them there; that list is the
-source, not this file. Ask them in as few rounds as you can: use AskUserQuestion where the
+The questions are `arkitect/harness/intake.py`'s — print them with `arkitect intake questions`,
+and once the jurisdiction is known, `arkitect intake questions --jurisdiction <name>` for its
+own wording (its county's parcel number, its zoning code's sections). That list is the source,
+not this file. Ask the jurisdiction first: every other rule depends on it. Ask them in as few rounds as you can: use AskUserQuestion where the
 answer is a choice (corner or interior, alley or not, survey or GIS), plain questions for
 figures. The designer of record is `arkitect config get designer.name`. Read
 `arkitect config show`: `[defaults] design` holds the designer's defaults, which
@@ -22,8 +24,9 @@ apply unless they say otherwise, and `[titleblock] owner` / `contractor` are the
 contractor blocks to offer as the default and confirm. Where any of these is empty, ask for
 it; never assume one.
 
-Only Columbus is encoded (`arkitect/codes/columbus/__init__.py`). Another city is a code-research
-deliverable, not a flag: say so and stop.
+The jurisdictions encoded are what `arkitect intake questions` lists (Columbus, Ohio is the
+reference). A city not among them is a code-research deliverable, not a flag: say so, point at
+docs/jurisdictions.md, and stop -- never draw a set against another city's rules.
 
 ## 2. Write the intake and check the fit
 
@@ -55,8 +58,8 @@ arkitect gate render --project <slug> --sheets G-001,C-102
 ```
 
 The gate must pass. Read both PNGs the render prints — a sheet can pass every assert and
-still read badly. A fault in them is a fault in `arkitect/codes/columbus/zoning_sheets.py`, which is
-shared: fix it there and prove every existing project unmoved with
+still read badly. A fault in them is a fault in `arkitect/codes/zoning_sheets.py`, or in the jurisdiction's
+own words it prints (`arkitect/codes/<name>/__init__.py`), both shared: fix it there and prove every existing project unmoved with
 `arkitect gate --base main --expect-unchanged` (every project by default; `--project <slug>` names one).
 
 ## 4. Tailor the feature list
