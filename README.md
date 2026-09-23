@@ -10,11 +10,20 @@ slab-on-grade, imperial units. One jurisdiction is encoded: Columbus, Ohio. Anot
 a code-research job, not a setting.
 
 **Not professional work.** What this produces is not the work of a licensed architect or
-engineer, and a set that passes every check here is not thereby code-compliant. Who may
-prepare and submit residential drawings is set by your state; the plan reviewer decides.
+engineer, and a set that passes every check here is not thereby code-compliant: the building
+official decides what is. Who may prepare and submit residential drawings is set by your
+state. `arkitect` says so the first time you run it, and `arkitect disclaimer` says it again.
+The sheets carry no disclaimer; in Ohio the title block states the one thing that is true of
+every such set, that no seal is required (ORC 3791.04(A)(2)(b)).
 
-**License.** PolyForm Noncommercial 1.0.0 for the code and CC BY-NC 4.0 for the
-documentation. Commercial use needs written permission; ask the maintainer.
+**License.** PolyForm Noncommercial 1.0.0 for the code; CC BY-NC 4.0 for the documentation,
+the house style and the example drawings. A designer or contractor who wants to use it on
+paid work may ask the maintainer for a written commercial grant, decided case by case.
+Contributions are welcome under a contributor license agreement.
+
+**Start here:** [docs/quickstart.md](docs/quickstart.md) goes from a clone to a new address
+that passes every check. [docs/interface.md](docs/interface.md) is the `--json` a program
+reads; [docs/costs.md](docs/costs.md) says what costs model tokens and what is free.
 
 ## Install
 
