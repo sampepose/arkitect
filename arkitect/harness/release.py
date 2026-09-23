@@ -1,183 +1,161 @@
-"""The public engine, made from this repository: what ships, what does not, and proof that
-what ships works on its own.
+"""Is the engine ready to publish? Nothing it tracks and no commit message in its history names
+the installation that built it, and the full gate passes.
 
-    python3 -m arkitect.harness.release list              # every tracked path, and whether it ships
-    python3 -m arkitect.harness.release snapshot <dir>    # the public snapshot, a fresh git repository
-    python3 -m arkitect.harness.release check             # snapshot to a scratch directory, then run
-                                                 # the full suite and the gate THERE
+    arkitect release check [--no-gate] [--rev REV]     # run it inside YOUR workspace
 
-The private repository holds everything: the engine, the private
-projects, their ledgers and history. The public one is a SNAPSHOT of the
-engine with fresh history -- never a filtered copy of this history, because one
-missed path in a history rewrite is public forever.
+The engine (arkitect/lib/workspace.py's ENGINE) is its own repository and the projects live in
+a workspace beside it. The words are the WORKSPACE's: its arkitect.toml's [identity]
+private_words, and -- when the workspace is not the engine -- the slug of every project it
+holds. So run `check` in the private workspace; run in the engine itself it has no words to
+look for and says so.
 
-    release/private.txt   paths that never ship (a line ending in / is a directory, anything
-                          else a glob on the tracked path); release/ itself never ships
-    release/public/       files the snapshot gets in place of private ones (its README,
-                          CLAUDE.md, decisions/README.md), copied over the top
+What is scanned, in the ENGINE:
 
-`check` is the test of phase 1: a checkout with no private project in it passes the whole
-suite, and nothing that ships names a private project or a word of arkitect/harness/config.py's
-[identity] private_words -- a mention is a failure, listed by file.
+    files     every file `git ls-files` lists that reads as UTF-8 text, as it stands
+    messages  the message of every commit reachable from REV (default HEAD): the history
+              that a push of this branch publishes
+
+A word matches as a whole word, case-sensitive (test_identity.py's rule). A commit's author
+and committer names and emails are NOT scanned: they are who made the commit, and a person's
+commits to the engine are theirs to publish. A name in the message (a trailer, a quotation)
+is scanned like any other text.
+
+Nothing is rewritten. `check` reports each file hit (path:line: word) and each message hit
+(short hash subject: words) and exits 1 if there is any, or if the gate (`arkitect gate
+--full`, run in the engine on its own examples) fails; 2 if the engine is not a git
+repository.
 """
-import fnmatch
 import os
 import re
-import shutil
 import subprocess
 import sys
-import tempfile
 
-ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-PRIVATE = os.path.join('release', 'private.txt')
-PUBLIC = os.path.join('release', 'public')
+from arkitect.lib import workspace
 
 
-def patterns(root=ROOT):
-    """The private patterns, release/ always among them."""
-    out = ['release/']
-    p = os.path.join(root, PRIVATE)
-    if os.path.exists(p):
-        with open(p) as fh:
-            out += [ln.strip() for ln in fh if ln.strip() and not ln.lstrip().startswith('#')]
+def words(ws=None):
+    """The private words of workspace `ws` (default the one this process found), then its
+       projects' slugs when it is not the engine."""
+    from arkitect.harness import config
+    ws = ws or workspace.WORKSPACE
+    out = list(config.get('identity.private_words', root=ws))
+    if workspace.separate(ws):
+        base = os.path.join(ws, workspace.PROJECTS)
+        if os.path.isdir(base):
+            out += sorted(d for d in os.listdir(base) if os.path.isdir(os.path.join(base, d, 'src')))
     return out
 
 
-def is_private(path, pats):
-    for pat in pats:
-        if pat.endswith('/'):
-            if path == pat[:-1] or path.startswith(pat):
-                return True
-        elif fnmatch.fnmatchcase(path, pat):
-            return True
-    return False
+def pattern(ws_words):
+    """Whole words, case-sensitive; None when there is nothing to look for."""
+    return re.compile(r'\b(%s)\b' % '|'.join(re.escape(w) for w in ws_words)) if ws_words else None
 
 
-def tracked(root=ROOT):
+def tracked(root):
     r = subprocess.run(['git', 'ls-files', '-z'], cwd=root, capture_output=True, check=True)
     return [p for p in r.stdout.decode().split('\0') if p]
 
 
-def split(root=ROOT):
-    """(shipped, withheld): every tracked path, by whether the public snapshot gets it."""
-    pats = patterns(root)
-    ship, hold = [], []
-    for p in tracked(root):
-        (hold if is_private(p, pats) else ship).append(p)
-    return ship, hold
+def texts(root):
+    """(path, text) for every tracked file that exists and reads as UTF-8."""
+    for rel in tracked(root):
+        try:
+            with open(os.path.join(root, rel), errors='strict') as fh:
+                yield rel, fh.read()
+        except (UnicodeDecodeError, OSError):
+            continue
 
 
-def snapshot(dest, root=ROOT):
-    """Write the public engine into `dest` (which must not exist): every shipped path as it
-       stands in the working tree, release/public/ over the top, committed once as a fresh
-       git repository. Returns the list of paths written."""
-    if os.path.exists(dest):
-        raise ValueError('%s exists; the snapshot writes a fresh directory' % dest)
-    ship, _hold = split(root)
-    written = []
-    for p in ship:
-        src = os.path.join(root, p)
-        if not os.path.exists(src):
-            continue                            # deleted in the working tree, not yet committed
-        os.makedirs(os.path.dirname(os.path.join(dest, p)) or dest, exist_ok=True)
-        shutil.copy2(src, os.path.join(dest, p))
-        written.append(p)
-    pub = os.path.join(root, PUBLIC)
-    for d, _dirs, files in os.walk(pub):
-        for f in files:
-            if f == '.DS_Store':
-                continue
-            rel = os.path.relpath(os.path.join(d, f), pub)
-            os.makedirs(os.path.dirname(os.path.join(dest, rel)) or dest, exist_ok=True)
-            shutil.copy2(os.path.join(d, f), os.path.join(dest, rel))
-            if rel not in written:
-                written.append(rel)
-    git = ['git', '-c', 'user.name=arkitect release', '-c', 'user.email=release@localhost']
-    for cmd in (['init', '-q'], ['add', '-A'], ['commit', '-q', '-m', 'arkitect: public snapshot']):
-        subprocess.run(git + cmd, cwd=dest, check=True, capture_output=True)
-    return sorted(written)
-
-
-def names(root=ROOT):
-    """The private projects' slugs, from release/private.txt's project lines."""
-    return sorted(m.group(1) for m in (re.match(r'projects/([a-z0-9_]+)/$', p) for p in patterns(root)) if m)
-
-
-def mentions(dest, words):
-    """{word: [files in dest that mention it]}."""
-    out = {w: [] for w in words}
-    for d, dirs, files in os.walk(dest):
-        dirs[:] = [x for x in dirs if x not in ('.git', '__pycache__', '.verify-cache')]
-        for f in files:
-            p = os.path.join(d, f)
-            try:
-                with open(p, errors='strict') as fh:
-                    text = fh.read()
-            except (UnicodeDecodeError, OSError):
-                continue
-            for w in words:
-                if re.search(r'\b%s\b' % re.escape(w), text):
-                    out[w].append(os.path.relpath(p, dest))
+def file_hits(root, ws_words):
+    """['path:line: word', ...] for every tracked line that names a word."""
+    pat = pattern(ws_words)
+    if pat is None:
+        return []
+    out = []
+    for rel, text in texts(root):
+        for n, line in enumerate(text.splitlines(), 1):
+            for w in sorted(set(pat.findall(line))):
+                out.append('%s:%d: %s' % (rel, n, w))
     return out
 
 
-def check(root=ROOT, keep=False):
-    """Snapshot, then run the full suite and the gate in it. Returns (ok, lines)."""
-    work = tempfile.mkdtemp(prefix='arkitect-public-')
-    dest = os.path.join(work, 'arkitect')
-    lines = []
-    try:
-        written = snapshot(dest, root)
-        lines.append('snapshot: %d files in %s' % (len(written), dest))
-        env = dict(os.environ, PYTHONPYCACHEPREFIX=os.path.join(work, 'pycache'))
-        t = subprocess.run([sys.executable, os.path.join('arkitect', 'lib', 'verify', 'run_tests.py')], cwd=dest,
-                           capture_output=True, text=True, env=env, timeout=3600)
-        summary = [ln for ln in t.stdout.splitlines() if ln.startswith(('PASSED:', 'FAILED:'))]
-        tests_ok = t.returncode == 0 and bool(summary) and summary[-1].startswith('PASSED:')
-        lines.append('tests: %s' % (summary[-1] if summary else 'no result'))
-        if not tests_ok:
-            lines.append((t.stderr + t.stdout)[-3000:])
-        g = subprocess.run([sys.executable, os.path.join('arkitect', 'lib', 'verify', 'gate.py')], cwd=dest,
-                           capture_output=True, text=True, env=env, timeout=3600)
-        lines.append('gate: ' + (g.stdout.splitlines()[0] if g.stdout else 'no output'))
-        if g.returncode != 0:
-            lines.append((g.stdout + g.stderr)[-3000:])
-        from arkitect.harness import config
-        found = mentions(dest, names(root) + list(config.get('identity.private_words', root=root)))
-        hit = {w: fs for w, fs in found.items() if fs}
-        if not hit:
-            lines.append('private words: none of %d found' % len(found))
-        for w, fs in hit.items():
-            lines.append('still mentions %s: %d file(s) -- %s' % (
-                w, len(fs), ', '.join(sorted(fs)[:8]) + (' ...' if len(fs) > 8 else '')))
-        return tests_ok and g.returncode == 0 and not any(found.values()), lines
-    finally:
-        if keep:
-            lines.append('kept: %s' % dest)
-        else:
-            shutil.rmtree(work, ignore_errors=True)
+def commits(root, rev='HEAD'):
+    """[(full hash, message)] for every commit reachable from `rev`, newest first. The format
+       asks for the message (%B) alone: the author and committer are never read."""
+    r = subprocess.run(['git', 'log', '--format=%H%x00%B%x1e', rev], cwd=root,
+                       capture_output=True, check=True)
+    out = []
+    for rec in r.stdout.decode('utf-8', errors='replace').split('\x1e'):
+        rec = rec.lstrip('\n')
+        if rec:
+            h, _nul, msg = rec.partition('\0')
+            out.append((h, msg))
+    return out
+
+
+def message_hits(root, ws_words, rev='HEAD'):
+    """['<short hash> <subject>: word, word', ...] for every commit whose message names one."""
+    pat = pattern(ws_words)
+    if pat is None:
+        return []
+    out = []
+    for h, msg in commits(root, rev):
+        found = sorted(set(pat.findall(msg)))
+        if found:
+            subject = msg.strip().splitlines()[0] if msg.strip() else ''
+            out.append('%s %s: %s' % (h[:10], subject[:72], ', '.join(found)))
+    return out
+
+
+def gate(root):
+    """(ok, first line, tail on failure): `arkitect gate --full` in the engine, on its own
+       examples, with the engine first on PYTHONPATH and no inherited workspace."""
+    g = subprocess.run([sys.executable, '-m', 'arkitect.harness.cli', 'gate', '--full'], cwd=root,
+                       capture_output=True, text=True, env=workspace.env(root, engine=root), timeout=3600)
+    first = g.stdout.splitlines()[0] if g.stdout.strip() else 'no output'
+    tail = '' if g.returncode == 0 else (g.stdout + g.stderr)[-3000:]
+    return g.returncode == 0, first, tail
+
+
+def check(root=None, ws=None, rev='HEAD', run_gate=True):
+    """(status, lines): status 0 ready, 1 not, 2 could not look."""
+    root = root or workspace.ENGINE
+    ws = ws or workspace.WORKSPACE
+    if not os.path.exists(os.path.join(root, '.git')):
+        return 2, ['%s is not a git repository' % root]
+    ws_words = words(ws)
+    lines = ['engine: %s' % root,
+             'words: %d, from the workspace %s' % (len(ws_words), ws)]
+    if not ws_words:
+        lines.append('no private words to look for: run this inside your workspace')
+    fh = file_hits(root, ws_words)
+    mh = message_hits(root, ws_words, rev)
+    lines.append('files: %d tracked, %d line(s) name a private word' % (len(tracked(root)), len(fh)))
+    lines += ['  ' + x for x in fh]
+    lines.append('commit messages: %d reachable from %s, %d name a private word'
+                 % (len(commits(root, rev)), rev, len(mh)))
+    lines += ['  ' + x for x in mh]
+    ok = not fh and not mh
+    if run_gate:
+        g_ok, first, tail = gate(root)
+        lines.append('gate --full: ' + first)
+        if tail:
+            lines.append(tail)
+        ok = ok and g_ok
+    else:
+        lines.append('gate --full: not run (--no-gate)')
+    return (0 if ok else 1), lines
 
 
 def main(argv):
-    if not argv or argv[0] not in ('list', 'snapshot', 'check'):
+    if not argv or argv[0] != 'check':
         print(__doc__)
         return 1
-    if argv[0] == 'list':
-        ship, hold = split()
-        print('ships %d, withheld %d' % (len(ship), len(hold)))
-        for p in hold:
-            print('  withheld  ' + p)
-        return 0
-    if argv[0] == 'snapshot':
-        if len(argv) < 2:
-            print('snapshot needs a directory', file=sys.stderr)
-            return 1
-        print('%d files written to %s' % (len(snapshot(argv[1])), argv[1]))
-        return 0
-    ok, lines = check(keep='--keep' in argv)
+    rev = argv[argv.index('--rev') + 1] if '--rev' in argv else 'HEAD'
+    status, lines = check(rev=rev, run_gate='--no-gate' not in argv)
     print('\n'.join(lines))
-    print('PUBLIC SNAPSHOT %s' % ('PASSES' if ok else 'FAILS'))
-    return 0 if ok else 1
+    print('ENGINE RELEASE %s' % {0: 'READY', 1: 'NOT READY', 2: 'NOT CHECKED'}[status])
+    return status
 
 
 if __name__ == '__main__':

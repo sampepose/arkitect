@@ -9,6 +9,7 @@
     arkitect twins [--why]              definitions two projects carry word for word
     arkitect intake | scaffold | progress | review | decisions | config | hooks | hook | engine
     arkitect jurisdiction list | check <name> | new <name>   the cities encoded, and adding one
+    arkitect release check              in your workspace: is the engine fit to publish?
     arkitect disclaimer                 what this engine's output is not
     arkitect --version
 
@@ -38,6 +39,7 @@ TOOLS = {
     'engine': 'arkitect.harness.engine',
     'disclaimer': 'arkitect.harness.disclaimer',
     'jurisdiction': 'arkitect.harness.jurisdiction',
+    'release': 'arkitect.harness.release',
 }
 
 

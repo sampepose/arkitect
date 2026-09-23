@@ -11,8 +11,11 @@ scaffolds. README.md is the reference; this is the card.
   records that you meant it; `--full` adds the tests. Run `arkitect gate --full` before a
   commit; CI runs it on Linux and macOS, Python 3.11 to 3.13.
 - **One command.** Every tool is `arkitect <tool>`: gate, test, trace, dxf, sheet-text, twins,
-  intake, scaffold, progress, review, decisions, config, hooks, engine. Write commands that
-  way, never as a path: `arkitect/lib/verify/gate.py` does not exist inside a workspace.
+  intake, scaffold, progress, review, decisions, config, hooks, engine, release. Write
+  commands that way, never as a path: `arkitect/lib/verify/gate.py` does not exist inside a
+  workspace. `arkitect release check`, run inside a private workspace, scans every file the
+  engine tracks and every commit message in its history for that workspace's private words
+  (authors are exempt) and runs the full gate: the check before the engine is published.
 - **Two directories, maybe.** A person's own projects live in a workspace beside the engine
   (projects/, decisions/, arkitect.toml). `arkitect/lib/workspace.py` finds it from the cwd;
   tools read their code from the engine and their projects from the workspace. An ENGINE
