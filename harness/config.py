@@ -41,8 +41,8 @@ DEFAULTS = {
     'hooks': {
         # The Stop hook (.claude/hooks/stop_gate.py), once hooks are installed
         # (python3 -m harness.hooks install): what a turn ending on work does.
-        'green_uncommitted': 'block',         # block | advise | off
-        'red': 'block-unattended',            # block | block-unattended | advise | off
+        'green_uncommitted': 'advise',        # block | advise | off
+        'red': 'advise',                      # block | block-unattended | advise | off
     },
     'identity': {
         'private_words': [],                  # never in a shipped file (harness/verify/test_identity.py)

@@ -163,14 +163,28 @@ def _report(ok=True, moved=None, failures=()):
 
 
 class StopGateTests(unittest.TestCase):
-    """decide() is the policy: option C, the designer's choice."""
+    """decide() is the policy. These hold option C -- the designer's own, set in their
+       arkitect.toml -- and one test holds the default a new installation gets."""
 
     @classmethod
     def setUpClass(cls):
         cls.s = _load('stop_gate')
 
+    OPTION_C = {'green_uncommitted': 'block', 'red': 'block-unattended'}
+
     def decide(self, paths, report, attended=True, worktree=False, blocks=0, rules=None):
-        return self.s.decide(paths, report, attended, worktree, blocks, rules)
+        return self.s.decide(paths, report, attended, worktree, blocks,
+                             dict(self.OPTION_C, **(rules or {})))
+
+    def test_a_new_installation_is_advised_never_blocked(self):
+        """The default, for someone who has just installed the hooks: every problem shown,
+           no turn held."""
+        self.assertEqual(self.s.DEFAULT_POLICY, {'green_uncommitted': 'advise', 'red': 'advise'})
+        red = _report(ok=False, failures=['oak_42: the build failed'])
+        for report in (_report(), red):
+            for attended in (True, False):
+                self.assertEqual(self.s.decide(['lib/x.py'], report, attended, False, 0)[0],
+                                 'advise')
 
     def test_nothing_changed_ends_the_turn(self):
         self.assertEqual(self.decide([], None), ('allow', ''))

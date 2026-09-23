@@ -1,6 +1,8 @@
 """Stop hook: a turn does not end on uncommitted work the gate has not passed.
 
-The policy is harness/config.py's [hooks] table; the defaults are:
+The policy is harness/config.py's [hooks] table. By default a new installation is ADVISED,
+never held: the turn ends and the problem is shown ("advise" for both). The stricter setting
+this repository's designer runs, option C:
 
     no change in the checkout                  let the turn end, silently
     gate GREEN, changes uncommitted            green_uncommitted = "block": BLOCK, every
@@ -12,6 +14,8 @@ The policy is harness/config.py's [hooks] table; the defaults are:
                                                failures shown -- the person there may have
                                                asked "what breaks if..." ("block", "advise",
                                                "off" also)
+
+and whatever the policy:
     a worktree's deliverables dirty            BLOCK: restore them; the merger regenerates
     a PDF dirty whose drawing did not move     BLOCK: it is reportlab's timestamp; restore it
 
@@ -96,7 +100,7 @@ def _slug(path):
     return parts[1] if len(parts) > 2 and parts[0] == 'projects' else None
 
 
-DEFAULT_POLICY = {'green_uncommitted': 'block', 'red': 'block-unattended'}
+DEFAULT_POLICY = {'green_uncommitted': 'advise', 'red': 'advise'}
 
 
 def policy(root):

@@ -23,9 +23,12 @@ design = ["the cheapest code-compliant option", "all-electric", "every figure on
 house = "style/house-style.md"
 
 [hooks]
-# The Stop hook, once installed (python3 -m harness.hooks install).
-green_uncommitted = "block"       # block | advise | off   -- work ends green but uncommitted
-red = "block-unattended"          # block | block-unattended | advise | off  -- the gate is red
+# The Stop hook, once installed (python3 -m harness.hooks install). "advise" shows the problem
+# and lets the turn end; "block" holds the turn until it is fixed. A stricter setting:
+#   green_uncommitted = "block"  and  red = "block-unattended"  (a background job must leave
+#   its work committed and green; a watched session may stop on a red "what if").
+green_uncommitted = "advise"      # block | advise | off   -- work ends green but uncommitted
+red = "advise"                    # block | block-unattended | advise | off  -- the gate is red
 
 [identity]
 # Words that must never appear in a shipped file: your name, company, phone, addresses.
