@@ -18,12 +18,19 @@ documentation. Commercial use needs written permission; ask the maintainer.
 
 ## Install
 
-Python 3.12 (the sets are built and issued on 3.12.4) and the pinned packages:
+Python 3.11, 3.12 or 3.13, from a checkout of this repository:
 
-    python3 -m pip install -r requirements.txt
+    git clone <this repository> arkitect && cd arkitect
+    python3 -m pip install -e ".[dev]"
+    arkitect --version
+
+That is an editable install: the checkout IS the engine, and `arkitect` is the one command
+for every tool (`arkitect` alone lists them). Install from a checkout, not a wheel: the house
+style, the hooks and the examples live beside the package, not inside it.
 
 The pins matter. reportlab's text metrics are load-bearing -- a sheet sizes its type to its
-widest line -- so a different reportlab can move a drawn dimension. Read
+widest line -- so a different reportlab can move a drawn dimension, and every example's
+committed digest is the same on every supported Python and platform (CI checks it). Read
 `requirements.txt` before bumping anything.
 
 ## Try it
@@ -66,9 +73,8 @@ and belong in a second repository beside it -- a **workspace**:
         decisions/             the calls you make among code-legal options (arkitect.harness.decisions)
         arkitect.toml          who you are and how the tools behave (arkitect.example.toml)
 
-Make the engine importable from anywhere once, then work inside the workspace:
+With the engine installed (above), make the workspace and work inside it:
 
-    cd arkitect && arkitect engine link        # one line in your site-packages
     mkdir -p ../my-projects/projects ../my-projects/decisions
     cp arkitect.example.toml ../my-projects/arkitect.toml
     touch ../my-projects/projects/__init__.py
@@ -86,6 +92,26 @@ itself (`arkitect/lib/workspace.py`). So the same commands work in both:
 With the projects outside the engine, the gate's base is two exports -- your workspace at
 `--base` and the engine at `--engine-base`, or the engine as it stands -- so a change on
 either side is measured against exactly one thing that moved.
+
+## Engine versions: a project never changes unseen
+
+Each project's `trace.md5` records its drawing's digest AND the engine version that drew it
+(`<md5> engine=0.1.0`), written by `arkitect gate accept`. When you run a newer engine, the
+gate compares:
+
+- **the same drawing:** the gate passes and reports the upgrade as proposed -- "engine 0.1.0
+  -> 0.2.0: no sheet moved" -- and `arkitect gate accept` takes it;
+- **a sheet moved:** the gate fails, naming the sheets and both versions, until you have looked
+  (`arkitect gate render --moved`) and accepted.
+
+The engine's version is `arkitect/__init__.py`'s: the minor number rises for anything that can
+move a sheet, the patch number for anything that cannot, and each release is tagged `vX.Y.Z`.
+
+## For programs: `--json`
+
+`arkitect gate`, `progress`, `decisions` and `review` each take `--json` and print one object
+whose first keys are `schema`, `kind`, `engine` and `workspace`. Within a schema number a
+field may be added, never removed or renamed. `docs/interface.md` lists every field.
 
 ## A new address
 

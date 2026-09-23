@@ -12,6 +12,11 @@ reportlab==4.4.9
 # arkitect/lib/export/dxf.py only. Nothing in the issued set depends on it.
 ezdxf==1.4.4
 
+# One clear-area figure in example_300's model (a point-in-polygon grid). It arrives with ezdxf
+# anyway; pinned so the version cannot drift under a drawn number. 2.1.2 and 2.5.3 were
+# checked to draw identically, and 2.1.2 has wheels for Python 3.11 to 3.13.
+numpy==2.1.2
+
 # The dead-import oracle, per CLAUDE.md "Verifying a change".
 pyflakes==3.2.0
 
