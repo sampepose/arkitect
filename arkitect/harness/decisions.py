@@ -261,6 +261,20 @@ def main(argv):
         print(__doc__)
         return 1
     cmd = argv[0]
+    if '--json' in argv and cmd in ('pending', 'list', 'about', 'show'):
+        from arkitect.lib import interface
+        st, pj = _opt(argv, '--status'), _opt(argv, '--project')
+        if cmd == 'show':
+            fields, body = load(argv[1])
+            interface.emit('decisions', {'decisions': [dict(fields, body=body)]})
+            return 0
+        rows = about(argv[1]) if cmd == 'about' else [f for f, _b in all_decisions()]
+        if cmd == 'pending':
+            rows = [f for f in rows if f['status'] in ('open', 'waiting')]
+        rows = [f for f in rows if (not st or f['status'] == st[0]) and
+                (not pj or pj[0] in f['projects'] or 'all' in f['projects'])]
+        interface.emit('decisions', {'decisions': rows})
+        return 0
     if cmd == 'pending':
         p = _opt(argv, '--project')
         print(pending_text(project=p[0] if p else None))

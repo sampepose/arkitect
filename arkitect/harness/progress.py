@@ -32,7 +32,7 @@ import subprocess
 import sys
 import tempfile
 
-from arkitect.lib import workspace
+from arkitect.lib import interface, workspace
 
 ENGINE = workspace.ENGINE              # the shared rules a guard names live here
 ROOT = workspace.WORKSPACE             # the projects and their feature lists live here
@@ -247,6 +247,10 @@ def main(argv):
         print(__doc__)
         return 1
     cmd, slug = argv[0], argv[1]
+    if cmd in ('status', 'next') and '--json' in argv:
+        v = verify(slug)
+        interface.emit('progress', dict(v, project=slug, features=load(slug)['features']))
+        return 1 if v['false'] else 0
     if cmd == 'status':
         print(status_text(slug))
         v = verify(slug)
@@ -260,7 +264,7 @@ def main(argv):
     if cmd == 'verify':
         v = verify(slug)
         if '--json' in argv:
-            print(json.dumps(v, indent=1))
+            interface.emit('progress', dict(v, project=slug))
         else:
             for w in v['false']:
                 print('FALSE CLAIM: ' + w)

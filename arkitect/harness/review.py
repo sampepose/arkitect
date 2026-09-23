@@ -353,6 +353,17 @@ def main(argv):
         return 1
     cmd, slug = argv[0], argv[1]
     opt = lambda f: next((argv[i+1] for i, a in enumerate(argv[:-1]) if a == f), None)
+    if cmd in ('list', 'next') and '--json' in argv:
+        from arkitect.lib import interface
+        order = {s: i for i, s in enumerate(SEVERITIES)}
+        rows = load(slug)['findings']
+        if cmd == 'next':
+            rows = sorted((r for r in rows if r['status'] == 'open'),
+                          key=lambda r: (order[r['severity']], r['id']))[:1]
+        elif opt('--status'):
+            rows = [r for r in rows if r['status'] == opt('--status')]
+        interface.emit('review', {'project': slug, 'findings': rows})
+        return 0
     try:
         if cmd == 'prepare':
             sh = opt('--sheets')

@@ -873,7 +873,11 @@ def main(argv):
     except Exception as exc:
         print('gate could not run: %s: %s' % (exc.__class__.__name__, exc), file=sys.stderr)
         return 2
-    print(json.dumps(r, indent=1) if a.json else summary(r), flush=True)
+    if a.json:
+        from arkitect.lib import interface      # here, not at the top: the gate is copied into
+        interface.emit('gate', r)               # older engines to measure a base, and they lack it
+    else:
+        print(summary(r), flush=True)
     return 0 if r['ok'] else 2 if r['errors'] else 1
 
 
