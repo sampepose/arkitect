@@ -8,7 +8,10 @@
     arkitect sheet-text BUILD           strings printed over one another, citations not printed
     arkitect twins [--why]              definitions two projects carry word for word
     arkitect intake | scaffold | progress | review | decisions | config | hooks | hook | engine
+    arkitect disclaimer                 what this engine's output is not
     arkitect --version
+
+The first time a person runs it, `arkitect` shows the disclaimer on stderr, once.
 
 A tool finds its workspace from the directory it is run in (arkitect/lib/workspace.py), so run
 it inside the repository that holds your projects/.
@@ -32,11 +35,15 @@ TOOLS = {
     'hooks': 'arkitect.harness.hooks',
     'hook': 'arkitect.harness.hook',
     'engine': 'arkitect.harness.engine',
+    'disclaimer': 'arkitect.harness.disclaimer',
 }
 
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else list(argv)
+    if argv[:1] != ['disclaimer']:
+        from arkitect.harness import disclaimer
+        disclaimer.first_run()
     if argv[:1] in (['--version'], ['-V']):
         from arkitect import __version__
         print('arkitect', __version__)

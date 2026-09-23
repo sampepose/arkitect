@@ -28,8 +28,12 @@ class EngineTests(unittest.TestCase):
 
 class CliTests(unittest.TestCase):
 
+    def setUp(self):
+        self.home = tempfile.mkdtemp()                    # a user who has not seen the notice
+        self.addCleanup(shutil.rmtree, self.home, True)
+
     def run_(self, *args):
-        env = dict(os.environ, PYTHONPATH=workspace.ENGINE)
+        env = dict(os.environ, PYTHONPATH=workspace.ENGINE, HOME=self.home)
         return subprocess.run([sys.executable, '-m', 'arkitect.harness.cli'] + list(args),
                               cwd=workspace.ENGINE, capture_output=True, text=True, env=env)
 
@@ -48,6 +52,22 @@ class CliTests(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         r = self.run_('hook', 'nope')
         self.assertEqual(r.returncode, 2)
+
+    def test_the_disclaimer_is_shown_once_on_stderr_and_never_in_json(self):
+        from arkitect.harness import disclaimer
+        first = self.run_('decisions', 'pending', '--json')
+        self.assertIn('not the work of a licensed architect', first.stderr)
+        self.assertNotIn('licensed', first.stdout)
+        import json
+        json.loads(first.stdout)                           # stdout is still only the object
+        again = self.run_('decisions', 'pending', '--json')
+        self.assertNotIn('licensed', again.stderr)
+        self.assertTrue(os.path.exists(disclaimer.record_path(self.home)))
+
+    def test_the_disclaimer_on_request(self):
+        r = self.run_('disclaimer')
+        self.assertEqual(r.returncode, 0)
+        self.assertIn('not thereby code-compliant', r.stdout)
 
     def test_an_unknown_tool_is_an_error(self):
         self.assertEqual(self.run_('nope').returncode, 2)
