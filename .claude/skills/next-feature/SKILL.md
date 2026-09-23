@@ -12,7 +12,7 @@ which, ask.
 ## 1. Take the next feature
 
 ```sh
-python3 -m arkitect.harness.progress next <slug>
+arkitect progress next <slug>
 ```
 
 It prints the feature, the GUARDS — the shared rule modules that must actually run in this
@@ -24,12 +24,12 @@ the smallest, newest of them first; `projects/example_100` (interior lot) and
 
 - The model goes in `projects/<slug>/src/`, the sheet in `src/sheets/`. Read the project's
   `CLAUDE.md` and the root `CLAUDE.md`'s traps for the area before writing, and
-  `python3 -m arkitect.harness.decisions about <path>` for each file you will change: a record there
+  `arkitect decisions about <path>` for each file you will change: a record there
   is a call already made, and an open one may be reversed by the designer, not by you.
 - **Import, never copy.** A rule that cites a section is in `arkitect/codes/`; geometry is in `arkitect/lib/`.
   If what you need exists only inside another project, MOVE it to the shared layer first and
   prove every existing project unmoved:
-  `python3 -m arkitect.lib.verify.gate --base main --expect-unchanged` (every project by default; `--project <slug>` names one).
+  `arkitect gate --base main --expect-unchanged` (every project by default; `--project <slug>` names one).
   A copied definition fails `arkitect/lib/verify/test_twins.py` the moment it lands.
 - Call every guard from `check_model()` — the probe watches the build run them. A guard
   imported and never called does not count.
@@ -38,10 +38,10 @@ the smallest, newest of them first; `projects/example_100` (interior lot) and
 ## 3. Prove it
 
 ```sh
-python3 -m arkitect.lib.verify.gate                    # every oracle; names the sheets that moved
-python3 -m arkitect.lib.verify.gate render --moved     # LOOK at every sheet that moved
-python3 -m arkitect.lib.verify.gate accept             # trace.md5, once the move is meant
-python3 -m arkitect.harness.progress set <slug> <id> passes
+arkitect gate                    # every oracle; names the sheets that moved
+arkitect gate render --moved     # LOOK at every sheet that moved
+arkitect gate accept             # trace.md5, once the move is meant
+arkitect progress set <slug> <id> passes
 ```
 
 `set ... passes` is refused unless the sheet is bound and every guard ran. If it is
@@ -53,6 +53,6 @@ drawn but cannot pass yet (a decision the designer has not made), mark it `drawn
 
 Commit by name, with the "Sheets moved:" line `accept` printed. Report to the designer: what was
 drawn, which rules now run, what you decided that they have not confirmed (each recorded with
-`python3 -m arkitect.harness.decisions new "<title>" --project <slug>`, and its id in the commit), and
+`arkitect decisions new "<title>" --project <slug>`, and its id in the commit), and
 the next feature. Then stop — the next feature is
 the next session's.

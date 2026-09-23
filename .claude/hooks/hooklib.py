@@ -25,7 +25,7 @@ def read_input():
 
 
 # The engine these hook scripts belong to: the checkout they fired in, or -- in a projects
-# repository that installed them from outside (python3 -m arkitect.harness.hooks install) -- the
+# repository that installed them from outside (arkitect hooks install) -- the
 # engine that repository uses.
 ENGINE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

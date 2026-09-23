@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Adversarial plan reviewer for this repository's permit sets. Give it the path of a review directory made by `python3 -m arkitect.harness.review prepare` (its brief.md and the sheet images); it reads ONLY those images and the brief, never the source, and returns a JSON array of findings. Use for the review-sheets skill.
+description: Adversarial plan reviewer for this repository's permit sets. Give it the path of a review directory made by `arkitect review prepare` (its brief.md and the sheet images); it reads ONLY those images and the brief, never the source, and returns a JSON array of findings. Use for the review-sheets skill.
 tools: Read, Glob
 ---
 

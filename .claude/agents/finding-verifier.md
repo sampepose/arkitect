@@ -1,6 +1,6 @@
 ---
 name: finding-verifier
-description: Adversarially verifies plan-review findings against the rendered sheets. Give it a review directory (from `python3 -m arkitect.harness.review prepare`) and a JSON array of findings; it re-reads each finding's tile and returns the same array with a verdict on each. Use for the review-sheets skill, after plan-reviewer.
+description: Adversarially verifies plan-review findings against the rendered sheets. Give it a review directory (from `arkitect review prepare`) and a JSON array of findings; it re-reads each finding's tile and returns the same array with a verdict on each. Use for the review-sheets skill, after plan-reviewer.
 tools: Read, Glob
 ---
 

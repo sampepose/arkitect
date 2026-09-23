@@ -1,12 +1,12 @@
 """A project's feature list, projects/<slug>/progress.json: what is drawn, what is done,
 what comes next -- and every claim in it PROVED by running the build.
 
-    python3 -m arkitect.harness.progress status <slug>          # the list, and what is next
-    python3 -m arkitect.harness.progress next <slug>            # the next feature, with what it needs
-    python3 -m arkitect.harness.progress verify <slug> [--json] # exit 1 if any claim is false
-    python3 -m arkitect.harness.progress set <slug> <id> <pending|drawn|passes> [--note "..."]
-    python3 -m arkitect.harness.progress add <slug> <id> "<title>" [--after <id>] [--guard <module>]...
-    python3 -m arkitect.harness.progress drop <slug> <id> --note "why this set does not need it"
+    arkitect progress status <slug>          # the list, and what is next
+    arkitect progress next <slug>            # the next feature, with what it needs
+    arkitect progress verify <slug> [--json] # exit 1 if any claim is false
+    arkitect progress set <slug> <id> <pending|drawn|passes> [--note "..."]
+    arkitect progress add <slug> <id> "<title>" [--after <id>] [--guard <module>]...
+    arkitect progress drop <slug> <id> --note "why this set does not need it"
 
 This is the handoff between sessions (Anthropic's initializer / worker split): the
 initializer writes the list with every sheet pending, and each worker session takes the
@@ -175,7 +175,7 @@ def next_text(slug, root=ROOT):
         '  ' + ('\n  '.join(_refs(f['id'], slug, root)) or '(none in this checkout)'),
         'Then: bind it in build.py, run `python3 arkitect/lib/verify/gate.py`, look at it with',
         '`python3 arkitect/lib/verify/gate.py render --sheets %s`, and mark it:' % f['id'],
-        '`python3 -m arkitect.harness.progress set %s %s passes`.' % (slug, f['id']),
+        '`arkitect progress set %s %s passes`.' % (slug, f['id']),
     ])
 
 
@@ -265,7 +265,7 @@ def main(argv):
             for w in v['false']:
                 print('FALSE CLAIM: ' + w)
             for b in v['behind']:
-                print('bound but listed pending: %s (python3 -m arkitect.harness.progress set %s %s drawn)'
+                print('bound but listed pending: %s (arkitect progress set %s %s drawn)'
                       % (b, slug, b))
             print('%(passes)d passes, %(drawn)d drawn, %(pending)d pending of %(total)d; next: %(next)s'
                   % dict(v['counts'], total=v['total'], next=v['next']))

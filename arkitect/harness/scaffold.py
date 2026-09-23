@@ -1,10 +1,10 @@
 """Write projects/<slug>/ from its intake: a project that builds, traces, tests and passes
 the gate on its first day, with nothing in it but what is its own.
 
-    python3 -m arkitect.harness.scaffold projects/<slug>/intake.json
+    arkitect scaffold projects/<slug>/intake.json
 
 The intake must be valid and must fit -- every zoning rule it does not meet states the
-relief the designer chose (`python3 -m arkitect.harness.intake` first). It refuses a project that exists.
+relief the designer chose (`arkitect intake` first). It refuses a project that exists.
 
 WHAT IT WRITES, and why each is the shape it is:
 
@@ -45,7 +45,7 @@ def _stem(d):
 BUILD = '''"""{address} — what the project writes, in what order, and what must hold first.
 
 Scaffolded by arkitect/harness/scaffold.py from intake.json on {date}. The set grows one feature
-at a time: `python3 -m arkitect.harness.progress next {slug}`. Importing this module draws nothing,
+at a time: `arkitect progress next {slug}`. Importing this module draws nothing,
 writes nothing and prints nothing.
 """
 import os
@@ -107,7 +107,7 @@ DXF_OUT = "{stem}-floor-plans.dxf"
 '''
 
 SITEWORK = '''"""{address} — the lot and what stands on it, read from intake.json: the ONE definition of
-the program. Change the program in intake.json and run `python3 -m arkitect.harness.intake
+the program. Change the program in intake.json and run `arkitect intake
 projects/{slug}/intake.json` before anything else; the build's zoning check reads this.
 
 Coordinates are arkitect/codes/columbus/fit.py's: feet, x from the LEFT side lot line looking from
@@ -170,15 +170,15 @@ what is different here.**
 ## The loop
 
 ```sh
-python3 -m arkitect.harness.progress next {slug}      # the next feature: its guards, its references
-python3 -m arkitect.lib.verify.gate                   # every oracle; names the sheets that moved
-python3 -m arkitect.lib.verify.gate render --moved    # look at what moved
-python3 -m arkitect.lib.verify.gate accept            # write trace.md5 once the move is meant
-python3 -m arkitect.harness.progress set {slug} <id> passes   # refused unless the build proves it
+arkitect progress next {slug}      # the next feature: its guards, its references
+arkitect gate                   # every oracle; names the sheets that moved
+arkitect gate render --moved    # look at what moved
+arkitect gate accept            # write trace.md5 once the move is meant
+arkitect progress set {slug} <id> passes   # refused unless the build proves it
 ```
 
 `intake.json` is the program and the ONE definition of the lot; `src/sitework.py` reads it.
-Change it, then `python3 -m arkitect.harness.intake projects/{slug}/intake.json`, then build.
+Change it, then `arkitect intake projects/{slug}/intake.json`, then build.
 
 ## Zoning, as scaffolded
 
@@ -312,7 +312,7 @@ def main(argv):
     print('scaffolded projects/%s:' % slug)
     for w in written:
         print('  ' + w)
-    print('\nNext: python3 -m arkitect.lib.verify.gate; then python3 -m arkitect.harness.progress next %s' % slug)
+    print('\nNext: arkitect gate; then arkitect progress next %s' % slug)
     print('Commit these files by name, with intake.json.')
     return 0
 

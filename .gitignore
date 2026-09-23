@@ -34,3 +34,8 @@ __pycache__/
 
 # lib/verify/gate.py: the base commits it has built, keyed by commit and tools
 .verify-cache/
+
+# pip install -e and a wheel build
+*.egg-info/
+build/
+dist/

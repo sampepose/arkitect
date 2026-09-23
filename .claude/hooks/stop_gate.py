@@ -146,7 +146,7 @@ def decide(paths, report, attended, worktree, blocks, rules=None):
             elif red == 'advise' or (red == 'block-unattended' and attended):
                 action, msg = 'advise', text + '\n(uncommitted; the turn ends so the person here can decide)'
             else:
-                action, msg = 'block', (text + '\nFix it and run `python3 -m arkitect.lib.verify.gate` '
+                action, msg = 'block', (text + '\nFix it and run `arkitect gate` '
                                         'again. If it cannot be fixed, say so plainly in your reply.')
         else:
             moved = ['%s %s' % (s, ', '.join(m['sheet'] for m in p['sheets_moved']))

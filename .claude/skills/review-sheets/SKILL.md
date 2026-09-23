@@ -14,7 +14,7 @@ windows — were found, after every rule-based oracle had passed them.
 ## 1. Prepare
 
 ```sh
-python3 -m arkitect.harness.review prepare <slug> --sheets A-101,A-102      # or --moved, or every sheet
+arkitect review prepare <slug> --sheets A-101,A-102      # or --moved, or every sheet
 ```
 
 It renders each sheet whole and in overlapping tiles at 200 dpi, writes `brief.md` (with the
@@ -42,7 +42,7 @@ file OUTSIDE the checkout (the job tmp directory).
 ## 4. File the findings
 
 ```sh
-python3 -m arkitect.harness.review ingest <slug> <verified.json> --index <review dir>/index.json
+arkitect review ingest <slug> <verified.json> --index <review dir>/index.json
 ```
 
 Each finding becomes R-nnn in `projects/<slug>/review.json` with the sheet's fingerprint;
@@ -57,11 +57,11 @@ sheet; how many the verifier rejected. Do not fix anything in this skill — the
 tasks. A worker takes them one at a time:
 
 ```sh
-python3 -m arkitect.harness.review next <slug>
+arkitect review next <slug>
 # fix it, gate, render the sheet and LOOK, then:
-python3 -m arkitect.harness.review set <slug> R-nnn fixed      # refused unless that sheet changed
-python3 -m arkitect.harness.review set <slug> R-nnn wontfix --note "why"   # the designer's call, not yours
+arkitect review set <slug> R-nnn fixed      # refused unless that sheet changed
+arkitect review set <slug> R-nnn wontfix --note "why"   # the designer's call, not yours
 ```
 
 A finding that turns on a choice the designer has not made is a decision: record it with
-`python3 -m arkitect.harness.decisions new` and mark the finding `wontfix` citing the id until they answer.
+`arkitect decisions new` and mark the finding `wontfix` citing the id until they answer.

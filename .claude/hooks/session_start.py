@@ -54,7 +54,7 @@ def progress_lines(root):
         done = sum(1 for f in feats if f['status'] == 'passes')
         nxt = next((f for f in feats if f['status'] != 'passes'), None)
         out.append('%s: %d of %d features pass; next %s' % (
-            slug, done, len(feats), '%s %s (python3 -m arkitect.harness.progress next %s)'
+            slug, done, len(feats), '%s %s (arkitect progress next %s)'
             % (nxt['id'], nxt['title'], slug) if nxt else '-- none, every feature passes'))
     return out
 
@@ -71,9 +71,9 @@ def decision_lines(root):
                 m = re.search(r'^status: (\w+)$', fh.read(), re.M)
             if m:
                 counts[m.group(1)] = counts.get(m.group(1), 0)+1
-    return ['Decisions: %d open for the designer, %d waiting on others (python3 -m arkitect.harness.decisions '
+    return ['Decisions: %d open for the designer, %d waiting on others (arkitect decisions '
             'pending). A new call among code-legal options is recorded with '
-            '`python3 -m arkitect.harness.decisions new`, and cited by its id.'
+            '`arkitect decisions new`, and cited by its id.'
             % (counts.get('open', 0), counts.get('waiting', 0))]
 
 
@@ -95,7 +95,7 @@ def review_lines(root):
             by = {}
             for f in opn:
                 by[f['severity']] = by.get(f['severity'], 0)+1
-            out.append('%s: %d open review finding(s) (%s); python3 -m arkitect.harness.review next %s'
+            out.append('%s: %d open review finding(s) (%s); arkitect review next %s'
                        % (slug, len(opn), ', '.join('%d %s' % (by[k], k) for k in
                                                      ('blocker', 'major', 'minor') if k in by), slug))
     return out
@@ -118,7 +118,7 @@ def main():
     lines += progress_lines(root)
     lines += decision_lines(root)
     lines += review_lines(root)
-    lines.append('Check work with `python3 -m arkitect.lib.verify.gate`; the Stop hook runs it when a turn ends.')
+    lines.append('Check work with `arkitect gate`; the Stop hook runs it when a turn ends.')
     print('\n'.join(lines))
     return 0
 

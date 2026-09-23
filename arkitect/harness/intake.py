@@ -1,7 +1,7 @@
 """What a drawing cannot be started without, as a schema the agent fills and this checks.
 
-    python3 -m arkitect.harness.intake projects/<slug>/intake.json          # validate, then the fit
-    python3 -m arkitect.harness.intake projects/<slug>/intake.json --json   # the same, for a tool
+    arkitect intake projects/<slug>/intake.json          # validate, then the fit
+    arkitect intake projects/<slug>/intake.json --json   # the same, for a tool
 
 Exit status: 0 the intake is valid and every zoning rule it does not meet states its
 relief; 1 the intake is invalid (every problem is listed); 2 valid, but the program does not

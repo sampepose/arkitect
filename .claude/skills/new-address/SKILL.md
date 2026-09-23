@@ -6,7 +6,7 @@ description: Start a permit set for a new address in this repository — ask the
 # Start a new address
 
 You are the INITIALIZER. Your job ends when `projects/<slug>/` exists, passes
-`python3 -m arkitect.lib.verify.gate`, and its feature list says what comes next. Drawing the set
+`arkitect gate`, and its feature list says what comes next. Drawing the set
 is the workers' job (`next-feature`), one feature per session.
 
 Everything below is a command. Do not re-derive what a command tells you.
@@ -16,8 +16,8 @@ Everything below is a command. Do not re-derive what a command tells you.
 The questions are `arkitect/harness/intake.py`'s `QUESTIONS` — read them there; that list is the
 source, not this file. Ask them in as few rounds as you can: use AskUserQuestion where the
 answer is a choice (corner or interior, alley or not, survey or GIS), plain questions for
-figures. The designer of record is `python3 -m arkitect.harness.config get designer.name`. Read
-`python3 -m arkitect.harness.config show`: `[defaults] design` holds the designer's defaults, which
+figures. The designer of record is `arkitect config get designer.name`. Read
+`arkitect config show`: `[defaults] design` holds the designer's defaults, which
 apply unless they say otherwise, and `[titleblock] owner` / `contractor` are the owner and
 contractor blocks to offer as the default and confirm. Where any of these is empty, ask for
 it; never assume one.
@@ -33,7 +33,7 @@ Coordinates: feet, x from the LEFT side lot line looking from the street, y from
 lot line toward the rear.
 
 ```sh
-python3 -m arkitect.harness.intake projects/<slug>/intake.json
+arkitect intake projects/<slug>/intake.json
 ```
 
 - **exit 1** — the intake is invalid; every problem is listed. Fix it, or ask.
@@ -49,19 +49,19 @@ python3 -m arkitect.harness.intake projects/<slug>/intake.json
 ## 3. Scaffold, then look
 
 ```sh
-python3 -m arkitect.harness.scaffold projects/<slug>/intake.json
-python3 -m arkitect.lib.verify.gate
-python3 -m arkitect.lib.verify.gate render --project <slug> --sheets G-001,C-102
+arkitect scaffold projects/<slug>/intake.json
+arkitect gate
+arkitect gate render --project <slug> --sheets G-001,C-102
 ```
 
 The gate must pass. Read both PNGs the render prints — a sheet can pass every assert and
 still read badly. A fault in them is a fault in `arkitect/codes/columbus/zoning_sheets.py`, which is
 shared: fix it there and prove every existing project unmoved with
-`python3 -m arkitect.lib.verify.gate --base main --expect-unchanged` (every project by default; `--project <slug>` names one).
+`arkitect gate --base main --expect-unchanged` (every project by default; `--project <slug>` names one).
 
 ## 4. Tailor the feature list
 
-`python3 -m arkitect.harness.progress status <slug>`. The catalog is a starting list. Drop a sheet
+`arkitect progress status <slug>`. The catalog is a starting list. Drop a sheet
 this set does not need, with the reason (`arkitect.harness.progress drop <slug> <id> --note "..."`);
 add one it does (`arkitect.harness.progress add <slug> <id> "<title>" --after <id> --guard <module>`),
 e.g. an exterior stair's details sheet. Never edit progress.json by hand — the hooks refuse,
@@ -74,7 +74,7 @@ Commit BY NAME: `intake.json` and every file the scaffold printed (it lists them
 
 - the program and the fit — every rule not met and the relief it proceeds on;
 - what the intake assumed that they have not confirmed (no survey, parcel TBD, a front line
-  taken from a neighbour) — record each with `python3 -m arkitect.harness.decisions new "<title>"
+  taken from a neighbour) — record each with `arkitect decisions new "<title>"
   --project <slug>` (an open record with its question and what moves if they reverse it), and
   cite the ids in the commit;
-- the next feature: `python3 -m arkitect.harness.progress next <slug>`.
+- the next feature: `arkitect progress next <slug>`.

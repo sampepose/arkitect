@@ -4,7 +4,7 @@
 
 A projects repository outside the engine (arkitect/lib/workspace.py) wires its hooks this way, so its
 committed .claude/settings.json names no path: the engine is found the way any import is,
-through `python3 -m arkitect.harness.engine link`. If it is not linked, Python fails with "No module
+through `arkitect engine link`. If it is not linked, Python fails with "No module
 named harness" -- loudly, never a hook that silently did nothing.
 
 Inside the engine the hooks keep their path form, so a worktree runs its own copies.

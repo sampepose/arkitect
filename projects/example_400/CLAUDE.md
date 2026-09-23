@@ -15,7 +15,7 @@ had drifted weeks behind; the DXF had never been produced at all.
 
 **The drawing is pinned by `trace.md5`** (2026-09-18), as 300's is. A change that moves a sheet
 fails `verify/test_trace_digest.py`: trace, find which sheets moved, and commit the new digest
-with the change, naming them — `rm -f t.txt && python3 -m arkitect.lib.verify.trace t.txt
+with the change, naming them — `rm -f t.txt && arkitect trace t.txt
 projects/example_400/build.py && md5 -q t.txt > projects/example_400/trace.md5`. Never update it just
 to make the test pass.
 
@@ -24,7 +24,7 @@ to make the test pass.
 ```sh
 python3 projects/example_400/build.py          # 0.3 s: every model check, then both PDFs
 python3 -m unittest discover -s projects/example_400/verify -t .   # Oak's tests alone
-python3 -m arkitect.lib.verify.run_tests             # everything; REQUIRED when arkitect/lib/ or arkitect/codes/ is touched
+arkitect test             # everything; REQUIRED when arkitect/lib/ or arkitect/codes/ is touched
 python3 -m pyflakes projects/example_400/build.py projects/example_400/src projects/example_400/verify
 ```
 
@@ -268,8 +268,8 @@ openings on all faces are cased. A back door in Unit 1's hall. Fixed W-D over th
 ## Decisions
 
 What the designer confirmed, what is still an agent's call, and what waits on AEP, DPU, Public Service
-or the county is in the ledger, not here: `python3 -m arkitect.harness.decisions pending --project
-example_400` and `python3 -m arkitect.harness.decisions about <path>`. The root CLAUDE.md, "Decisions",
+or the county is in the ledger, not here: `arkitect decisions pending --project
+example_400` and `arkitect decisions about <path>`. The root CLAUDE.md, "Decisions",
 has the rules. This file's "Confirmed by the designer" and "Open" sections moved there on 2026-09-22.
 
 ## Leftovers to be careful with
@@ -306,7 +306,7 @@ comes over wrong — that is how the eave and ridge vent leaders came to cite no
 
 - Ohio's minimum building-sewer depth was never checked (as on 300).
 
-- The DXF is `python3 -m arkitect.lib.export.dxf projects/example_400/build.py`, tracked like the PDFs.
+- The DXF is `arkitect dxf projects/example_400/build.py`, tracked like the PDFs.
   It has failed TWICE on a layer the exporter had no colour for — the door tags until
   2026-09-18, and `M-HVAC-DUCT` under Unit 1's supply registers until 2026-09-20, when it
   could not be written at all while every other oracle stayed green. `arkitect/lib/verify/test_dxf.py`

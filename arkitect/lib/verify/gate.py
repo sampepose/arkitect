@@ -600,12 +600,12 @@ def summary(r):
         te['summary'] or ('FAILED' if te['ran'] else 'did not run')))
     for s, c in sorted((r.get('review') or {}).items()):
         if c:
-            out.append('  review %s: %s open (python3 -m arkitect.harness.review next %s)' % (
+            out.append('  review %s: %s open (arkitect review next %s)' % (
                 s, ', '.join('%d %s' % (c[k], k) for k in ('blocker', 'major', 'minor') if k in c), s))
     dc = r.get('decisions') or {}
     if dc:
         out.append('  decisions: %d open for the designer, %d waiting on others, %d confirmed '
-                   '(python3 -m arkitect.harness.decisions pending)'
+                   '(arkitect decisions pending)'
                    % (dc.get('open', 0), dc.get('waiting', 0), dc.get('confirmed', 0)))
     for n in r.get('notes', []):
         out.append('  note: ' + n)

@@ -2,8 +2,8 @@
 contractor, the design defaults, the house style, the hook policy, and the words that must
 never appear in the shipped engine. Everything personal lives here, not in the engine.
 
-    python3 -m arkitect.harness.config show [--project <slug>]    # the merged settings, as TOML-ish text
-    python3 -m arkitect.harness.config get designer.name          # one value
+    arkitect config show [--project <slug>]    # the merged settings, as TOML-ish text
+    arkitect config get designer.name          # one value
 
 Three files, each overriding the one before, all optional:
 
@@ -40,7 +40,7 @@ DEFAULTS = {
     },
     'hooks': {
         # The Stop hook (.claude/hooks/stop_gate.py), once hooks are installed
-        # (python3 -m arkitect.harness.hooks install): what a turn ending on work does.
+        # (arkitect hooks install): what a turn ending on work does.
         'green_uncommitted': 'advise',        # block | advise | off
         'red': 'advise',                      # block | block-unattended | advise | off
     },

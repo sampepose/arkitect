@@ -1,8 +1,8 @@
 """The guard-rail hooks are opt-in: this installs them into .claude/settings.json.
 
-    python3 -m arkitect.harness.hooks status       # installed, missing, or out of date against the template
-    python3 -m arkitect.harness.hooks install      # wire every hook the template names
-    python3 -m arkitect.harness.hooks uninstall    # take them out again; other settings are kept
+    arkitect hooks status       # installed, missing, or out of date against the template
+    arkitect hooks install      # wire every hook the template names
+    arkitect hooks uninstall    # take them out again; other settings are kept
 
 .claude/hooks/settings.template.json is the wiring the engine ships: SessionStart prints the
 checkout's state, PreToolUse refuses the commands and writes that have produced false greens
@@ -153,7 +153,7 @@ def main(argv):
         uninstall()
     print('hooks: %s (%s)' % (status(), SETTINGS))
     if argv[0] == 'install':
-        print('Policy: python3 -m arkitect.harness.config show  ([hooks]); restart Claude Code to load them.')
+        print('Policy: arkitect config show  ([hooks]); restart Claude Code to load them.')
     return 0
 
 

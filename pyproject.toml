@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arkitect"
+dynamic = ["version"]
+description = "Residential building permit drawing sets, generated from a model and checked against the code."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+# Pinned, not ranged: reportlab's text metrics are load-bearing (a sheet sizes its type to its
+# widest line), so a different reportlab can move a drawn dimension. requirements.txt says why.
+dependencies = [
+    "reportlab==4.4.9",
+    "ezdxf==1.4.4",
+]
+
+[project.optional-dependencies]
+# the gate's pyflakes oracle and its sheet renderer
+dev = [
+    "pyflakes==3.2.0",
+    "pymupdf==1.28.2",
+]
+
+[project.scripts]
+arkitect = "arkitect.harness.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "arkitect.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["arkitect*"]
+
+[tool.setuptools.package-data]
+"arkitect.lib.assets" = ["*.png", "*.svg"]

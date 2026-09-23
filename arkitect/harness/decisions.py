@@ -1,14 +1,14 @@
 """The decisions ledger: every call made among code-legal options, who made it, and what
 moves if it is reversed. One file per decision in decisions/.
 
-    python3 -m arkitect.harness.decisions pending              # what waits on the designer, as questions
-    python3 -m arkitect.harness.decisions list [--status S] [--project P]
-    python3 -m arkitect.harness.decisions show D-912
-    python3 -m arkitect.harness.decisions about projects/<slug>/src/grading.py   # before editing it
-    python3 -m arkitect.harness.decisions new "<title>" --project P [--project Q]   # the next id, open
-    python3 -m arkitect.harness.decisions set D-912 confirmed --quote "<designer>, 2026-09-22: ..."
-    python3 -m arkitect.harness.decisions set D-912 waiting --on "AEP Ohio"
-    python3 -m arkitect.harness.decisions set D-912 superseded --by D-931
+    arkitect decisions pending              # what waits on the designer, as questions
+    arkitect decisions list [--status S] [--project P]
+    arkitect decisions show D-912
+    arkitect decisions about projects/<slug>/src/grading.py   # before editing it
+    arkitect decisions new "<title>" --project P [--project Q]   # the next id, open
+    arkitect decisions set D-912 confirmed --quote "<designer>, 2026-09-22: ..."
+    arkitect decisions set D-912 waiting --on "AEP Ohio"
+    arkitect decisions set D-912 superseded --by D-931
 
 WHY. CLAUDE.md carried these as paragraphs -- "on three decisions not yet confirmed" --
 about 75,000 characters of them, loaded into every session, with nothing to list what was

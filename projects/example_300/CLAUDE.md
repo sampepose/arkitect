@@ -18,7 +18,7 @@ the code `arkitect/lib/verify/twins.py` counts; what they proved in common has s
   mechanical, electrical, plumbing, drainage, grading, fire separation) and `src/sheets/`
   one module per sheet.
 - `verify/` holds the tests, including the pins of every transcribed code table.
-- `python3 -m arkitect.lib.verify.gate --project example_300` checks it; `render --sheets A-101`
+- `arkitect gate --project example_300` checks it; `render --sheets A-101`
   shows a sheet.
 
 Read a module's docstring before changing it: most say which rule they carry and which

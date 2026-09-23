@@ -153,7 +153,7 @@ sheets.observe(_Watch())
 
 
 # The project to record, and where its DXF goes, always named, so the same exporter
-# serves any project: python3 -m arkitect.lib.export.dxf <build.py> [<out.dxf>]
+# serves any project: arkitect dxf <build.py> [<out.dxf>]
 BUILD = buildscript.build_arg(sys.argv[1] if len(sys.argv) > 1 else None, 'dxf.py',
                               'python3 arkitect/lib/export/dxf.py <projects/<slug>/build.py> [<out.dxf>]')
 # Import the build and call what it writes, rather than exec'ing its __main__ block.

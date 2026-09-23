@@ -43,10 +43,10 @@ scaffolded sets on their first day, the way a new address starts:
 In the whole sets the names, addresses, parcels, owners and contractors are fictional; the
 design and the sheets are the real sets'. Build one to a scratch directory, or look at it:
 
-    python3 -m arkitect.lib.verify.gate render --project example_300 --sheets A-101
+    arkitect gate render --project example_300 --sheets A-101
 
-    python3 -m arkitect.lib.verify.gate                  # every check, every project, against HEAD
-    python3 -m arkitect.harness.progress next example_100                           # what comes next
+    arkitect gate                  # every check, every project, against HEAD
+    arkitect progress next example_100                           # what comes next
 
 `gate` is the one command to trust. It builds every project, records every canvas call of
 every sheet (the trace), holds each drawing to the digest its project committed
@@ -68,7 +68,7 @@ and belong in a second repository beside it -- a **workspace**:
 
 Make the engine importable from anywhere once, then work inside the workspace:
 
-    cd arkitect && python3 -m arkitect.harness.engine link        # one line in your site-packages
+    cd arkitect && arkitect engine link        # one line in your site-packages
     mkdir -p ../my-projects/projects ../my-projects/decisions
     cp arkitect.example.toml ../my-projects/arkitect.toml
     touch ../my-projects/projects/__init__.py
@@ -78,8 +78,8 @@ Every tool finds its workspace the way git finds a repository: `$ARKITECT_WORKSP
 the nearest directory at or above where you run it that holds a `projects/`, else the engine
 itself (`arkitect/lib/workspace.py`). So the same commands work in both:
 
-    python3 -m arkitect.lib.verify.gate --base main              # a change to a project, against main
-    python3 -m arkitect.lib.verify.gate --engine-base main --expect-unchanged
+    arkitect gate --base main              # a change to a project, against main
+    arkitect gate --engine-base main --expect-unchanged
                                                         # a change to the ENGINE: the base is the
                                                         # engine at main, your projects as they are
 
@@ -93,16 +93,16 @@ Ask Claude Code for one: the `new-address` skill asks the intake questions, chec
 zoning fit and scaffolds a project that builds and passes the gate on its first day. By
 hand, it is:
 
-    python3 -m arkitect.harness.intake projects/<slug>/intake.json     # validate; print the zoning fit
-    python3 -m arkitect.harness.scaffold projects/<slug>/intake.json   # write the project
-    python3 -m arkitect.harness.progress next <slug>                   # the next sheet, and where it is drawn
+    arkitect intake projects/<slug>/intake.json     # validate; print the zoning fit
+    arkitect scaffold projects/<slug>/intake.json   # write the project
+    arkitect progress next <slug>                   # the next sheet, and where it is drawn
 
 The `next-feature` skill draws one feature a session; the `review-sheets` skill puts the
 sheets in front of a reviewer that sees only the images. Both run in Claude Code.
 
 ## The guard rails, if you want them
 
-    python3 -m arkitect.harness.hooks install     # in the engine, or in your workspace
+    arkitect hooks install     # in the engine, or in your workspace
 
 wires Claude Code hooks that refuse the commands which have produced false greens here (an
 oracle with its stderr thrown away, a test runner that collected nothing, a hand-edited

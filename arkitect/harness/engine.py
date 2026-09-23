@@ -1,18 +1,18 @@
-"""Make this engine importable from anywhere, so a projects repository beside it can use it.
+"""Which engine a Python finds, and how it got there.
 
-    python3 -m arkitect.harness.engine status     # which engine `import lib` finds, and from where
-    python3 -m arkitect.harness.engine link       # this checkout, for every script this Python runs
-    python3 -m arkitect.harness.engine unlink
+    arkitect engine status     # the version, the checkout `import arkitect` resolves to, how
+    arkitect engine unlink     # remove the one-line link that stood in for an install before
+                               # the engine was a package
 
 A projects repository holds projects/, decisions/ and arkitect.toml and no engine
-(arkitect/lib/workspace.py). Its build scripts do `from lib ...`, and `python3 -m arkitect.harness.decisions`
-needs `harness`, so the engine has to be on sys.path wherever that repository is. `link`
-writes one line, this checkout's path, into arkitect.pth in the user's site-packages -- the
-file `pip install -e` would write, without the packaging (a later phase adds that).
+(arkitect/lib/workspace.py); its build scripts do `from arkitect.lib ...`, so the engine is
+installed where that repository's Python finds it:
 
-An engine script puts its own checkout first on sys.path, so an engine WORKTREE still runs
-its own code; the link is only what a script outside any engine falls back to. To run a
-projects repository against a worktree instead, set PYTHONPATH to it.
+    python3 -m pip install -e path/to/arkitect      # editable: the checkout IS the engine
+
+An engine script puts its own checkout first on sys.path, so an engine worktree still runs its
+own code; to run a projects repository against a worktree, install that worktree or set
+PYTHONPATH to it.
 """
 import os
 import site
@@ -20,7 +20,7 @@ import sys
 
 from arkitect.lib import workspace
 
-PTH = 'arkitect.pth'
+PTH = 'arkitect.pth'          # the link's file, from before the engine was a package
 
 
 def pth_path(user_site=None):
@@ -28,20 +28,12 @@ def pth_path(user_site=None):
 
 
 def linked(user_site=None):
-    """The engine the link names, or None."""
+    """The engine the old link names, or None."""
     p = pth_path(user_site)
     if not os.path.exists(p):
         return None
     with open(p) as fh:
         return fh.read().strip() or None
-
-
-def link(engine=None, user_site=None):
-    p = pth_path(user_site)
-    os.makedirs(os.path.dirname(p), exist_ok=True)
-    with open(p, 'w') as fh:
-        fh.write((engine or workspace.ENGINE) + '\n')
-    return p
 
 
 def unlink(user_site=None):
@@ -51,21 +43,31 @@ def unlink(user_site=None):
     return p
 
 
+def installed():
+    """How this Python has the engine: 'editable', 'installed', or None (found by path only)."""
+    try:
+        from importlib import metadata
+        dist = metadata.distribution('arkitect')
+    except Exception:
+        return None
+    direct = dist.read_text('direct_url.json') or ''
+    return 'editable' if '"editable": true' in direct else 'installed'
+
+
 def main(argv):
-    if not argv or argv[0] not in ('status', 'link', 'unlink'):
+    if not argv or argv[0] not in ('status', 'unlink'):
         print(__doc__)
         return 1
-    if argv[0] == 'link':
-        if not site.ENABLE_USER_SITE:
-            print('this Python ignores user site-packages; set PYTHONPATH=%s instead'
-                  % workspace.ENGINE, file=sys.stderr)
-            return 1
-        print('linked: %s -> %s' % (link(), workspace.ENGINE))
-    elif argv[0] == 'unlink':
+    if argv[0] == 'unlink':
         print('removed %s' % unlink())
-    else:
-        print('this engine: %s' % workspace.ENGINE)
-        print('linked:      %s (%s)' % (linked() or 'nothing', pth_path()))
+        return 0
+    from arkitect import __version__
+    print('arkitect %s' % __version__)
+    print('engine:   %s' % workspace.ENGINE)
+    print('install:  %s' % (installed() or 'none (found by path)'))
+    old = linked()
+    if old:
+        print('old link: %s -> %s (arkitect engine unlink, once installed)' % (pth_path(), old))
     return 0
 
 

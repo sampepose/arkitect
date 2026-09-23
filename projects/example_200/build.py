@@ -1,7 +1,7 @@
 """200 EXAMPLE AVE — what the project writes, in what order, and what must hold first.
 
 Scaffolded by arkitect/harness/scaffold.py from intake.json on 2026-09-22. The set grows one feature
-at a time: `python3 -m arkitect.harness.progress next example_200`. Importing this module draws nothing,
+at a time: `arkitect progress next example_200`. Importing this module draws nothing,
 writes nothing and prints nothing.
 """
 import os

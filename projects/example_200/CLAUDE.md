@@ -7,15 +7,15 @@ what is different here.**
 ## The loop
 
 ```sh
-python3 -m arkitect.harness.progress next example_200      # the next feature: its guards, its references
-python3 -m arkitect.lib.verify.gate                   # every oracle; names the sheets that moved
-python3 -m arkitect.lib.verify.gate render --moved    # look at what moved
-python3 -m arkitect.lib.verify.gate accept            # write trace.md5 once the move is meant
-python3 -m arkitect.harness.progress set example_200 <id> passes   # refused unless the build proves it
+arkitect progress next example_200      # the next feature: its guards, its references
+arkitect gate                   # every oracle; names the sheets that moved
+arkitect gate render --moved    # look at what moved
+arkitect gate accept            # write trace.md5 once the move is meant
+arkitect progress set example_200 <id> passes   # refused unless the build proves it
 ```
 
 `intake.json` is the program and the ONE definition of the lot; `src/sitework.py` reads it.
-Change it, then `python3 -m arkitect.harness.intake projects/example_200/intake.json`, then build.
+Change it, then `arkitect intake projects/example_200/intake.json`, then build.
 
 ## Zoning, as scaffolded
 

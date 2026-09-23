@@ -105,7 +105,7 @@ class GuardBashTests(unittest.TestCase):
                   'cp /tmp/p.json projects/oak_42/progress.json'):
             self.refuses(c)
         for c in ('cat projects/oak_42/progress.json',
-                  'python3 -m arkitect.harness.progress set oak_42 A-101 passes',
+                  'arkitect progress set oak_42 A-101 passes',
                   'git add projects/oak_42/progress.json'):
             self.allows(c)
 
@@ -152,7 +152,7 @@ class GuardWriteTests(unittest.TestCase):
         r = subprocess.run([sys.executable, os.path.join(HOOKS, 'guard_write.py')],
                            input=data, capture_output=True, text=True)
         self.assertEqual(r.returncode, 2)
-        self.assertIn('arkitect.lib.verify.gate accept', r.stderr)
+        self.assertIn('arkitect gate accept', r.stderr)
 
 
 def _report(ok=True, moved=None, failures=()):
@@ -268,7 +268,7 @@ class StopGateTests(unittest.TestCase):
 
 
 class SettingsTests(unittest.TestCase):
-    """.claude/hooks/settings.template.json wires the hooks (python3 -m arkitect.harness.hooks
+    """.claude/hooks/settings.template.json wires the hooks (arkitect hooks
        install). A hook it names that does not exist would be skipped in silence by the
        command's own `[ -f ]` guard, so check it here."""
     TEMPLATE = os.path.join(HOOKS, 'settings.template.json')
@@ -292,7 +292,7 @@ class SettingsTests(unittest.TestCase):
         sys.path.insert(0, HERE)
         from arkitect.harness import hooks
         self.assertIn(hooks.status(HERE), ('installed', 'not installed'),
-                      'python3 -m arkitect.harness.hooks install')
+                      'arkitect hooks install')
 
     def test_a_block_reaches_claude_through_the_wrapper(self):
         with open(self.TEMPLATE) as fh:

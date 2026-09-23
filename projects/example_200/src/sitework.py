@@ -1,5 +1,5 @@
 """200 EXAMPLE AVE — the lot and what stands on it, read from intake.json: the ONE definition of
-the program. Change the program in intake.json and run `python3 -m arkitect.harness.intake
+the program. Change the program in intake.json and run `arkitect intake
 projects/example_200/intake.json` before anything else; the build's zoning check reads this.
 
 Coordinates are arkitect/codes/columbus/fit.py's: feet, x from the LEFT side lot line looking from

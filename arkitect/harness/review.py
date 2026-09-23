@@ -1,11 +1,11 @@
 """The evaluator, apart from the generator: a reviewer that sees only the rendered sheets and
 the house style, and whose findings come back as tasks the build must answer.
 
-    python3 -m arkitect.harness.review prepare <slug> [--sheets A-101,P-601 | --moved] [--out DIR]
-    python3 -m arkitect.harness.review ingest  <slug> <findings.json>
-    python3 -m arkitect.harness.review list    <slug> [--status open]
-    python3 -m arkitect.harness.review next    <slug>
-    python3 -m arkitect.harness.review set     <slug> R-007 fixed|wontfix|rejected|open [--note "..."]
+    arkitect review prepare <slug> [--sheets A-101,P-601 | --moved] [--out DIR]
+    arkitect review ingest  <slug> <findings.json>
+    arkitect review list    <slug> [--status open]
+    arkitect review next    <slug>
+    arkitect review set     <slug> R-007 fixed|wontfix|rejected|open [--note "..."]
 
 WHY APART. Every oracle this repository has measures a RULE: the trace, the model checks,
 sheet_text, the fit checks. One project's worst faults -- headers deeper than the wall over their
@@ -387,7 +387,7 @@ def main(argv):
             print('  evidence: ' + r['evidence'])
             print('  suggest:  ' + r['suggest'])
             print('Fix it, run the gate, render the sheet and look, then:\n'
-                  '  python3 -m arkitect.harness.review set %s %s fixed' % (slug, r['id']))
+                  '  arkitect review set %s %s fixed' % (slug, r['id']))
         else:
             r = set_status(slug, argv[2], argv[3], opt('--note'))
             print('%s is %s' % (r['id'], r['status']))
