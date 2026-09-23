@@ -1,0 +1,34 @@
+# Every check the engine trusts, on every supported platform and Python: `arkitect gate --full`
+# builds each example, holds its drawing to its committed trace.md5, and runs the test suite.
+# A digest that differs on one platform is a real failure: reportlab's text metrics are pinned
+# so a sheet draws the same everywhere.
+name: gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    env:
+      # the tests commit into scratch repositories of their own
+      GIT_AUTHOR_NAME: ci
+      GIT_AUTHOR_EMAIL: ci@example.com
+      GIT_COMMITTER_NAME: ci
+      GIT_COMMITTER_EMAIL: ci@example.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # the gate measures against a base commit
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -e ".[dev]"
+      - run: arkitect --version
+      - run: arkitect gate --full
