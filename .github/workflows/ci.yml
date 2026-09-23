@@ -8,6 +8,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read              # the gate reads the checkout; the workflow writes nothing
+
 jobs:
   gate:
     strategy:

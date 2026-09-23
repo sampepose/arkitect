@@ -17,6 +17,11 @@ ezdxf==1.4.4
 # checked to draw identically, and 2.1.2 has wheels for Python 3.11 to 3.13.
 numpy==2.1.2
 
+# reportlab's image reader: it decodes the compass PNG the site plans draw, and the trace
+# records those decoded pixels by their md5, so a decoder change would be a moved sheet.
+# reportlab asks only pillow>=9; a fresh install would otherwise take whatever is newest.
+pillow==11.2.1
+
 # The dead-import oracle, per CLAUDE.md "Verifying a change".
 pyflakes==3.2.0
 
