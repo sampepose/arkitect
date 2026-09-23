@@ -28,7 +28,7 @@ from arkitect.lib.model import fit
 from arkitect.lib.model import pipe
 from arkitect.lib.units import IN, fmt, inches
 from src import envelope
-from src import criteria as crit
+from arkitect.codes.ohio.columbus import criteria as crit
 from src import levels
 from src import building2 as B2M
 from src import plumbing as pm

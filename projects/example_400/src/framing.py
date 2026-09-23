@@ -102,7 +102,7 @@ def f1_listing_violations(joist_oc=None, depth=None, chord_w=None, layers=None, 
             v.append("a fan in Unit 2's rated ceiling: %s gives a ceiling damper only with 18\" trusses and a floor topping; hang it in the bath's soffit" % levels.F1_LISTING)
     return v
 DEFLECTION = "L/480 LIVE LOAD"
-from src.criteria import GROUND_SNOW   # RCO Table 301.2(1); S-102 and S-103 print it
+from arkitect.codes.ohio.columbus.criteria import GROUND_SNOW   # RCO Table 301.2(1); S-102 and S-103 print it
 
 # ---------------- the floors ----------------
 Bay = namedtuple('Bay', 'name x0 y0 x1 y1 run joist bearing')     # run 'h': joists run in x
@@ -270,7 +270,7 @@ def header_room(building, level, openings):
 def _line_load(case, building):
     """Pounds per foot on a header, from this set's own loads: what lvl_violations() checks the
        LVL against. A PLAUSIBILITY check — the LVL maker's header table sizes it, S-102 note 4a."""
-    from src.criteria import GROUND_SNOW as snow
+    from arkitect.codes.ohio.columbus.criteria import GROUND_SNOW as snow
     from src.roof import EAVE_OVERHANG
     W = B1_W if building == 'BUILDING 1' else B2_W
     floor = B1_FLOOR if building == 'BUILDING 1' else B2_FLOOR

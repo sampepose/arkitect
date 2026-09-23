@@ -61,7 +61,7 @@ class BearingTests(unittest.TestCase):
         names = [r[0] for r in rows]
         for nm in ("B1 SIDE WALLS", "B1 STAIR WALL", "B2 BEARING WALL", "PIER P1", "PIER P4"):
             self.assertIn(nm, names)
-        from src import criteria
+        from arkitect.codes.ohio.columbus import criteria
         self.assertTrue(all(q <= criteria.SOIL_BEARING for _n, _l, _w, q in rows))
 
     def test_a_heavier_floor_overloads_the_side_walls(self):

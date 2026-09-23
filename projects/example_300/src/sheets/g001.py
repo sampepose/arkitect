@@ -5,7 +5,8 @@ from arkitect.lib.draw.text import table
 from arkitect.lib.units import fmt, inches
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
-from src import bracing, criteria as crit, drainage, levels, plumbing, stairs
+from src import bracing, drainage, levels, plumbing, stairs
+from arkitect.codes.ohio.columbus import criteria as crit
 from arkitect.codes.ohio.rco import bracing as rco_bracing
 from src.building1 import U2_ENTRY
 from src.electrical import SERVICES

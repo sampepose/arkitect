@@ -11,10 +11,11 @@ from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from arkitect.codes.ohio import opc_vents as VENT
 from arkitect.codes.ohio.opc_service_entry import entry_for
+from arkitect.codes.ohio import columbus as JUR          # its water utility (SE1)
 from arkitect.codes.ohio.opc_service_entry_draw import (service_entry_elevation, service_entry_notes,
                                                service_entry_section)
 from arkitect.codes.ohio import opc_vents_draw as DRAW
-from src import criteria as crit
+from arkitect.codes.ohio.columbus import criteria as crit
 from src import drainage as dr
 from src import envelope
 from src import levels as LV
@@ -481,6 +482,7 @@ def sheet_p601():
                                          sheet='P-601'))
     lo = min(lo, service_entry_notes(n0, ey, X1-n0, e, gravel_t=GRAVEL_T,
                                      bar=FTG_BAR, water_sheets='P-102 AND P-103', layer='P-ANNO-TEXT',
+                             water_utility=JUR.WATER_UTILITY,
                                      cols=2, located='S-101'))
     assert lo >= Y0, "P-601 service entry runs off the sheet by %.2f in" % ((Y0-lo)/inch)
     LAY('P-DOMW-HOTW')   # the layer this sheet left current before the block above:

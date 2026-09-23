@@ -75,7 +75,7 @@ def f1_listing_violations(joist_oc=None, flange_w=None, layers=None, layer=None,
         v.append('F1 mineral wool %g pcf is under the %g pcf of %s' % (insul_pcf, F1_MIN_INSUL_PCF, levels.F1_LISTING))
     return v
 DEFLECTION = "L/360 LIVE LOAD"
-from src.criteria import GROUND_SNOW   # RCO Table 301.2(1); S-102 and S-103 print it
+from arkitect.codes.ohio.columbus.criteria import GROUND_SNOW   # RCO Table 301.2(1); S-102 and S-103 print it
 
 # ---------------- the floors ----------------
 Bay = namedtuple('Bay', 'name x0 y0 x1 y1 run joist bearing')     # run 'h': joists run in x

@@ -18,7 +18,7 @@ from src.building1 import _b1_level, U1_STAIR_WALL
 from src.building2 import B2_W, b2_level
 from src.foundation import STRIP_D, STRIP_W
 from src.framing import B1_FLOOR, F1_JOIST, GROUND_SNOW, JOIST_OC, SUBFLOOR
-from src.criteria import WIND
+from arkitect.codes.ohio.columbus.criteria import WIND
 from src.roof import (BC_DEAD, B1_ROOF, B2_ROOF, HEEL_NOM, INSUL_DEPTH, EAVE_OVERHANG, RAKE_OVERHANG,
                       dripline, rake, ROOFS, ROOF_DEFLECTION, ROOF_LIVE, ROOF_PITCH, TC_DEAD, TRUSS_OC,
                       W4_BAND, penetrations)

@@ -7,6 +7,8 @@ name = "arkitect"
 dynamic = ["version"]
 description = "Residential building permit drawing sets, generated from a model and checked against the code."
 readme = "README.md"
+# PolyForm Noncommercial 1.0.0 for the code, CC BY-NC 4.0 for the documentation (NOTICE says which is which)
+license = {text = "LicenseRef-PolyForm-Noncommercial-1.0.0 AND LicenseRef-CC-BY-NC-4.0"}
 requires-python = ">=3.11,<3.14"
 # Pinned, not ranged: reportlab's text metrics are load-bearing (a sheet sizes its type to its
 # widest line), so a different reportlab can move a drawn dimension. requirements.txt says why.

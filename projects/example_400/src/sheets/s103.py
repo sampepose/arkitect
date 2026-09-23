@@ -15,7 +15,7 @@ from src.sheets.a601 import FB
 from src import levels
 from src.building1 import B1_D, B1_W, b1_level
 from src.building2 import B2_D, B2_W, b2_level
-from src.criteria import WIND
+from arkitect.codes.ohio.columbus.criteria import WIND
 from src.framing import GROUND_SNOW
 from src.roof import (BC_DEAD, B1_ROOF, B2_ROOF, EAVE_OVERHANG, HEEL_NOM, INSUL_DEPTH, RAKE_OVERHANG,
                       ROOFS, ROOF_DEFLECTION, ROOF_LIVE, ROOF_PITCH, TC_DEAD, TRUSS_OC, dripline,

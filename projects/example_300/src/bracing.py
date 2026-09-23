@@ -120,7 +120,7 @@ from arkitect.codes.ohio.rco.bracing import (CS_PF_CREDIT, EXPOSURE, FIRST_PANEL
                                     TWO_PANEL_LINE, cs_pf_min, cs_wsp_min, interp, strap_lb)
 
 
-from src.criteria import WIND, WIND_VULT, WIND_EXPOSURE
+from arkitect.codes.ohio.columbus.criteria import WIND, WIND_VULT, WIND_EXPOSURE
 from arkitect.codes.ohio.rco.bracing import require_column
 # The shared tables are ONE column of Table 602.10.3(1) and Table 602.10.6.4; this project's
 # design criteria have to be that column before a figure from them is printed.

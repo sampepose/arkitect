@@ -16,18 +16,19 @@ as A-101 and A-102 draw the buildings. Nothing here is mirrored.
 400 Oak: the design basis, the sizes, the concrete and the termite protection are 300 S
 Elm's, unchanged -- same city, same code. The two buildings below are Oak's.
 """
+from arkitect.codes.ohio.columbus import criteria as JUR_CRIT
 from collections import namedtuple
 from arkitect.lib.units import IN, fmt
 from src import levels
 from math import pi
 from arkitect.lib.model.regrid import EXT_STUD
-from src import criteria
+from arkitect.codes.ohio.columbus import criteria
 from src.building1 import B1_W, B1_D, D_REAR_W, ENTRY_X, REAR_DOOR_X, STAIR_WALL
 from src.building2 import (B2_W, B2_D, U45_BEARING_WALL, U5_DOOR_X0, U5_STOOP_X0, U5_FLIGHT_X0,
                            U5_LAND_D, U5_LAND_LEN, U5_LAND_X0, U5_LAND_X1, U5_RUN, U5_STAIR_W)
 
 # ---------------- design basis ----------------
-FROST_DEPTH = IN(32)          # bottom of footing below finished grade: CIC-09, RCO R403.1.4.1
+FROST_DEPTH = IN(JUR_CRIT.FROST_DEPTH)   # bottom of footing below finished grade: the jurisdiction's (CIC-09, RCO R403.1.4.1)
 FTG_W, FTG_T = IN(16), IN(8)  # continuous footing; Table R403.1(1) asks 12" for two storeys at 1,500 psf
 WALL_T = IN(8)                # poured concrete foundation wall, RCO R404
 FTG_PROJ = (FTG_W-WALL_T)/2.0 # the footing's projection past each face of the wall

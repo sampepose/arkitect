@@ -29,6 +29,7 @@ ATTRIBUTES = (
     ('LOT_SOURCE', "where an unsurveyed lot's dimensions come from, in prose; a sheet prints it in capitals"),
     ('LOT_SOURCE_SHORT', "the same, short, as a table cell says it: \"Auditor's GIS\""),
     ('ZONING_CODE', "how its zoning sections are cited before the number: 'C.C.'"),
+    ('WATER_UTILITY', "the water utility a service note defers to: 'COLUMBUS DPU'"),
     ('QUESTION_TEXT', "{intake path: question} for what only this city can phrase"),
     ('TITLEBLOCK_CODE', "the title block's CODE lines; '%s' takes the zoning district"),
     ('titleblock', 'titleblock(intake) -> [(heading, [lines])], the whole title block'),

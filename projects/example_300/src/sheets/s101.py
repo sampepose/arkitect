@@ -9,7 +9,7 @@ from arkitect.lib.units import fmt, inches
 from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
-from src import criteria as crit
+from arkitect.codes.ohio.columbus import criteria as crit
 from src import levels
 from src import radon as RN
 from arkitect.lib.draw.text import wrap_notes

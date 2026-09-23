@@ -23,6 +23,7 @@ crosses W4's strip; each side of the separation keeps its own system.
 Coordinates: page feet per building, S-101's (x from the Sage face, y from the front
 face), the frame src/drainage.py places the stacks in. Heights in feet above grade.
 """
+from arkitect.codes.ohio.columbus import criteria as JUR_CRIT
 import math
 from collections import namedtuple
 from arkitect.lib.units import IN, fmt, inches
@@ -37,7 +38,7 @@ from arkitect.codes.irc_appendix_f import PIPE_OD, TOL, _attic_of, _clear, _in, 
 from arkitect.codes.irc_appendix_f import areas
 
 # ---------------- basis ----------------
-ZONE = 1                          # EPA Map of Radon Zones, Franklin County, Ohio
+ZONE = JUR_CRIT.RADON_ZONE        # EPA Map of Radon Zones: the jurisdiction's
 BASIS = 'IRC APPENDIX F'          # not adopted by Ohio; voluntary
 PIPE = '3'                        # nominal, Schedule 40 PVC or ABS
 RISER_OFF = IN(8)                 # centre to centre beside its stack, along the wall

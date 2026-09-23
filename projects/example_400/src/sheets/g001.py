@@ -12,7 +12,8 @@ from arkitect.lib.draw.text import table
 from arkitect.lib.units import fmt, inches
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
-from src import criteria as crit, levels, stairs
+from src import levels, stairs
+from arkitect.codes.ohio.columbus import criteria as crit
 from src.building1 import LEVELS as B1_LEVELS
 from src.electrical import CIRCUITS_U1, CIRCUITS_U23, SERVICES
 from arkitect.codes.nec.load import service_loads

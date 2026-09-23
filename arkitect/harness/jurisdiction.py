@@ -36,6 +36,7 @@ PARCEL_LABEL = 'PARCEL'                     # the title block's line before the 
 LOT_SOURCE = "TO BE ENCODED: where an unsurveyed lot's figures come from"
 LOT_SOURCE_SHORT = 'TO BE ENCODED'
 ZONING_CODE = 'TO BE ENCODED'               # how its zoning sections are cited before the number: 'C.C.'
+WATER_UTILITY = 'TO BE ENCODED'             # the water utility a service note defers to: 'COLUMBUS DPU'
 
 # {{intake path: question}}, only where this jurisdiction can phrase a question better
 QUESTION_TEXT = {{}}

@@ -54,6 +54,7 @@ runs for every jurisdiction encoded.
 | `LOT_SOURCE`       | `"the Franklin County Auditor's GIS"`                 | where an unsurveyed lot's figures come from; C-102's note prints it in capitals |
 | `LOT_SOURCE_SHORT` | `"Auditor's GIS"`                                     | the same, in a table cell |
 | `ZONING_CODE`      | `'C.C.'`                                              | the prefix of its zoning sections, left off in the zoning tables |
+| `WATER_UTILITY`    | `'COLUMBUS DPU'`                                      | the water utility a service-entry note defers to ("GO DEEPER IF ... REQUIRES IT") |
 | `QUESTION_TEXT`    | its parcel, district, front-line and survey questions | `{intake path: question}`, only where it can phrase a question better than the generic one |
 | `TITLEBLOCK_CODE`  | Ohio's code lines, its zoning line, Ohio's seal line  | the title block's CODE lines; `%s` takes the zoning district |
 | `titleblock(d)`    |                                                       | the whole title block from an intake: the address block, OWNER, CONTRACTOR, CODE |
@@ -80,6 +81,15 @@ Columbus's `fit.py` is the worked example of the discipline the tests hold every
   modelled) is `NOT CHECKED`, never assumed to pass.
 - **Relief is stated, not granted**: a rule not met can carry the project's basis ("VARIANCE
   REQUESTED"); it still does not meet the rule, and a person decides whether the basis holds.
+
+### `criteria.py`: the figures a whole set is designed to
+
+Not needed for an address's first day, and read by every sheet after it: the jurisdiction's RCO
+Table 301.2(1) design criteria -- `WIND_VULT`, `WIND_EXPOSURE`, `GROUND_SNOW`,
+`WINTER_DESIGN_LO` / `_HI`, `SOIL_BEARING` -- its `FROST_DEPTH` and its `RADON_ZONE`. A project
+imports them (`from arkitect.codes.ohio.columbus import criteria`) and never types one: the
+bracing tables are selected by the wind speed, the footings by the soil and the frost depth,
+the vents by the winter design temperature. Columbus's is the example.
 
 ### The state package
 

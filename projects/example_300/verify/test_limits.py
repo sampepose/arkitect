@@ -58,7 +58,7 @@ class BracingLimits(unittest.TestCase):
            asserts this at import; this is the same claim held where a reader looks for
            it."""
         from src import bracing
-        from src import criteria
+        from arkitect.codes.ohio.columbus import criteria
         self.assertLessEqual(criteria.WIND_VULT, 115)
         self.assertEqual(criteria.WIND_EXPOSURE, 'B')
         self.assertIn(str(criteria.WIND_VULT), bracing.WIND)
@@ -118,7 +118,7 @@ class FoundationLimits(unittest.TestCase):
         self.assertEqual(FROST_DEPTH, IN(32))
 
     def test_the_presumed_soil_bearing_is_the_one_G001_prints(self):
-        from src.criteria import SOIL_BEARING
+        from arkitect.codes.ohio.columbus.criteria import SOIL_BEARING
         self.assertEqual(SOIL_BEARING, 1500)
 
 

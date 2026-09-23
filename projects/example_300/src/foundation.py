@@ -13,6 +13,7 @@ on it. Insulation is a material, checked at its nominal value against the code.
 Coordinates: FINAL SHEET x (from the Sage face) and plan y, in feet — the system
 C-101 draws the pads in and Unit 1's study is authored in. Nothing here is mirrored.
 """
+from arkitect.codes.ohio.columbus import criteria as JUR_CRIT
 from collections import namedtuple
 from arkitect.lib.units import IN, fmt
 from src import levels
@@ -22,7 +23,7 @@ from src.building1 import (Y_SEP_TOP, Y_SEP_BOT, U1_STAIR_WALL, U23_BEARING_WALL
 from src.building2 import B2_W, B2_D, U45_BEARING_WALL, U5_DOOR_X0, U5_STOOP_X0, U5_FLIGHT_X0, U5_LAND_D
 
 # ---------------- design basis ----------------
-FROST_DEPTH = IN(32)          # bottom of footing below finished grade: CIC-09, RCO R403.1.4.1
+FROST_DEPTH = IN(JUR_CRIT.FROST_DEPTH)   # bottom of footing below finished grade: the jurisdiction's (CIC-09, RCO R403.1.4.1)
 FTG_W, FTG_T = IN(16), IN(8)  # continuous footing; Table R403.1(1) asks 12" for two storeys at 1,500 psf
 WALL_T = IN(8)                # poured concrete foundation wall, RCO R404
 FTG_PROJ = (FTG_W-WALL_T)/2.0 # the footing's projection past each face of the wall

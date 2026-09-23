@@ -1,4 +1,5 @@
-"""RCO Table 301.2(1) for Columbus: the design criteria, once, as numbers.
+"""RCO Table 301.2(1) for Columbus: the design criteria, once, as numbers -- the jurisdiction's,
+so every set here reads the same figures and a set in another city reads its own.
 
 G-001 prints this table and half a dozen other sheets act on it. Before this module the
 figures were typed wherever they were needed: the wind speed in `src/bracing.py`, again
@@ -14,7 +15,7 @@ jurisdiction ever asks for 120, editing G-001's two lines leaves those tables qu
 answering the old question, and the braced-wall lengths printed on S-104 would be the
 ones for a building that is not this one. `bracing.py` asserts the column still applies.
 
-Nothing here imports from the rest of the project, so any module may import this one.
+Nothing here imports a project, so any project module may import this one.
 """
 
 # Wind, RCO Table 301.2(1). Vult is the ULTIMATE design speed; Columbus CIC-09's 90 mph
@@ -37,6 +38,13 @@ GROUND_SNOW = 20                 # psf
 WINTER_DESIGN_LO = 0             # F, the cold end of the table's range: what 903.2 is tested at
 WINTER_DESIGN_HI = 10            # F
 WINTER_DESIGN = '%d TO %d F' % (WINTER_DESIGN_LO, WINTER_DESIGN_HI)
+
+# Frost. The bottom of a footing below finished grade: CIC-09 and RCO R403.1.4.1.
+FROST_DEPTH = 32                 # inches
+
+# Radon. EPA Map of Radon Zones, Franklin County: zone 1, the highest potential, which is why
+# a set here shows the passive sub-slab system of IRC Appendix F.
+RADON_ZONE = 1
 
 # Soil. Presumed, verified at excavation -- S-101 note 9 says so on the drawing.
 # Table 403.1(1)'s footing widths are selected for this value.

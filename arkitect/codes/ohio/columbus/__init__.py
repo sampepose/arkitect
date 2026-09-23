@@ -18,7 +18,8 @@ REVIEWER = 'City of Columbus residential plan reviewer'
 PARCEL_LABEL = 'FRANKLIN COUNTY PARCEL'
 LOT_SOURCE = "the Franklin County Auditor's GIS"      # where an unsurveyed lot's dimensions come from
 LOT_SOURCE_SHORT = "Auditor's GIS"
-ZONING_CODE = 'C.C.'                     # how this city's zoning sections are cited: "C.C. 3332.05"
+ZONING_CODE = 'C.C.'
+WATER_UTILITY = 'COLUMBUS DPU'           # the water utility, whose own service depth may govern                     # how this city's zoning sections are cited: "C.C. 3332.05"
 
 # What the intake asks that only this city can phrase: {path: question} over the generic
 # ones (arkitect/harness/intake.py QUESTIONS).

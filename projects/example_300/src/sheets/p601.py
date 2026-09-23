@@ -7,13 +7,14 @@ from reportlab.lib.colors import black
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from arkitect.codes.ohio import opc_vents as VENT
-from src import criteria as crit
+from arkitect.codes.ohio.columbus import criteria as crit
 from src import drainage as dr
 from src import levels
 from src import plumbing as pm
 from src.foundation import (BAR_COVER, EDGE_INSUL_RUN, FTG_BAR, FTG_BAR_DIA, FTG_PROJ,
                             FTG_W, GRAVEL_T, INSUL_T, SLAB_T, WALL_T)
 from arkitect.codes.ohio.opc_service_entry import entry_for
+from arkitect.codes.ohio import columbus as JUR          # its water utility (SE1)
 from arkitect.codes.ohio.opc_service_entry_draw import (service_entry_elevation, service_entry_notes,
                                                service_entry_section)
 from src.mirror import BED_SIDE, LIVE_SIDE
@@ -271,7 +272,8 @@ def sheet_p601():
                                max_h=4.2*inch)
     ey = service_entry_elevation(ey, ex0, X1, e, ftg_w=FTG_W, bar=FTG_BAR, sheet='P-601')
     ey = service_entry_notes(ex0, ey, ew, e, gravel_t=GRAVEL_T,
-                             bar=FTG_BAR, water_sheets='P-102 AND P-103', layer='P-ANNO-TEXT')
+                             bar=FTG_BAR, water_sheets='P-102 AND P-103', layer='P-ANNO-TEXT',
+                             water_utility=JUR.WATER_UTILITY)
     assert ey >= Y0, "P-601 service entry runs off the sheet by %.2f in" % ((Y0-ey)/inch)
     LAY('P-DOMW-HOTW')   # the layer this sheet left current before the block above:
     c.showPage()         # the next document's first record draws on it, as S-101 does

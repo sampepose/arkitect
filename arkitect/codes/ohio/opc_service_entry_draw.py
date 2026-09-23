@@ -150,17 +150,19 @@ def service_entry_elevation(top, left, right, e, ftg_w, bar, sheet):
     return lo-0.58*inch
 
 
-def service_entry_notes(x, y, width, e, gravel_t, bar, water_sheets, layer, cols=1, located=None):
-    """SE1 to SE6: what a builder does, in the order it is built. `cols` is 1 in a tall
+def service_entry_notes(x, y, width, e, gravel_t, bar, water_sheets, layer, *, water_utility, cols=1,
+                        located=None):
+    """SE1 to SE6: what a builder does, in the order it is built. `water_utility` is the
+       jurisdiction's (its WATER_UTILITY), whose own depth may govern the service. `cols` is 1 in a tall
        narrow column and 2 in a short wide band -- the sheet knows which it has. `located`
        names the sheet that locates each thickened length on plan (thickened_zone()), where
        a set draws one; SE3 then says the return is measured along the footing and turns a
        corner it reaches."""
     return notes_block(x, y, width, [
         'SE1. BURIAL — ONE SERVICE PER BUILDING, LOCATED ON %s. ITS TOP RUNS %s BELOW FINISHED GRADE FROM THE CURB STOP TO THE '
-        'FOOTING: %s UNDER THE %s FROST LINE OF G-001, AND NOT LESS THAN %s BELOW GRADE, OPC 305.4. GO DEEPER IF COLUMBUS DPU '
+        'FOOTING: %s UNDER THE %s FROST LINE OF G-001, AND NOT LESS THAN %s BELOW GRADE, OPC 305.4. GO DEEPER IF %s '
         'REQUIRES IT. THE SERVICE RISES ONLY INSIDE THE FOUNDATION WALL; NO PART OF IT RISES IN OUTSIDE GROUND.'
-        % (water_sheets, inches(e.bury), inches(e.bury-e.frost), inches(e.frost), inches(MIN_COVER)),
+        % (water_sheets, inches(e.bury), inches(e.bury-e.frost), inches(e.frost), inches(MIN_COVER), water_utility),
         'SE2. SLEEVE — %s" NON-METALLIC, %s OUTSIDE, TWO PIPE SIZES LARGER THAN THE SERVICE, OPC 305.3, SET IN THE FOOTING TRENCH '
         'BEFORE THE FOOTING IS POURED AND RUNNING %s PAST EACH FACE. SEAL THE ANNULUS BOTH ENDS. NO CONCRETE BEARS ON THE SERVICE '
         'AND NO JOINT OCCURS INSIDE THE FOOTING, OPC 305.2 AND 305.3.' % (e.sleeve, inches(e.sleeve_od), inches(e.past)),

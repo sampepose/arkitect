@@ -11,7 +11,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src import radon as RN
 from arkitect.codes.ohio.opc_service_entry import entry_for
-from src import criteria as crit
+from arkitect.codes.ohio.columbus import criteria as crit
 from src import drainage as _dr
 from src import levels
 from arkitect.lib.draw.text import wrap_notes

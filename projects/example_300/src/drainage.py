@@ -25,7 +25,7 @@ Nothing here draws.
 import math
 from arkitect.lib.model import fit
 from arkitect.lib.units import IN, fmt, inches
-from src import criteria as crit
+from arkitect.codes.ohio.columbus import criteria as crit
 from src import levels
 from src import plumbing as pm
 from arkitect.lib.model import water as water
