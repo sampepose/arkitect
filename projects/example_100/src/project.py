@@ -1,0 +1,11 @@
+"""100 EXAMPLE ST — the title block and the output names. Everything else it knows comes
+from intake.json through src/sitework.py."""
+from codes.columbus import titleblock
+from src.sitework import INTAKE
+
+ADDRESS = INTAKE["address"]
+TITLEBLOCK = titleblock(INTAKE)
+
+PDF_OUT = "100-Example-permit-set.pdf"
+ZONING_OUT = "100-Example-zoning-site-plan.pdf"
+DXF_OUT = "100-Example-floor-plans.dxf"

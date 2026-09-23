@@ -1,0 +1,74 @@
+{
+ "slug": "example_200",
+ "address": "200 EXAMPLE AVE",
+ "city_line": "COLUMBUS, OHIO 43200",
+ "parcel": "TBD",
+ "street": "EXAMPLE AVENUE",
+ "jurisdiction": "columbus",
+ "district": "R-4",
+ "lot": {
+  "width": 35.0,
+  "depth": 120.0,
+  "corner": true,
+  "alley": true,
+  "alley_width": 20.0,
+  "front_line": 20.0,
+  "survey": false,
+  "side_street": "left",
+  "side_street_line": 5.0
+ },
+ "buildings": [
+  {
+   "name": "BUILDING 1",
+   "role": "principal",
+   "x": 5.0,
+   "y": 20.0,
+   "width": 24.0,
+   "depth": 36.0,
+   "storeys": 2,
+   "dwellings": [
+    {
+     "name": "UNIT 1",
+     "bedrooms": 3
+    }
+   ]
+  },
+  {
+   "name": "BUILDING 2",
+   "role": "adu",
+   "x": 5.0,
+   "y": 74.0,
+   "width": 22.0,
+   "depth": 24.0,
+   "storeys": 1,
+   "dwellings": [
+    {
+     "name": "UNIT 2",
+     "bedrooms": 1
+    }
+   ]
+  }
+ ],
+ "parking": {
+  "stalls": 2,
+  "x0": 10.0,
+  "width": 18.0,
+  "depth": 18.0
+ },
+ "relief": {
+  "lot_width": "VARIANCE REQUESTED",
+  "street_vision": "VARIANCE REQUESTED"
+ },
+ "owner": [
+  "EXAMPLE OWNER LLC",
+  "1 EXAMPLE PLAZA",
+  "COLUMBUS, OH 43200"
+ ],
+ "contractor": [
+  "EXAMPLE CONTRACTOR LLC"
+ ],
+ "decisions": {
+  "all_electric": true
+ },
+ "side_street_name": "SIDE STREET"
+}

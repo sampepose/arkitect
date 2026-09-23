@@ -1,0 +1,20 @@
+# What the build needs, pinned. The PDFs are the product and reportlab's text
+# metrics are load-bearing: A-001 auto-sizes its type to the widest line it
+# measures, C-101 and C-102 assert their column widths, and the title block
+# width-checks every line on both page sizes. A reportlab that measures a string
+# a fraction of a point differently moves drawn dimensions, so a float here is a
+# silent redesign arriving on someone else's schedule.
+#
+# Bumping one is a deliberate change: install it, rebuild, and diff the trace
+# against the previous build before committing. Built and issued on Python 3.12.4.
+reportlab==4.4.9
+
+# lib/export/dxf.py only. Nothing in the issued set depends on it.
+ezdxf==1.4.4
+
+# The dead-import oracle, per CLAUDE.md "Verifying a change".
+pyflakes==3.2.0
+
+# lib/verify/gate.py render only: sheets to PNG for a person or an agent to look at.
+# Nothing in the issued set depends on it.
+pymupdf==1.28.2

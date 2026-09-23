@@ -1,0 +1,236 @@
+{
+ "project": "example_100",
+ "address": "100 EXAMPLE ST",
+ "scaffolded": "2026-09-22",
+ "features": [
+  {
+   "id": "G-001",
+   "title": "COVER, CODE DATA, GENERAL NOTES",
+   "status": "drawn",
+   "guards": [
+    "codes.columbus.fit"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "C-101",
+   "title": "SITE PLAN",
+   "status": "pending",
+   "guards": [
+    "codes.columbus.fit",
+    "codes.ohio.opc_separation"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "C-103",
+   "title": "GRADING AND DRAINAGE PLAN",
+   "status": "pending",
+   "guards": [
+    "lib.model.grade",
+    "codes.ohio.rco.site_steps"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "A-001",
+   "title": "FLOOR PLAN GENERAL NOTES",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.egress"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "A-101",
+   "title": "BUILDING 1 \u2014 FLOOR PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.egress",
+    "codes.clearances",
+    "lib.model.fit"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "A-102",
+   "title": "BUILDING 2 \u2014 FLOOR PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.egress",
+    "codes.clearances",
+    "lib.model.fit"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "A-201",
+   "title": "BUILDING 1 \u2014 EXTERIOR ELEVATIONS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.fire_separation"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "A-202",
+   "title": "BUILDING 2 \u2014 EXTERIOR ELEVATIONS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.fire_separation"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "A-301",
+   "title": "BUILDING SECTIONS AND HEIGHT SCHEDULE",
+   "status": "pending",
+   "guards": [
+    "lib.model.stairs"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "A-601",
+   "title": "ASSEMBLIES AND FIRE SEPARATION SCHEDULE",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.fire_separation"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "A-602",
+   "title": "WINDOW, DOOR AND FINISH SCHEDULES",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.egress"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "S-101",
+   "title": "FOUNDATION PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.concrete",
+    "codes.ohio.opc_service_entry"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "S-102",
+   "title": "FLOOR FRAMING PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.headers",
+    "codes.ohio.rco.floor_checks",
+    "lib.model.fit"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "S-103",
+   "title": "ROOF FRAMING PLANS AND DETAILS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.roof_checks",
+    "codes.ohio.rco.attic_ventilation"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "S-104",
+   "title": "WALL BRACING PLANS AND DETAILS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.bracing"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "M-101",
+   "title": "BUILDING 1 \u2014 MECHANICAL PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.mechanical"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "M-102",
+   "title": "BUILDING 2 \u2014 MECHANICAL PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.rco.mechanical"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "E-101",
+   "title": "BUILDING 1 \u2014 ELECTRICAL PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.nec.dwelling",
+    "codes.nec.load"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "E-102",
+   "title": "BUILDING 2 \u2014 ELECTRICAL PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.nec.dwelling",
+    "codes.nec.load"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "P-101",
+   "title": "SANITARY / UNDER-SLAB PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.opc_drainage",
+    "lib.model.drains"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "P-102",
+   "title": "BUILDING 1 \u2014 WATER SUPPLY PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.water_supply"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "P-103",
+   "title": "BUILDING 2 \u2014 WATER SUPPLY PLANS",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.water_supply"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "P-601",
+   "title": "PLUMBING RISER DIAGRAM AND NOTES",
+   "status": "pending",
+   "guards": [
+    "codes.ohio.opc_vents"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "C-102",
+   "title": "ZONING SITE PLAN \u2014 11 x 17, ISSUED SEPARATELY",
+   "status": "drawn",
+   "guards": [
+    "codes.columbus.fit"
+   ],
+   "notes": ""
+  }
+ ]
+}

@@ -1,0 +1,37 @@
+# arkitect's settings: copy to arkitect.toml (this checkout), ~/.config/arkitect/config.toml
+# (you), or projects/<slug>/arkitect.toml (one project), and change what you need. Every key
+# is optional; harness/config.py holds the defaults and `python3 -m harness.config show`
+# prints what is in force.
+
+[designer]
+# Who confirms a decision among code-legal options (python3 -m harness.decisions): only this
+# person's words move a record to `confirmed`.
+name = "Jane Doe"
+role = "designer of record"
+
+[titleblock]
+# Offered as the default owner and contractor blocks when a new address is started.
+owner = ["EXAMPLE OWNER LLC", "1 EXAMPLE PLAZA", "COLUMBUS, OH 43200"]
+contractor = ["EXAMPLE CONTRACTOR LLC"]
+
+[defaults]
+# Design preferences a new address starts from, unless its intake says otherwise.
+design = ["the cheapest code-compliant option", "all-electric", "every figure on a sheet derived from the model"]
+
+[style]
+# The house style every sheet is held to; the plan reviewer reads it.
+house = "style/house-style.md"
+
+[hooks]
+# The Stop hook, once installed (python3 -m harness.hooks install).
+green_uncommitted = "block"       # block | advise | off   -- work ends green but uncommitted
+red = "block-unattended"          # block | block-unattended | advise | off  -- the gate is red
+
+[identity]
+# Words that must never appear in a shipped file: your name, company, phone, addresses.
+private_words = []
+
+[verify]
+# Lines two of your projects may carry word for word (python3 lib/verify/twins.py). 0 is
+# the rule: share a definition in lib/ or codes/ instead of copying it.
+twins_ceiling = 0
