@@ -1,0 +1,52 @@
+"""M-102 — Building 2 mechanical plans: Unit 4 and Unit 5 side by side, greyed, with
+the heads, fans, ducts, caps and line sets on them; the legend, the schedules and the
+notes."""
+from lib.draw.page import Sheet, end_plans
+from lib.draw.sheets import draw_level
+from reportlab.lib.units import inch
+from src.building2 import B2_W, b2_level
+from src.mechanical import B2_LEVELS
+from lib.draw.kit import Q, X0, X1, Y0, Y1, c
+from src.sheets.m_common import DUCTLESS
+from src.sheets.m_common import (grey_context, notes, outdoor_schedule, place, termination_schedule, title,
+                                 ventilation_schedule)
+from lib.draw.mechanical_kit import legend
+from src.sheets.plans import draw_u5_stair
+
+
+def _level(k, ox, oy):
+    """One Building 2 level as a mechanical background, its work on it. k is 0 for
+       Unit 4 at grade, 1 for Unit 5 above; the Unit 5 stair is drawn on both as A-103
+       draws it."""
+    lv = b2_level(k+1)
+    lv.over_plan = lambda pp, above=(k == 0): draw_u5_stair(pp, B2_W, above=above)
+    def work(p):
+        for m in B2_LEVELS:
+            if m.level == k+1: place(p, m)
+        grey_context(p, B2_W, 28, 'COURTYARD  ·  FACES BUILDING 1  ·  S ELM AVENUE BEYOND',
+                     'PARKING AND ALLEY', 'SAGE AVENUE', 'ADJACENT PARCEL', top_off=5.6)
+    lv.overlay = work
+    return draw_level(c, lv, ox, oy)
+
+
+def sheet_m102():
+    sh = Sheet(c, "M-102", "Building 2 — mechanical plans", "1/4\" = 1'-0\""); sh.frame()
+    oy = Y1-0.55*inch-1.35*inch-28*Q
+    ox1 = X0+1.0*inch
+    ox2 = ox1+26*Q+1.0*inch
+    _level(0, ox1, oy)
+    p2 = _level(1, ox2, oy)
+    end_plans()
+    title(ox1, oy, 'BUILDING 2 — LEVEL 1 — MECHANICAL PLAN  ·  UNIT 4')
+    title(ox2, oy, 'BUILDING 2 — LEVEL 2 — MECHANICAL PLAN  ·  UNIT 5')
+    rx = ox2+26*Q+0.45*inch; rw = X1-0.15*inch-rx
+    ry = Y1-0.35*inch
+    ry = legend(p2, rx, ry, rw, kinds=DUCTLESS)-6
+    ry = outdoor_schedule(rx, ry, rw, 2)
+    ry = ventilation_schedule(rx, ry, rw, 2)
+    ry = termination_schedule(rx, ry, rw, 2)
+    assert ry > Y0, 'M-102 right column runs off the sheet'
+    by = oy-1.22*inch
+    nb = notes(ox1, by, rx-0.3*inch-ox1, see='M-101')
+    assert nb > Y0, 'M-102 notes run off the sheet'
+    c.showPage()

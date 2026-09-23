@@ -28,14 +28,24 @@ widest line -- so a different reportlab can move a drawn dimension. Read
 
 ## Try it
 
-Two example projects ship with the engine, each a scaffolded set on its first day (a cover
-sheet and a zoning site plan, and the feature list that says what to draw next):
+Four example projects ship with the engine. Two are whole permit sets, anonymized copies of
+real ones drawn with it -- every sheet, every model check, every test -- and two are
+scaffolded sets on their first day, the way a new address starts:
 
-    projects/example_100/     100 Example St, an interior lot
-    projects/example_200/     200 Example Ave, a corner lot
+    projects/example_300/     300 S Elm Ave: five units in two buildings on a corner lot,
+                              27 sheets and a zoning site plan
+    projects/example_400/     400 Oak Ave: a house and two stacked ADUs on an interior lot,
+                              24 sheets and a zoning site plan
+    projects/example_100/     100 Example St, an interior lot: cover sheet, zoning site plan,
+                              and the feature list that says what to draw next
+    projects/example_200/     200 Example Ave, a corner lot: the same
+
+In the whole sets the names, addresses, parcels, owners and contractors are fictional; the
+design and the sheets are the real sets'. Build one to a scratch directory, or look at it:
+
+    python3 -m lib.verify.gate render --project example_300 --sheets A-101
 
     python3 -m lib.verify.gate                  # every check, every project, against HEAD
-    python3 -m lib.verify.gate render --project example_100 --sheets G-001   # PNGs to look at
     python3 -m harness.progress next example_100                           # what comes next
 
 `gate` is the one command to trust. It builds every project, records every canvas call of
