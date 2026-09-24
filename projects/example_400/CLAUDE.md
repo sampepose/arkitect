@@ -84,10 +84,10 @@ and the sheets follow or the build fails with the rule named. Oak-specific ones:
   it replaced and two filters to keep instead of four heads to clean). One two-zone system
   on HP-1: `AHU_MARK` is AHU-1 (Level 1) and AHU-2 (Level 2), each a concealed air handler
   in that level's hall soffit (`building1.U1_SOFFIT_ROOMS`, `U1_SOFFIT_DROP` 12",
-  `U1_AHU`; `U1_SOFFIT` is the extent A-101 and M-101 dash -- Level 1's whole hall, Level 2's
-  cross-hall and the corridor back from 6'-6", so the attic hatch stands clear of it at the
-  corridor's front, a design call; Level 2's runs stay in it to sidewall registers in the
-  hall walls, `run_violations()`, a design call), each an `ahu` device on the heat-pump circuit so E-101 and the NEC walk see
+  `U1_AHU`; `U1_SOFFIT` is the extent A-101 and M-101 dash -- each level's whole hall, so
+  the attic hatch rises through Level 2's in a lined chase that `roof.soffit_violations()`
+  holds clear of AHU-2's access panel and every run, a recorded decision; Level 2's runs stay in it to
+  sidewall registers in the hall walls, `run_violations()`, a recorded decision), each an `ahu` device on the heat-pump circuit so E-101 and the NEC walk see
   it. `REGISTERS` holds every supply register and the one return per level, in model feet;
   `ducted_violations()` (from `check_mechanical()`) fails the build if a level has other
   than one air handler, if it stands outside its hall, if a register is not inside the room
@@ -237,7 +237,12 @@ no vertical pipe stands at them, so 912.1.1 was never available. `BATH2_BRANCH` 
 `BATH2_CONNS` in `src/drainage.py` are now ONE branch on the closet flange's line -- far
 lavatory, near lavatory, closet, tub -- to stack A's top, 2" to the closet and 3" from it
 (Table 912.3), with **V-E** in the hall partition behind the far lavatory as its dry
-vent, nothing upstream of it (912.2.1), rising to tie into stack A's vent in the attic.
+vent, nothing upstream of it (912.2.1). **Stack A ends at that branch and has no vent of its
+own** (a recorded decision, 2026-09-24): its top is under the tub, so a vent of its own would leave it sideways
+inside the Level 2 floor below every rim in the room, which 905.4 does not allow. V-E rises in
+the partition through the roof as the group's vent (`ENDS_AT_BRANCH`, `roof_vent_list()`), and
+V-F and V-A join it in the attic (`tie_target()`: a dry vent may tie into another that reaches
+the roof); the riser draws it with `Cell(ends=True)`, engine 0.4.0.
 `FLOOR_BRANCHES` keeps stack A out of `vertical_wet_groups()`, `floor_branch_bottom()` holds
 the branch inside the truss webs between the chords (its bottom 8" under the SUBFLOOR
 against the bottom chord at 13-1/4", so deepening the branch or shallowing the trusses stops

@@ -53,6 +53,18 @@ def _height(z):
     return '%s %s THE FLOOR' % (inches(abs(z)), 'OVER' if z >= -1e-9 else 'UNDER')
 
 
+def _cell_of(dv):
+    """The stack whose riser cell draws a dry vent: the stack it ties into, the vent-only stack
+       it stands on (V-B on B), the stack its floor branch drains to (V-E, Bath 2's head, on A),
+       or the cell of the vent it joins (V-A and V-F join V-E, a recorded decision)."""
+    if dv.mark in [m for m, _u, _l in dr.FLOOR_BRANCHES.values()]:
+        return next(s for s, (m, _u, _l) in dr.FLOOR_BRANCHES.items() if m == dv.mark)
+    t = dr.tie_target(dv)
+    if t is None:
+        return dv.mark[-1]
+    return t[1].name if t[0] == 'stack' else _cell_of(t[1])
+
+
 def _units_at(b, cell_stack, level):
     """The dwellings this cell draws at a level: the riser's level line names them."""
     out = []
@@ -61,8 +73,7 @@ def _units_at(b, cell_stack, level):
             continue
         out += [u for u, l, _ks in st.serves if l == level]
     for dv in dr.DRY_VENTS:
-        if dv.building == b.number and (dv.ties_into == cell_stack
-                                        or (dv.ties_into is None and dv.mark[-1] == cell_stack)):
+        if dv.building == b.number and _cell_of(dv) == cell_stack:
             out += [u for u, l, _ks in dv.serves if l == level]
     return sorted(set(out))
 
@@ -98,7 +109,7 @@ def _slabs(b, name):
     for dv in dr.DRY_VENTS:
         if dv.building != b.number:
             continue
-        if dv.ties_into != name and not (dv.ties_into is None and dv.mark[-1] == name):
+        if _cell_of(dv) != name:
             continue
         if dv.mark in dr.FLOOR_VENTS:             # a Level 2 vent, drawn in its floor by _floors()
             continue
@@ -109,8 +120,10 @@ def _slabs(b, name):
         else:
             fixes = [DRAW.Fix(FIX[k], '') for _u, _l, ks in dv.serves for k in ks]
             method = INDIVIDUAL
-        tie = ('TIES IN %s OVER THE RIM, 905.4' % inches(VENT.DRY_VENT_RISE)
-               if dv.ties_into else None)
+        t = dr.tie_target(dv)
+        tie = (None if t is None else
+               'TIES INTO %s IN THE ATTIC, 905.4' % t[1].mark if t[0] == 'vent' else
+               'TIES IN %s OVER THE RIM, 905.4' % inches(VENT.DRY_VENT_RISE))
         out.append(DRAW.Slab(dv.mark, dv.size+'"', method, fixes, tie))
     return out
 
@@ -128,8 +141,12 @@ def _floors(b, name):
         v = next(d for d in dr.DRY_VENTS if d.mark == vm)
         vents[i] = (v.mark, v.size+'"')
     fixes = [DRAW.Fix(FIX[cn.kind], '', vents.get(i)) for i, cn in enumerate(group[1])]
-    return (DRAW.Floor(level, mark, dv.size+'"', HORIZONTAL+', IN THE FLOOR', fixes,
-                       'TIES INTO STACK %s IN THE ATTIC, 905.4' % name),)
+    if name in dr.ENDS_AT_BRANCH:               # the head vent is the group's, through the roof
+        joins = sorted(d.mark for d in dr.DRY_VENTS if d.ties_into == mark)
+        tie = '%s THROUGH THE ROOF, %s JOIN IT IN THE ATTIC, 905.4' % (mark, ' AND '.join(joins))
+    else:
+        tie = 'TIES INTO STACK %s IN THE ATTIC, 905.4' % name
+    return (DRAW.Floor(level, mark, dv.size+'"', HORIZONTAL+', IN THE FLOOR', fixes, tie),)
 
 
 def _branch_pt(d):
@@ -203,7 +220,7 @@ def bath2_isometric(x, y, w, h):
             away = 'r' if (trap[0]-trap[1]) > (to[0]-to[1]) else 'l'
             nodes.append(DRAW.INode(trap+(weir,), 'trap', '%s, ARM %s' % (name, fmt(arm)), away))
             nodes.append(DRAW.INode(to+(tee,), 'tee', '%s %s" SAN TEE' % (dv.mark, dv.size), 'r'))
-            vent_tops.append(to+(tee+VENT_UP,))
+            vent_tops.append((to+(tee+VENT_UP,), dv))
         elif k == 'wc':                               # its bend hangs in the floor; 909.2 excepts it
             segs.append(DRAW.ISeg(trap+(0.0,), at+(zc,), dr.TRAP_SIZE[k], 'drain'))
             nodes.append(DRAW.INode(trap+(0.0,), 'bend', 'WC — FLANGE ON THE SUBFLOOR', 'u'))
@@ -220,9 +237,14 @@ def bath2_isometric(x, y, w, h):
     segs.append(DRAW.ISeg(_branch_pt(end)+(zb(end),), foot, _branch_size(end), 'drain'))
     nodes.append(DRAW.INode(foot, 'break', 'STACK A %s" TO THE BUILDING DRAIN, P-101'
                             % _fmt_size(_branch_size(end)), 'l'))
-    for p in vent_tops:
+    for p, _dv in vent_tops:
         nodes.append(DRAW.INode(p, 'break', '', 'u'))
-    labels.append(DRAW.ILabel(vent_tops[0], 'TO STACK A\'S VENT IN THE ATTIC, 905.4', 'r', True))
+    # each lavatory's vent, by what it does: the head's through the roof, the other into it
+    for p, dv in vent_tops:
+        t = dr.tie_target(dv)
+        text = ('UP THROUGH THE ROOF, %s" AT THE ROOF' % VENT.roof_size(dv.size, crit.WINTER_DESIGN_LO)
+                if t is None else 'TO %s IN THE ATTIC, 905.4' % (t[1].mark if t[0] == 'vent' else 'STACK %s' % t[1].name))
+        labels.append(DRAW.ILabel(p, '%s %s' % (dv.mark, text), 'r', True))
     # ---- the figures a trade builds to: on the pipe where they are short, under it where
     # they are not. A long string at a point lands wherever the projection puts it.
     secs = dr.floor_branch_sections()
@@ -263,10 +285,14 @@ def risers():
                 levels[lv] = 'LEVEL %d%s' % (lv, ' — '+', '.join(who) if len(who) == 1 else '')
             # OPC 903.2: the size at the ROOF, which at this winter design temperature is
             # not the size of the pipe below it. Where they differ the increaser is drawn.
-            roof = VENT.roof_size(st.size, crit.WINTER_DESIGN_LO)
+            # a stack that ends at its branch goes through the roof as that branch's head vent
+            ends = st.name in dr.ENDS_AT_BRANCH
+            up = (next(d for d in dr.DRY_VENTS if d.mark == dr.FLOOR_BRANCHES[st.name][0]).size
+                  if ends else st.size)
+            roof = VENT.roof_size(up, crit.WINTER_DESIGN_LO)
             vtr = roof+'" VTR'+(' — %s" STACK VENT, 913.3' % st.size if waste else '')
-            increaser = ('%s" x %s" INCREASER, NOTE 1d' % (st.size, roof)
-                         if roof != st.size else '')
+            increaser = ('%s" x %s" INCREASER, NOTE 1d' % (up, roof)
+                         if roof != up else '')
             note = ''
             if waste:
                 foot = next(p for p in b.pens if p.mark == st.foot)
@@ -279,7 +305,7 @@ def risers():
                 hangs=_hangs(b, st), slabs=_slabs(b, st.name),
                 span='NO OFFSET, 913.2' if waste else None, note=note,
                 foot='TO THE DRAIN, P-101' if st.foot is not None else '',
-                increaser=increaser, floors=_floors(b, st.name)))
+                increaser=increaser, floors=_floors(b, st.name), ends=ends))
     return out
 
 
@@ -367,8 +393,10 @@ def plumbing_notes():
      "V-A RISES IN THE SAME CHASE BESIDE IT. BATH 2 DRAINS TO ITS TOP ON ONE BRANCH THROUGH THE FLOOR TRUSSES' OPEN "
      "WEBS, S-102 — A HORIZONTAL WET VENT, NOTE 1x. V-E STANDS IN BATH 2'S HALL PARTITION BEHIND THE FAR LAVATORY "
      "AND V-F BEHIND THE NEAR ONE; NO LAVATORY DRAIN RUNS IN A WALL AND NO CHASE IS NEEDED. THE ISOMETRIC DRAWS THE "
-     "GROUP AND HOW EACH TRAP IS VENTED; P-102 DRAWS IT ENLARGED IN PLAN. ABOVE THAT FLOOR STACK A'S VENT OFFSETS "
-     "INTO THAT SAME PARTITION." % inches(CHASE),
+     "GROUP AND HOW EACH TRAP IS VENTED; P-102 DRAWS IT ENLARGED IN PLAN. STACK A ENDS AT THAT BRANCH, UNDER THE "
+     "TUB, AND HAS NO VENT OF ITS OWN: V-E RISES IN THE PARTITION THROUGH THE ROOF AS THE GROUP'S VENT, AND V-F AND "
+     "V-A JOIN IT IN THE ATTIC. V-A LEAVES THE CHASE IN THE LEVEL 2 FLOOR'S WEBS, WELL OVER THE KITCHEN SINK'S RIM, "
+     "AND RISES IN THE SAME PARTITION AT THE TUB'S END." % inches(CHASE),
      "1aa. STACK E STANDS IN THE CHASE DRAWN ON A-102 AT THE BACK OF EACH KITCHEN COUNTER, PAST THE WINDOW OVER THE "
      "SINKS, INSIDE THAT WALL'S INSULATION AND ITS RATED MEMBRANE, A-601. STACK F, 3\" BECAUSE IT TAKES THE WASHERS "
      "(OPC 406.2), STANDS IN THE NORTH WALL'S STUD CAVITY BEHIND THE WASHERS, CLEAR OF THE DRYER DUCT (M-102), "

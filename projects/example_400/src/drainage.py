@@ -199,7 +199,11 @@ F_SIZE = '3'
 # FITTING sits in front of it, so the stack's centreline is one fill plus half a hub in from
 # the exterior stud face. Held to the stud face instead, a hub stood 1/2" proud of the framing
 # and left the fill 1/2" short, and nothing said so -- the check measured the straight pipe.
-F_POS = (envelope.STACK_BAY_FILL+pipe.fitting_od(F_SIZE)/2.0, U2_WD.y+U2_WD.h-IN(5))
+# Along the wall it stands on the bay's centreline as A-102 draws it (building2.stack_bay_rect()),
+# which is laid out 5" in from the washer's back corner. Read from this model's own copy of the
+# washer instead, it stood 1/4" off the bay, the two mappings of one rectangle.
+_BAY = B2M.stack_bay_rect()
+F_POS = (envelope.STACK_BAY_FILL+pipe.fitting_od(F_SIZE)/2.0, _BAY[1]+_BAY[3]/2.0)
 F_FOOT = (E_FOOT[0]+IN(5), F_POS[1])
 D_POS = (U2_WC.x+U2_WC.w/2.0, U2_WC.y+U2_WC.h+IN(2))   # in the bath's rear wall
 WC2 = (D_POS[0], D_POS[1]-IN(15))
@@ -430,12 +434,12 @@ def floor_branch_bottom():
 
 
 DRY_VENTS = [
-    DryVent('V-A', 1, V_A_POS, '2', (('UNIT 1', 1, ('sink',)),),                'A', 'sink'),
+    DryVent('V-A', 1, V_A_POS, '2', (('UNIT 1', 1, ('sink',)),),                'V-E', 'sink'),
     DryVent('V-B', 1, B_POS,   '2', (('UNIT 1', 1, ('lav', 'wc', 'shower')),),  None, 'lav'),
     DryVent('V-C', 1, V_C_POS, '2', (('UNIT 1', 1, ('wd',)),),                  'B', 'wd'),
     DryVent('V-D', 2, V_D_POS, '2', (('UNIT 2', 1, ('lav', 'wc', 'tub')),),     'D', 'lav'),
-    DryVent('V-E', 1, V_E_POS, '2', (('UNIT 1', 2, ('lav', 'lav', 'wc', 'tub')),), 'A', 'lav'),
-    DryVent('V-F', 1, V_F_POS, '1-1/2', (('UNIT 1', 2, ('lav',)),), 'A', 'lav'),
+    DryVent('V-E', 1, V_E_POS, '2', (('UNIT 1', 2, ('lav', 'lav', 'wc', 'tub')),), None, 'lav'),
+    DryVent('V-F', 1, V_F_POS, '1-1/2', (('UNIT 1', 2, ('lav',)),), 'V-E', 'lav'),
 ]
 
 # What each below-slab fixture's trap arm runs to its vent, and the trap that measures it:
@@ -509,13 +513,26 @@ def _od(size):
     return _OD[size]
 
 
-# Where each dry vent ties into its stack's vent, from Level 1's finished floor: clear of
-# every fixture on the stack by 905.4's 6", which puts it in the Level 2 wall.
-TIE_Z = {'V-A': levels.FLOOR_RISE+IN(37),   # over Bath 2's lavatory rim, in the Level 2 wall
+# Where each dry vent ties into the vent it joins, from Level 1's finished floor: clear of
+# every fixture that vent serves by 905.4's 6".
+TIE_Z = {'V-A': levels.ROOF_PLATE-levels.FF1+IN(12),   # into V-E in the attic, a recorded decision
          'V-C': IN(48),                     # over the standpipe's own rim, in the Level 1 wall
          'V-D': levels.FLOOR_RISE+IN(37),   # over Unit 3's lavatory rim
-         'V-E': levels.ROOF_PLATE-levels.FF1+IN(12),   # in the attic, where stack A's vent comes up
-         'V-F': levels.ROOF_PLATE-levels.FF1+IN(12)}   # beside it: the near lavatory's own vent
+         'V-F': levels.ROOF_PLATE-levels.FF1+IN(12)}   # into V-E in the attic: the near lavatory's own vent
+
+
+def tie_target(dv):
+    """What a dry vent ties into: ('stack', the Stack) or ('vent', the DryVent), or None where
+       it goes through the roof itself. A vent may join another DRY VENT that does -- V-F and
+       V-A join V-E, which is Bath 2's group vent now that stack A ends at the branch."""
+    if dv.ties_into is None:
+        return None
+    b = next(x for x in BUILDINGS if x.number == dv.building)
+    st = next((x for x in b.stacks if x.name == dv.ties_into), None)
+    if st is not None:
+        return ('stack', st)
+    to = next((x for x in DRY_VENTS if x.mark == dv.ties_into and x.building == dv.building), None)
+    return ('vent', to) if to is not None else None
 
 
 def _fixture_at(b, unit, level, kind):
@@ -581,12 +598,11 @@ def vent_ties():
        level rim on that stack), from the first floor's finished floor. 905.4 wants 6\"."""
     out = []
     for dv in DRY_VENTS:
-        if dv.ties_into is None:                        # V-B goes to the roof on its own
-            continue
-        b = next(x for x in BUILDINGS if x.number == dv.building)
-        stack = next(st for st in b.stacks if st.name == dv.ties_into)
+        target = tie_target(dv)
+        if target is None or dv.mark not in TIE_Z:     # V-B and V-E go to the roof on their own;
+            continue                                    # a tie with no height is vent_violations()'s
         rims = [levels.FLOOR_RISE*(l-1)+opc_vents.FLOOD_RIM[k]
-                for _u, l, ks in stack.serves for k in ks]
+                for _u, l, ks in target[1].serves for k in ks]
         rims += [levels.FLOOR_RISE*(l-1)+opc_vents.FLOOD_RIM[k]
                  for _u, l, ks in dv.serves for k in ks]
         out.append((dv.mark, TIE_Z[dv.mark], max(rims)))
@@ -758,10 +774,26 @@ def waste_stacks():
     return out
 
 
-# Every stack reaches a roof here: no vent joins another in the attic, the dry vents ride
-# Every stack reaches a roof here: no vent joins another in the attic, the dry vents ride
-# the stack they tie into, and V-B goes up on stack B. One roof penetration per stack.
+# No stack joins another in the attic; V-B goes up on stack B. One roof penetration per
+# stack, less a stack that ENDS at the floor branch it carries: it has no vent of its own, and
+# that branch's head vent is the group's, through the roof itself. Stack A's top is
+# under Bath 2's tub, so a vent of its own would leave it sideways inside the Level 2 floor,
+# under every flood rim in the room, which 905.4 does not allow a dry vent.
 ATTIC_TIES = {}
+ENDS_AT_BRANCH = ('A',)
+
+
+def roof_vent_list():
+    """(mark, size at the roof, size below) for every vent through a roof: the stacks that
+       have a vent, and each dry vent that goes up on its own without a stack under it."""
+    vents = opc_vents.roof_vents(BUILDINGS, set(ATTIC_TIES) | set(ENDS_AT_BRANCH), crit.WINTER_DESIGN_LO)
+    for b in BUILDINGS:
+        names = [s.name for s in b.stacks]
+        for dv in DRY_VENTS:
+            if dv.building == b.number and dv.ties_into is None and dv.mark[-1] not in names:
+                vents.append(('%s vent %s' % (b.name, dv.mark),
+                              opc_vents.roof_size(dv.size, crit.WINTER_DESIGN_LO), dv.size))
+    return vents
 
 
 def vent_violations():
@@ -769,8 +801,7 @@ def vent_violations():
        far a trap stands from it (Table 909.1), how high it rises before it joins the stack
        vent (905.4) and its size at the roof (903.2). Its geometry too: inside its chase,
        clear of its stack."""
-    v = opc_vents.roof_vent_violations(
-        opc_vents.roof_vents(BUILDINGS, ATTIC_TIES, crit.WINTER_DESIGN_LO), crit.WINTER_DESIGN_LO)
+    v = opc_vents.roof_vent_violations(roof_vent_list(), crit.WINTER_DESIGN_LO)
     for b in BUILDINGS:
         slab = sorted((u, l, k) for p in b.pens if p.kind in ('drop', 'wc', 'tub') for u, l, ks in p.serves for k in ks)
         vented = {(u, l, k) for dv in DRY_VENTS if dv.building == b.number
@@ -779,8 +810,21 @@ def vent_violations():
         if missing:
             v.append('%s: nothing vents %s, which drains below the slab' % (b.name, missing))
         for dv in DRY_VENTS:
-            if dv.building == b.number and dv.ties_into and dv.ties_into not in [s.name for s in b.stacks]:
-                v.append('%s: vent %s ties into stack %s, which it has not got' % (b.name, dv.mark, dv.ties_into))
+            if dv.building == b.number and dv.ties_into and tie_target(dv) is None:
+                v.append('%s: vent %s ties into %s, which it has not got' % (b.name, dv.mark, dv.ties_into))
+            t = tie_target(dv) if dv.building == b.number else None
+            if t and dv.mark not in TIE_Z:
+                v.append('%s: vent %s ties into %s at no stated height (TIE_Z)' % (b.name, dv.mark, dv.ties_into))
+            if t and t[0] == 'vent' and t[1].ties_into is not None:
+                v.append('%s: vent %s ties into %s, which does not reach the roof itself'
+                         % (b.name, dv.mark, dv.ties_into))
+        for st in b.stacks:                         # a stack that ends at its branch: the head vent goes up
+            if st.name in ENDS_AT_BRANCH:
+                head = FLOOR_BRANCHES.get(st.name, (None,))[0]
+                hv = next((d for d in DRY_VENTS if d.mark == head), None)
+                if hv is None or hv.ties_into is not None:
+                    v.append('%s: stack %s ends at its branch, and the branch\'s head vent does not '
+                             'go through the roof' % (b.name, st.name))
     # 912 / 913: nothing on a lower level is vented BY a stack that drains a level above it.
     # A waste stack vent is the one thing that does vent every fixture on it, so E and F
     # are handed over to 913 by name -- drop either from WASTE_STACKS and this rule fails
@@ -814,15 +858,16 @@ def vent_violations():
     v += opc_vents.waste_stack_violations(waste_stacks())
     # the pipe has to fit where it is drawn: clear of its stack, inside the chase that holds it
     for dv in DRY_VENTS:
-        if dv.ties_into is None:
+        t = tie_target(dv)
+        if t is None:
             continue
         b = next(x for x in BUILDINGS if x.number == dv.building)
-        st = next(x for x in b.stacks if x.name == dv.ties_into)
-        gap = math.hypot(dv.at[0]-st.pos[0], dv.at[1]-st.pos[1])
-        need = (_od(dv.size)+_od(st.size))/2.0
+        at, size = (t[1].pos, t[1].size) if t[0] == 'stack' else (t[1].at, t[1].size)
+        gap = math.hypot(dv.at[0]-at[0], dv.at[1]-at[1])
+        need = (_od(dv.size)+_od(size))/2.0
         if gap < need-1e-9:
-            v.append('%s: vent %s stands %s from stack %s, inside the two pipes\' %s'
-                     % (b.name, dv.mark, fmt(gap), st.name, fmt(need)))
+            v.append('%s: vent %s stands %s from %s, inside the two pipes\' %s'
+                     % (b.name, dv.mark, fmt(gap), t[1].name if t[0] == 'stack' else t[1].mark, fmt(need)))
     return v
 
 

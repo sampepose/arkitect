@@ -131,7 +131,7 @@ def _roof(p, roof):
         cc.setFillColor(black); cc.setFont('Helvetica', 4.2)
         cc.drawString(p.X(x)+4, p.Y(y)+3.5, nm)
     for h in roof.hatches:
-        draw_attic_hatch(p, h)
+        draw_attic_hatch(p, h, chase=False)
 
 
 # ================================ the details ================================
@@ -284,7 +284,10 @@ def _notes_text():
 
         f'7. Attic access, RCO 807.1: one {inches(HATCH_W)} x {inches(HATCH_L)} rough opening with 30" headroom in each attic, '
         'drawn: Unit 1 and Unit 3, each in its Level 2 hall. Between two trusses, '
-        f'the {inches(HATCH_W)} across them; 2x4 headers, an insulation dam, a weatherstripped and insulated cover, RCO 1102.2.4.',
+        f'the {inches(HATCH_W)} across them; 2x4 headers, an insulation dam, a weatherstripped and insulated cover, RCO 1102.2.4. '
+        "Unit 1's opens in the Level 2 hall soffit and rises through it in a chase the size of the rough opening, "
+        'framed in 2x4 and lined with 1/2" gypsum, the cover at the ceiling above; the chase clears the air handler\'s '
+        'access panel and every supply duct, M-101.',
 
         f'8. Insulation: R-49 blown over the ceiling, {inches(INSUL_DEPTH)} nominal, full depth over the plates on the '
         'raised heel, A-602; 5/8" gypsum ceiling, A-601 R1.',

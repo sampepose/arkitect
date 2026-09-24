@@ -94,7 +94,13 @@ class StackBayPlanTests(unittest.TestCase):
     # ---------------- the stack it is framed for ----------------
     def test_stack_f_s_fitting_lies_between_the_bay_s_studs(self):
         self.assertEqual(self.violations(), [])
-        self.assertEqual(len(self.violations(stack_cl=self.dr.F_POS[1]+5.0/12)), 1)
+        # centred in the bay since a recorded decision's quarter inch was taken out: past its margin a side, a stud
+        from arkitect.lib.model import pipe
+        _, _y, _, h = self.b2.stack_bay_rect()
+        margin = (h-2*self.b2.envelope.STUD_T-pipe.fitting_od(self.dr.F_SIZE))/2.0
+        self.assertAlmostEqual(self.dr.F_POS[1], _y+h/2.0)
+        self.assertEqual(self.violations(stack_cl=self.dr.F_POS[1]+margin), [])
+        self.assertEqual(len(self.violations(stack_cl=self.dr.F_POS[1]+margin+1.0/12)), 1)
 
     def test_the_laundry_supply_run_still_ends_short_of_the_washer(self):
         """It was typed, and the appliance moved out from under it."""

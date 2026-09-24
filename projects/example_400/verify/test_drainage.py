@@ -385,6 +385,37 @@ class StackInCavityTests(unittest.TestCase):
             self.assertIn('R-%d' % E.CAVITY_BATT_R, row)
 
 
+class StackAEndsAtItsBranchTests(unittest.TestCase):
+    """a recorded decision: stack A's top is under Bath 2's tub, so a vent of its own would leave it sideways
+       inside the Level 2 floor below every rim in the room (905.4). It ends at the branch; V-E,
+       the branch's head vent, rises in the partition through the roof, and V-F and V-A join it
+       in the attic."""
+
+    def test_stack_a_has_no_roof_vent_and_v_e_has_one(self):
+        from src import drainage as dr
+        self.assertEqual(dr.vent_violations(), [])
+        self.assertIn('A', dr.ENDS_AT_BRANCH)
+        marks = [m for m, _roof, _below in dr.roof_vent_list()]
+        self.assertNotIn('BUILDING 1 stack A', marks)
+        self.assertIn('BUILDING 1 vent V-E', marks)
+        joins = {d.mark: d.ties_into for d in dr.DRY_VENTS if d.mark in ('V-A', 'V-E', 'V-F')}
+        self.assertEqual(joins, {'V-A': 'V-E', 'V-E': None, 'V-F': 'V-E'})
+        for mark, z, rim in dr.vent_ties():
+            if mark in ('V-A', 'V-F'):
+                self.assertGreaterEqual(z, rim+6.0/12-1e-9)
+
+    def test_the_head_vent_tied_back_into_stack_a_fails_the_build(self):
+        from src import drainage as dr
+        keep = list(dr.DRY_VENTS)
+        try:
+            dr.DRY_VENTS[:] = [d._replace(ties_into='A') if d.mark == 'V-E' else d for d in keep]
+            v = dr.vent_violations()
+            self.assertTrue(any("head vent does not go through the roof" in x for x in v), v)
+            self.assertTrue(any("does not reach the roof itself" in x for x in v), v)
+        finally:
+            dr.DRY_VENTS[:] = keep
+
+
 class Bath2WeirTests(unittest.TestCase):
     """OPC 909.2 on Bath 2: both lavatory traps stand over the Level 2 floor and the branch
        runs inside it, so the branch cannot be their vent. Each has one in the partition

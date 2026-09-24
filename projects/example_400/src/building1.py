@@ -424,25 +424,31 @@ for _lv in LEVEL.values():
 # Each level's hall soffit, as rectangles (x0, y0, x1, y1) in model feet: the ceiling
 # dropped U1_SOFFIT_DROP under the air handler and the runs that leave it. Level 1's is the
 # whole hall; its runs leave it up into the floor trusses. Level 2 has the attic over it,
-# where no duct may go (A-602), so its soffit carries every run to its room's hall wall: the
-# cross-hall, where the air handler hangs, and the corridor from the cross-hall to Bedroom
-# 2's wall, stopping Y_COR_SOFFIT from the front face -- 6" past the truss at 6'-0" that
-# frames the attic hatch's bay, so the hatch keeps the full ceiling.
-Y_COR_SOFFIT = 6.5
+# where no duct may go (A-602), so its soffit carries every run to its room's hall wall
+#, and it too is the whole hall, HALL_L2 as four rectangles (the designer, 2026-09-24: a
+# soffit over most of a hall and not the rest would look odd): the cross-hall, where the air
+# handler hangs; the corridor from the front wall to it; the landing at the stair's head; and
+# the floor between the well and the cross-hall. The attic hatch rises through it in a lined
+# chase, clear of the air handler and every run (a recorded decision, roof.soffit_violations()).
 U1_SOFFIT = {1: ((X_HALL0, Y_RB, X_HALL1, Y_REAR),),
-             2: ((0.5, Y_HALL0, 19.5, Y_HALL), (X_COR0, Y_COR_SOFFIT, X_COR1, Y_HALL0))}
+             2: ((0.5, Y_HALL0, 19.5, Y_HALL), (X_COR0, 0.5, X_COR1, Y_HALL0),
+                 (X_COR1, 0.5, 19.5, Y_TOP_RISER), (X_COR1, Y_WELL, 19.5, Y_HALL0))}
 
 
 def soffit_pages(level):
     """A level's hall soffit in page feet, one (x0, y0, x1, y1) per rectangle: its corners
        are wall faces, so they go through the plan's regrid as the walls do, then the sheet
        mirror."""
+    return [page_rect(level, r) for r in U1_SOFFIT[level]]
+
+
+def page_rect(level, r):
+    """A rectangle (x0, y0, x1, y1) in a level's model feet, in page feet: its corners
+       through the plan's regrid, as the walls go, then the sheet mirror."""
     P = LEVEL[level]['plan']
-    out = []
-    for x0, y0, x1, y1 in U1_SOFFIT[level]:
-        xa, xb = B1_W-P.x(x0, y0), B1_W-P.x(x1, y1)
-        out.append((min(xa, xb), P.y(y0), max(xa, xb), P.y(y1)))
-    return out
+    x0, y0, x1, y1 = r
+    xa, xb = B1_W-P.x(x0, y0), B1_W-P.x(x1, y1)
+    return (min(xa, xb), P.y(y0), max(xa, xb), P.y(y1))
 
 
 def soffit_outline(level):

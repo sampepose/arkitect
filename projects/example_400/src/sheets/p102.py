@@ -27,6 +27,16 @@ BATH2_SC = 0.375*inch                  # 3/8" = 1'-0"
 ANNO = 7.0
 
 
+
+def _where_up(vents):
+    """Where each lavatory's vent goes, from the model: the roof, or the vent it joins."""
+    out = []
+    for v in vents:
+        t = dr.tie_target(v)
+        out.append('%s TO THE ROOF' % v.mark if t is None else
+                   '%s INTO %s' % (v.mark, t[1].mark if t[0] == 'vent' else 'STACK '+t[1].name))
+    return ', '.join(out)
+
 def _bath2(x, y, width):
     """ENLARGED PLAN -- BATH 2, DRAIN, WASTE AND VENT: the stack, the lavatories' routes and
        the chase question P-601 note 1a answers, drawn from src/drainage.py's branch. Page
@@ -98,8 +108,8 @@ def _bath2(x, y, width):
         if below: c.line(X(v.at[0]), Y(v.at[1])-2.0, X(v.at[0]), Y(y_hi)-2.0)
         else:     c.line(X(v.at[0]), Y(v.at[1])+2.0, X(v.at[0]), Y(y_lo)+2.0)
     knockout(X(vents[0].at[0])-2.0, Y(y_hi)-2.0-ANNO if below else Y(y_lo)+4.0,
-             "%s — ONE PER LAVATORY, UP IN THE WALL TO STACK A IN THE ATTIC"
-             % ", ".join('%s %s"' % (v.mark, v.size) for v in vents), "Helvetica-Bold", ANNO)
+             "%s — ONE PER LAVATORY, IN THE WALL: %s"
+             % (", ".join('%s %s"' % (v.mark, v.size) for v in vents), _where_up(vents)), "Helvetica-Bold", ANNO)
     knockout(X(dr.A_POS[0])-6.0, Y(dr.A_POS[1])-2.0, "STACK A 3\" — ITS TOP, UNDER THE TUB",
              "Helvetica-Bold", ANNO, align="r")
     secs = dr.floor_branch_sections()

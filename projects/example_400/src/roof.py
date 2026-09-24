@@ -146,11 +146,35 @@ def _wh(r):
     return (r[0], r[1], r[2]-r[0], r[3]-r[1])
 
 
+CHASE_CLR = IN(4)          # a hatch's chase to a run's centerline: half a 6" duct, and an inch
+
+
+def in_hall_soffit(h):
+    """Does a hatch open in Unit 1's Level 2 hall soffit, and so rise through it in a chase?"""
+    return any(rects_overlap(_wh(h.page), _wh(r)) for r in soffit_pages(2)) if h.unit == 'UNIT 1' else False
+
+
 def soffit_violations(hatches):
-    """Unit 1's hatch may not open into the Level 2 hall soffit: that is where AHU-2 and
-       its runs are, between the ceiling and the attic the hatch is for."""
-    return ['%s: hatch in the hall soffit, over the air handler and its runs' % h.unit
-            for h in hatches if any(rects_overlap(_wh(h.page), _wh(r)) for r in soffit_pages(2))]
+    """Unit 1's Level 2 hall is all soffit, so its hatch rises through it in a lined chase
+       (a recorded decision, S-103 note 7): the chase may not take the room AHU-2 is lowered out through
+       (its access panel) or come within CHASE_CLR of a supply run's centerline."""
+    from arkitect.lib.model.runs import in_rect, points
+    from src import mechanical as M
+    from src.building1 import page_rect
+    from src.electrical import LEVEL_U1_L2
+    panels = [page_rect(2, M.ahu_panel(2, d.x, d.y)) for d in LEVEL_U1_L2.devices if d.kind == 'ahu']
+    runs = [pts for m in M.B1_LEVELS if (m.unit, m.level) == (1, 2) for _reg, pts in m.runs]
+    bad = []
+    for h in hatches:
+        if not in_hall_soffit(h):
+            continue
+        x0, y0, x1, y1 = h.page
+        grown = (x0-CHASE_CLR, y0-CHASE_CLR, x1-x0+2*CHASE_CLR, y1-y0+2*CHASE_CLR)
+        if any(rects_overlap(_wh(h.page), _wh(pn)) for pn in panels):
+            bad.append("%s: the hatch's chase takes the air handler's access panel" % h.unit)
+        if any(in_rect(q, grown) for pts in runs for q in points(pts)):
+            bad.append("%s: the hatch's chase stands on a supply run" % h.unit)
+    return bad
 
 
 def check_roof():

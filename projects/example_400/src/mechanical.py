@@ -198,10 +198,14 @@ AHU_MARK = {(1, 1): 'AHU-1', (1, 2): 'AHU-2'}      # one zone per level, M-101
 # off the thermostat, RCO 1103.1's CONTROL_REG_CLR. Level 1's are ceiling registers, fed
 # through the floor trusses over it.
 _SW = 0.3                         # a sidewall register's centre off its wall's stud face
+# Bedroom 2's register stands on its corridor wall between the closet and this point, 6" past
+# the truss at 6'-0" that frames the attic hatch's bay, so its run ends short of the hatch's
+# chase (roof.soffit_violations(), a recorded decision)
+Y_BR2_REG_FROM = 6.5
 REGISTERS = {
     (1, 1): [(6.0, 4.5,  'LIVING / KITCHEN / DINING'), (6.5, 19.5, 'LIVING / KITCHEN / DINING'),
              (18.05, 27.5, 'BATH 1'), (12.25, 26.07, 'HALL', 'RA')],     # the RA at the hall's head, M-101's label under it
-    (1, 2): [(B1M.X_FR1-_SW, (B1M.Y_COR_SOFFIT+B1M.BR2_CL[1])/2.0, 'BEDROOM 2'),   # its corridor wall, past the closet
+    (1, 2): [(B1M.X_FR1-_SW, (Y_BR2_REG_FROM+B1M.BR2_CL[1])/2.0, 'BEDROOM 2'),   # its corridor wall, past the closet
              (5.03, B1M.Y_BRR+_SW, 'BEDROOM 1'), (18.9, B1M.Y_BRR+_SW, 'BEDROOM 3'),
              (6.7, B1M.Y_FR1-_SW, 'BATH 2'),
              (B1M.U1_AHU[2][0]-AHU_L/2.0-0.8, B1M.U1_AHU[2][1], 'HALL', 'RA')],   # at the air handler's end, off the hall's label

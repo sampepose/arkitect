@@ -63,8 +63,8 @@ class MechanicalTests(unittest.TestCase):
             self.assertTrue(m.registers(1, level))
         keep = dict(B1.U1_SOFFIT)
         try:                                   # a soffit too short for the cabinet
-            (x0, y0, x1, y1), cor = B1.U1_SOFFIT[2]
-            B1.U1_SOFFIT[2] = ((x0, y0, x1, y0+1.5), cor)
+            (x0, y0, x1, y1), *rest = B1.U1_SOFFIT[2]
+            B1.U1_SOFFIT[2] = ((x0, y0, x1, y0+1.5),)+tuple(rest)
             self.assertTrue(any('cabinet leaves the soffit' in v for v in m.ducted_violations(m.UNIT_1)))
         finally:
             B1.U1_SOFFIT.update(keep)
@@ -94,7 +94,7 @@ class MechanicalTests(unittest.TestCase):
 
     def test_level_2s_runs_stay_in_its_soffit_and_a_cut_soffit_fails(self):
         """a recorded decision: Level 2 has the attic over it, so every run stays in its hall soffit to a
-           sidewall register in the hall wall. Stop the corridor's soffit short of Bedroom
+           sidewall register in the hall wall. Cut the corridor's soffit back past Bedroom
            2's register and the run to it leaves the soffit; move a register off its hall
            wall and it is no longer in one."""
         from src import mechanical as m, building1 as B1
@@ -102,8 +102,8 @@ class MechanicalTests(unittest.TestCase):
         L2 = [lv for lv in m.LEVELS if lv.unit == 1 and lv.level == 2]
         keep = dict(B1.U1_SOFFIT)
         try:
-            hall, (x0, y0, x1, y1) = B1.U1_SOFFIT[2]
-            B1.U1_SOFFIT[2] = (hall, (x0, y0+4.0, x1, y1))
+            hall, (x0, _y0, x1, y1), *rest = B1.U1_SOFFIT[2]
+            B1.U1_SOFFIT[2] = (hall, (x0, m.Y_BR2_REG_FROM+4.0, x1, y1))+tuple(rest)
             self.assertTrue(any('BEDROOM 2' in v for v in m.run_violations(L2)))
         finally:
             B1.U1_SOFFIT.update(keep)

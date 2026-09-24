@@ -88,10 +88,11 @@ def draw_soffit(p, level, ahu=True, mark_y=None):
     c.restoreState()
 
 
-def draw_attic_hatch(p, h, size=3.5, split=False):
+def draw_attic_hatch(p, h, size=3.5, split=False, chase=True):
     """An attic hatch of src/roof.py on a plan drawn in page feet: a dashed rectangle
        and the two-line label Unit 1's has always carried on A-102. A-102 draws Unit
-       3's, A-103 Unit 5's and S-103 all three, from the same record."""
+       3's, A-103 Unit 5's and S-103 all three, from the same record. `chase` names the chase
+       of a hatch in Unit 1's hall soffit; S-103's 1/8" plan leaves it to its note 7."""
     from arkitect.lib.draw.page import LAY
     x0, y0, x1, y1 = h.page
     LAY("A-ANNO-TEXT")
@@ -102,6 +103,9 @@ def draw_attic_hatch(p, h, size=3.5, split=False):
     # over the box, not in it: the hall's own name stands where the hatch is. `split` sets
     # it in two lines, for a sheet that gives it a size its hall is too narrow to take in one
     lines = ("ATTIC ACCESS", "22x30 IN CLG") if split else ("ATTIC ACCESS, 22x30 IN CLG",)
+    from src.roof import in_hall_soffit
+    if chase and in_hall_soffit(h):                # through the hall soffit in a lined chase, S-103 note 7
+        lines += ("CHASE THROUGH SOFFIT",)
     for i, t in enumerate(reversed(lines)):
         c.drawCentredString(p.X((x0+x1)/2.0), p.Y(y0)+1.8+i*(size+0.8), t)
     c.restoreState()
