@@ -70,10 +70,10 @@ _ENTRY_MID = (B1.D_ENTRY[0]+B1.D_ENTRY[2]/2.0, B1.D_ENTRY[1])
 
 E_U1_L1 = [
     # --- Living: the front wall, the right wall to the counter, the stair wall
-    dev(15.6, 1.7, 'dup', 'e', 2), dev(15.6, 9.8, 'dup', 'e', 2),
+    dev(15.6, 1.35, 'dup', 'e', 2), dev(15.6, 9.8, 'dup', 'e', 2),
     dev(0.5, 9.0, 'dup', 'w', 2), dev(0.5, 2.0, 'dup', 'w', 2),       # past 6'-0" of the sink, 210.8
     dev(6.0, 0.5, 'dup', 'n', 2), dev(10.8, 0.5, 'dup', 'n', 2),
-    dev(8.0, 4.5, 'lt', 'c', 1, 'A'), dev(8.0, 10.0, 'lt', 'c', 1, 'A'), dev(11.8, 0.5, 'sw', 'n', 1, 'A'),
+    dev(8.0, 4.5, 'lt', 'c', 1, 'A'), dev(8.0, 10.0, 'lt', 'c', 1, 'A'), dev(15.6, 2.65, 'sw', 'e', 1, 'A'),
     dev(8.0, 12.6, 'sd', 'c', 1), dev(9.4, 12.6, 'co', 'c', 1),
     dev(B1.U1_AHU[1][0], B1.U1_AHU[1][1], 'ahu', 'c', 12),   # concealed in the hall soffit, M-101
     dev(B1.X_SW, 9.0, 'tstat', 'e', 12),             # zone 1's thermostat, on the stair wall in the open living space
@@ -99,11 +99,12 @@ E_U1_L1 = [
     # --- Mechanical / laundry: behind the W/D, the dryer on the pantry wall, the heater on
     #     the rear wall, the panel on the pantry wall by the door
     dev(6.2, _REAR, 'gfci', 's', 7), dev(5.1, 31.0, 'dryer', 'w', 11), dev(9.3, _REAR, 'wh', 's', 13),
-    dev(7.0, 29.25, 'lt', 'c', 1, 'M'), dev(10.1, 28.9, 'sw', 'e', 1, 'M'),
+    dev(9.0, 27.3, 'lt', 'c', 1, 'M'), dev(10.1, 28.9, 'sw', 'e', 1, 'M'),     # the light by the door, off the room's label
     dev(5.1, 27.2, 'panel', 'w'),
-    # --- Exterior: the entry luminaire beside the door, switched inside; a receptacle at
-    #     the front and one on the rear wall, 210.52(E)(1)
-    dev(11.7, 0.5, 'ext', 's', 1, 'X'), dev(11.5, 0.5, 'sw', 'n', 1, 'X'), dev(11.2, 0.5, 'wp', 's', 2),
+    # --- Exterior: the entry luminaire beside the door's hinge jamb, switched inside on the
+    #     closet wall at the latch jamb with the living room's lights; a receptacle
+    #     at the front, past the living room's inside one, and one on the rear wall, 210.52(E)(1)
+    dev(11.7, 0.5, 'ext', 's', 1, 'X'), dev(15.6, 2.2, 'sw', 'e', 1, 'X'), dev(9.6, 0.5, 'wp', 's', 2),
     dev(15.5, _REAR, 'wp', 'n', 2),
     # --- The back door: its luminaire outside beside the jamb, switched in the hall
     dev(13.9, _REAR, 'ext', 'n', 1, 'Y'), dev(14.0, 31.4, 'sw', 'e', 1, 'Y'),
@@ -121,7 +122,7 @@ E_U1_L2 = [
     dev(14.0, 10.5, 'sd', 'c', 1), dev(14.0, 12.0, 'co', 'c', 1), dev(11.0, 17.4, 'sd', 'c', 1),
     dev(17.75, 8.0, 'lt', 'c', 1, 'S'), dev(19.5, 2.0, 'sw3', 'e', 1, 'S'),
     # --- Bedroom 2
-    dev(12.0, 6.0, 'dup', 'e', 3), dev(5.0, B1.Y_BR2, 'dup', 's', 3), dev(0.5, 3.0, 'dup', 'w', 3),
+    dev(12.0, 5.0, 'dup', 'e', 3), dev(5.0, B1.Y_BR2, 'dup', 's', 3), dev(0.5, 3.0, 'dup', 'w', 3),   # the first clear of the room's name and area
     dev(6.0, 0.5, 'dup', 'n', 3), dev(10.5, 0.5, 'dup', 'n', 3),
     dev(9.4, 3.2, 'lt', 'c', 3, 'D'), dev(12.0, 4.3, 'sw', 'e', 3, 'D'),
     dev(10.8, 7.2, 'sd', 'c', 1),
@@ -132,20 +133,20 @@ E_U1_L2 = [
     dev(12.0, _bath2(12.2), 'sw', 'e', 3, 'I'),
     dev(3.5, _bath2(14.6), 'fanc', 'c', 1, 'G'), dev(12.0, _bath2(11.8), 'sw', 'e', 1, 'G'),
     # --- Bedroom 1
-    dev(5.8, 20.4, 'dup', 'e', 3), dev(9.8, 26.5, 'dup', 'e', 3), dev(5.0, _REAR, 'dup', 's', 3),
+    dev(5.8, 20.4, 'dup', 'e', 3), dev(9.8, 26.5, 'dup', 'e', 3), dev(4.4, _REAR, 'dup', 's', 3),   # under the W-A, clear of its mark
     dev(0.5, 26.0, 'dup', 'w', 3), dev(0.5, 21.0, 'dup', 'w', 3),
     dev(3.0, 21.6, 'lt', 'c', 3, 'E'), dev(4.6, B1.Y_BRR, 'sw', 'n', 3, 'E'),
     dev(1.8, 30.8, 'sd', 'c', 1),
     # --- Bedroom 3
     dev(14.2, 20.4, 'dup', 'w', 3), dev(19.5, 23.0, 'dup', 'e', 3), dev(19.5, 30.0, 'dup', 'e', 3),
     dev(14.0, _REAR, 'dup', 's', 3), dev(10.2, 27.0, 'dup', 'w', 3),
-    dev(17.0, 21.6, 'lt', 'c', 3, 'J'), dev(15.3, B1.Y_BRR, 'sw', 'n', 3, 'J'),
+    dev(17.0, 21.6, 'lt', 'c', 3, 'K'), dev(18.9, B1.Y_BRR, 'sw', 'n', 3, 'K'),   # at the latch jamb, past the swing
     dev(18.2, 30.8, 'sd', 'c', 1),
     dev(B1.U1_AHU[2][0], B1.U1_AHU[2][1], 'ahu', 'c', 12),   # concealed in the cross-hall soffit, M-101
     dev(12.0, B1.Y_HALL, 'tstat', 's', 12),          # zone 2's thermostat, on the bedrooms' partition
     # --- In the attic over Bedroom 3, beside radon riser RR-1: the box for a future fan, S-103 R7.
     #     src/radon.py holds it within reach of the riser.
-    dev(11.2, 29.15, 'jbox', 'c', 3),       # ahead of the north W-B, beside the drop to HP-1
+    dev(11.2, 29.15, 'jbox', 'c', 3, 'ATTIC'),       # ahead of the north W-B, beside the drop to HP-1
 ]
 
 
@@ -245,7 +246,7 @@ E_B2 = [
 # Unit 2 alone: the back of the dwelling, at grade, between the reach-ins
 E_U2_ONLY = [dev(10.0, B2.Y_REAR, 'wp', 'n', 2)]
 # Unit 3 alone: in the attic over Bedroom 1, beside radon riser RR-2, the box for a future fan, S-103 R7
-E_U3_ONLY = [dev(2.4, 19.9, 'jbox', 'c', 1)]
+E_U3_ONLY = [dev(2.4, 19.9, 'jbox', 'c', 1, 'ATTIC')]
 
 
 def _b2_level(name, devices, ext_req):
@@ -331,4 +332,58 @@ def check_electrical():
               % (sv['mark'], sv['building'], std['method'], std['amps'], opt['method'], opt['amps'],
                  'the optional method' if gov is opt else 'the standard method', size, feeders(sv)[-1][3]))
     bad += check_services()
+    bad += hp1_violations()
     assert not bad, "electrical:\n  " + "\n  ".join(bad)
+
+
+# ================================ HP-1 at the outdoor unit ================================
+# NEC 440.14 wants a disconnect within sight of HP-1, and 210.63 a receptacle for servicing it
+# on the same level and within 25'-0". The disconnect hangs on the north wall just past HP-1
+# toward the rear, the side its feeder comes from, short of EM-1 and out of the meter's 30"
+# working space. The receptacle is Unit 1's rear WP, measured along the walls from HP-1's
+# rear end round the corner. a recorded decision (open). Checked here only: the engine's NEC walk has no 210.63.
+from arkitect.lib.units import IN
+HP1_DISC_GAP, HP1_DISC_W, HP1_DISC_D = IN(3), IN(6), IN(4)
+SERVICE_REACH = 25.0      # 210.63
+
+
+def hp1_disconnect():
+    """(along0, along1, depth) of HP-1's disconnect on Building 1's north wall, in the
+       feet from the Oak face services.EQUIPMENT uses."""
+    from src.services import EQUIPMENT
+    hp = next(b for b in EQUIPMENT if b.mark == 'HP-1')
+    a0 = hp.along1+HP1_DISC_GAP
+    return a0, a0+HP1_DISC_W, HP1_DISC_D
+
+
+def hp1_service_receptacle():
+    """(device, feet) -- the WP receptacle 210.63 counts for HP-1 and its distance from the
+       unit, along the north wall to the rear corner and then along the rear wall."""
+    from src.services import EQUIPMENT
+    hp = next(b for b in EQUIPMENT if b.mark == 'HP-1')
+    P = B1.LEVEL[1]['plan']
+    best = None
+    for d in E_U1_L1:
+        if d.kind != 'wp': continue
+        x, y = B1.B1_W-P.x(d.x, d.y), P.y(d.y)      # page feet: the north wall is x 0
+        if y > hp.along1:                            # round the rear corner
+            run = (B1.B1_D-hp.along1)+x
+        else:                                        # round the front corner
+            run = hp.along0+x
+        if best is None or run < best[1]:
+            best = (d, run)
+    return best
+
+
+def hp1_violations():
+    from src.services import EQUIPMENT
+    em = next(b for b in EQUIPMENT if b.mark == 'EM-1')
+    a0, a1, _dp = hp1_disconnect()
+    v = []
+    work0 = (em.along0+em.along1)/2.0-IN(15)
+    if a1 > work0+1e-9:
+        v.append("HP-1's disconnect reaches EM-1's 30\" working space")
+    d, run = hp1_service_receptacle()
+    if run > SERVICE_REACH+1e-9:
+        v.append('HP-1: no WP receptacle within 25 ft, NEC 210.63 (nearest %.1f ft)' % run)
+    return v

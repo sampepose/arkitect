@@ -2,6 +2,7 @@
 schedules and the notes. Every figure printed here is read from src/mechanical.py,
 which check_model() has already passed."""
 from arkitect.lib.draw.page import LAY
+from reportlab.lib.colors import black, white
 from arkitect.lib.symbols import mechanical as ms
 from arkitect.lib.units import fmt
 from reportlab.lib.units import inch
@@ -14,13 +15,43 @@ from src.sheets.e_common import grey_context
 from arkitect.lib.draw.kit import title
 from arkitect.lib.draw.mechanical_kit import S, _head, _para, _room, _row
 from arkitect.lib.draw.kit import notes_block
-from src.mechanical import AHU_MARK
+from src.mechanical import AHU_MARK, AHU_WORK, B1_LEVELS, ahu_horiz, ahu_panel, reg_horiz
 
 def legend_kinds(bldg):
     """What this building's plans draw: Unit 1 is ducted in two zones and shows an air
        handler and its registers, Building 2 is ductless and shows wall heads."""
     drop = ('ahu', 'reg') if bldg == 2 else ('head',)
     return [k for k, _t in ms.KINDS if k not in drop]
+
+
+def draw_panel(p, box, page=None):
+    """An air handler's access panel in its soffit: a thin solid outline round the
+       cabinet, which the cabinet's white fill leaves showing as a ring. `page` draws the
+       legend's sample at a page point instead."""
+    LAY('M-HVAC-EQPM'); cc = p.c
+    cc.setStrokeColor(black); cc.setLineWidth(0.4)
+    if page is not None:
+        X, Y = page; cc.rect(X-9, Y-4, 18, 8, fill=0, stroke=1); return
+    x0, y0, x1, y1 = box
+    cc.rect(p.X(x0), p.Y(y1), (x1-x0)*p.sc, (y1-y0)*p.sc, fill=0, stroke=1)
+
+
+def draw_drop(p, at, label='', page=None):
+    """Where Unit 1's Level 2 line sets pass between levels inside the north wall: an open
+       circle in the wall, and its label in the room, led back to it. `page` draws the
+       legend's sample at a page point."""
+    LAY('M-HVAC-PIPE'); cc = p.c
+    cc.setStrokeColor(black); cc.setFillColor(white); cc.setLineWidth(0.6)
+    X, Y = page if page is not None else (p.X(at[0]), p.Y(at[1]))
+    cc.circle(X, Y, 2.2, fill=1, stroke=1)
+    if label:
+        tx = p.X(at[0]+DROP_LABEL)
+        cc.setLineWidth(0.3); cc.line(X+2.2, Y, tx-1.0, Y)
+        LAY('M-ANNO-TEXT'); cc.setFillColor(black); cc.setFont('Helvetica', 3.4)
+        cc.drawString(tx, Y-1.2, label)
+
+
+DROP_LABEL = 1.2                  # the drop's label starts this far into the room from it, past the runs by the wall
 
 
 def place(p, m):
@@ -34,14 +65,16 @@ def place(p, m):
         ms.draw_duct(p, d.pts, 'duct', d.size)
     for x, y, mt, room in m.heads:
         ms.draw_head(p, x, y, mt)
+    if m.ahus:                                     # the soffit each air handler hangs in
+        from src.sheets.common import draw_soffit
+        draw_soffit(p, m.level, ahu=False)
+    for _reg, pts in m.runs:                       # the supply runs, diagrammatic, src/mechanical.py
+        ms.draw_duct(p, pts, 'duct', '')
     for x, y, room in m.ahus:
-        # the supply runs, diagrammatic: the air handler to each register of its level
-        for rx, ry, _rm, mark in m.regs:
-            if not mark:
-                ms.draw_duct(p, [(x, y), (rx, y), (rx, ry)], 'duct', '')
-        ms.draw_ahu(p, x, y, AHU_MARK.get((m.unit, m.level), ''))
-    for rx, ry, _rm, mark in m.regs:
-        ms.draw_register(p, rx, ry, mark)
+        draw_panel(p, ahu_panel(m.level, x, y))
+        ms.draw_ahu(p, x, y, AHU_MARK.get((m.unit, m.level), ''), horiz=ahu_horiz(m.level))
+    for reg in m.regs:
+        ms.draw_register(p, reg[0], reg[1], reg[3], horiz=reg_horiz(m, reg))
     for d in m.elec.devices:                       # the system's thermostat, E-101 places it
         if d.kind == 'tstat':
             tx, ty = m.pg(d.x, d.y)
@@ -51,18 +84,21 @@ def place(p, m):
         ms.draw_fan(p, x, y, kind == 'fanc', mark)
     for t in m.terms:
         if t.wall == 'ROOF':
-            ms.draw_roofcap(p, t.along[0], t.along[1], t.mark)
+            # the cap stands over its fan, whose EF tag is beside it: its own mark goes under
+            ms.draw_roofcap(p, t.along[0], t.along[1], '')
+            LAY('M-ANNO-TEXT'); p.c.setFont('Helvetica-Bold', 4.0); p.c.setFillColor(black)
+            p.c.drawCentredString(p.X(t.along[0]), p.Y(t.along[1])-4.0-5.0, t.mark)
         else:
             wall = WALLS[m.bldg][t.wall]
             x, y = (wall.at, t.along) if wall.orient == 'v' else (t.along, wall.at)
             ms.draw_cap(p, x, y, wall.orient, t.mark)
     if m.unit == 1 and m.level == 2:
-        ms.draw_sleeve(p, m.drop[0], m.drop[1], 'LINE SETS DOWN TO HP-1', below=True)
+        draw_drop(p, m.drop, 'LINE SETS DOWN IN THE WALL TO %s' % m.hp)
     else:
         # the legend names the sleeve; only a Level 2 one says where it goes, under the dot and clear of the run
         ms.draw_sleeve(p, m.sleeve[0], m.sleeve[1], '' if m.level == 1 else 'DROP OUTSIDE TO %s' % m.hp, below=True)
         if m.unit == 1:
-            ms.draw_sleeve(p, m.drop[0], m.drop[1], 'FROM LEVEL 2', below=True)
+            draw_drop(p, m.drop, 'LEVEL 2 LINE SETS, DOWN IN THE WALL')
 
 
 def outdoor_schedule(x, y, width, bldg):
@@ -123,17 +159,27 @@ def termination_schedule(x, y, width, bldg):
     return y-4
 
 
+def _panels():
+    """Each level's access panel, across by along, as note 8 prints them."""
+    out = []
+    for m in B1_LEVELS:
+        for a in m.ahus:
+            x0, y0, x1, y1 = ahu_panel(m.level, a[0], a[1])
+            out.append('%s x %s ON LEVEL %d' % (fmt(min(x1-x0, y1-y0)), fmt(max(x1-x0, y1-y0)), m.level))
+    return ' AND '.join(out)
+
+
 NOTES = [
     "1.  SYSTEM — AIR-SOURCE HEAT PUMP, ONE OUTDOOR UNIT PER DWELLING ON A WALL BRACKET AS C-101 AND THE ELEVATIONS PLACE IT. UNIT 1 IS DUCTED IN TWO ZONES, AN AIR HANDLER PER LEVEL CONCEALED IN THAT LEVEL'S HALL SOFFIT AS DRAWN; UNITS 2 AND 3 TAKE WALL HEADS AS DRAWN. COLD-CLIMATE EQUIPMENT RATED AT THE 0 F WINTER DESIGN CONDITION OF CIC-09, NOT THE NOMINAL 47 F RATING; CAPACITY, AIR HANDLER AND HEAD SIZES BY ACCA MANUAL J AND S, RCO M1401.3, SUBMITTED WITH THE MECHANICAL TRADE PERMIT. NO ELECTRIC RESISTANCE HEAT.",
     "1a. CONTROLS — ONE THERMOSTAT PER SYSTEM, RCO 1103.1, AS DRAWN. UNIT 1'S TWO ZONES TAKE A PROGRAMMABLE THERMOSTAT EACH, RCO 1103.1.1; UNITS 2 AND 3 TAKE THE MANUFACTURER'S WIRED WALL CONTROL IN THE LIVING SPACE. SET EACH 48\" TO THE TOP, ON AN INTERIOR WALL OF THE SPACE IT SERVES, CLEAR OF SUPPLY AIR, SUNLIGHT AND A DOOR SWING; LOW-VOLTAGE CABLE TO ITS OWN EQUIPMENT. A HEAT PUMP'S CONTROL SHALL NOT BRING ON SUPPLEMENTARY HEAT WHEN THE PUMP CAN MEET THE LOAD, RCO 1103.1.2 — THIS SET HAS NONE.",
     "2.  LINE SETS — EACH INDOOR UNIT'S INSULATED REFRIGERANT PAIR AND ITS CONDENSATE DRAIN RUN CONCEALED IN THE UNIT'S OWN WALL AND FLOOR CAVITIES TO ONE SEALED SLEEVE ABOVE ITS OUTDOOR UNIT, DRAWN DIAGRAMMATICALLY. PENETRATIONS OF W1R, W3 AND THE F1 CEILING: A-601. THROUGH THE FLOOR TRUSSES' OPEN WEBS, NEVER THROUGH A CHORD, S-102 NOTE 6. UNIT 3'S LINE SETS LEAVE AT LEVEL 2 AND DROP OUTSIDE IN A LINE-SET COVER TO HP-3; UNIT 1'S LEVEL 2 SETS DROP INSIDE THE NORTH WALL TO THE LEVEL 1 SLEEVE. LENGTH AND LIFT WITHIN THE SELECTED EQUIPMENT'S LIMITS.",
     "3.  CONDENSATE — BY GRAVITY TO DAYLIGHT, 6\" ABOVE GRADE, NEVER OVER A WALK, A LANDING OR A DOOR, RCO M1411.3: A HEAD ON AN EXTERIOR WALL THROUGH THE WALL BEHIND IT, A HEAD ON A PARTITION WITH ITS LINE SET TO THE OUTDOOR UNIT'S WALL. EACH CONCEALED AIR HANDLER STANDS OVER A FINISHED CEILING: FIT THE AUXILIARY PAN AND ITS OWN DRAIN OF RCO M1411.3.1, DISCHARGING WHERE IT WILL BE SEEN. NO CONDENSATE PUMP. INSULATE EVERY DRAIN IN AN UNCONDITIONED SPACE.",
-    "4.  WHOLE-HOUSE VENTILATION — RCO 303.4, RATES AS THE VENTILATION SCHEDULE. THE BATH FAN MARKED C IN EACH DWELLING, LISTED FOR CONTINUOUS DUTY, RUNS CONTINUOUSLY AT THE RATE SCHEDULED, UNSWITCHED, AND ITS WALL SWITCH BOOSTS IT; UNIT 1'S OTHER BATH FAN IS INTERMITTENT AND SWITCHED. FAN EFFICACY PER RCO TABLE N1103.6.1. UNIT 2'S FAN AND ITS DUCT HANG IN THE BATH'S SOFFIT, BELOW THE RATED F1 CEILING, WHICH THEY DO NOT PIERCE: A-601 F1 ITEM C.",
+    "4.  WHOLE-HOUSE VENTILATION — RCO 303.4, RATES AS THE VENTILATION SCHEDULE. THE BATH FAN MARKED C IN EACH DWELLING, LISTED FOR CONTINUOUS DUTY, RUNS CONTINUOUSLY AT THE RATE SCHEDULED, UNSWITCHED, AND ITS WALL SWITCH BOOSTS IT; UNIT 1'S OTHER BATH FAN IS INTERMITTENT AND SWITCHED. FAN EFFICACY PER RCO TABLE 1103.6.1. UNIT 2'S FAN AND ITS DUCT HANG IN THE BATH'S SOFFIT, BELOW THE RATED F1 CEILING, WHICH THEY DO NOT PIERCE: A-601 F1 ITEM C.",
     "5.  EXHAUST DUCTS — 4\" SMOOTH RIGID METAL, JOINTS SEALED, AS DRAWN: UNIT 1'S LEVEL 1 BATH DUCTS THROUGH THE FLOOR TRUSSES ABOVE IT AND UNIT 2'S THROUGH ITS SOFFIT TO THE WALL CAP SCHEDULED, A LEVEL 2 BATH RISES THROUGH THE ATTIC TO A ROOF CAP OVER THE FAN, S-103. DUCTS IN THE ATTIC ARE INSULATED. EVERY CAP CARRIES A BACKDRAFT DAMPER AND STANDS %s FROM EVERY OPENING INTO THE BUILDING IN ANY DIRECTION AND %s FROM THE LOT LINE, RCO M1504.3; NO EXHAUST IS DIRECTED ONTO A WALK." % (fmt(EXH_CLR), fmt(EXH_CLR)),
     "6.  DRYER EXHAUST — RCO M1502. 4\" SMOOTH METAL DUCT WITH NO FASTENER INTO THE AIRSTREAM AND NO SCREEN AT THE CAP; A LISTED TRANSITION DUCT NOT OVER 8'-0\" AT THE APPLIANCE, M1502.4.3; THE OUTLET OF THE STACKED DRYER TAKEN %s ABOVE ITS FLOOR. LENGTH AS SCHEDULED AGAINST %s LESS %s PER 90-DEGREE ELBOW, TABLE M1502.4.5.1; SURFACE-MOUNTED IN THE ROOM, NEVER IN A W1R WALL CAVITY, NO RUN SLOPING DOWNWARD. CAPS %s FROM EVERY OPENING, M1502.3; DR-2 AND DR-3 %s ABOVE THEIR FLOORS, OVER THE PARKING WALK. MAKEUP AIR THROUGH THE LOUVERED DOORS, A-001 NOTE 11a. NO FIRE DAMPER IN A DRYER DUCT, A-601." % (fmt(DRYER_OUT_Z), fmt(DRYER_MAX), fmt(DRYER_ELBOW), fmt(EXH_CLR), fmt(B2_DR_CAP_Z)),
-    "6a. SUPPLY DUCTS, UNIT 1 — SIZED AND LAID OUT BY ACCA MANUAL D WITH THE MECHANICAL TRADE PERMIT; THE RUNS DRAWN ARE DIAGRAMMATIC. EVERY DUCT, PLENUM AND AIR HANDLER STANDS INSIDE THE THERMAL ENVELOPE, IN A HALL SOFFIT OR THE FLOOR TRUSSES, AND NONE IS IN THE ATTIC: A-602. SHEET METAL OR LISTED FLEXIBLE DUCT TO RCO M1601, JOINTS SEALED, SUPPORTED PER M1601.4.3; A BALANCING DAMPER AT EACH TAKEOFF, REACHED FROM THE REGISTER OR AN ACCESS PANEL. ONE FILTER AT EACH RETURN GRILLE, REACHED WITHOUT TOOLS, RCO M1601.4.7; A TRANSFER GRILLE OR A 1\" DOOR UNDERCUT RETURNS EVERY ROOM'S AIR TO IT.",
+    "6a. SUPPLY DUCTS, UNIT 1 — SIZED AND LAID OUT BY ACCA MANUAL D WITH THE MECHANICAL TRADE PERMIT; THE RUNS DRAWN ARE DIAGRAMMATIC. EVERY DUCT, PLENUM AND AIR HANDLER STANDS INSIDE THE THERMAL ENVELOPE AND NONE IS IN THE ATTIC: A-602. LEVEL 1'S RUNS LEAVE ITS HALL SOFFIT UP INTO THE FLOOR TRUSSES OVER IT, TO CEILING REGISTERS. LEVEL 2'S STAY IN ITS HALL SOFFIT, WHICH RUNS UP THE CORRIDOR TO BEDROOM 2, AND END IN HIGH SIDEWALL REGISTERS, EACH IN THE WALL BETWEEN ITS ROOM AND THE SOFFIT. SHEET METAL OR LISTED FLEXIBLE DUCT TO RCO M1601, JOINTS SEALED, SUPPORTED PER M1601.4.3; A BALANCING DAMPER AT EACH TAKEOFF, REACHED FROM THE REGISTER OR AN ACCESS PANEL. ONE FILTER AT EACH RETURN GRILLE, REACHED WITHOUT TOOLS, RCO M1601.4.7; A TRANSFER GRILLE OR A 1\" DOOR UNDERCUT RETURNS EVERY ROOM'S AIR TO IT.",
     "7.  RANGE HOODS — A LISTED DUCTLESS RECIRCULATING HOOD OVER EVERY RANGE, RCO M1503.3 EXCEPTION, EACH KITCHEN OPEN TO THE LIVING SPACE THE NOTE 4 FAN VENTILATES. A DUCTED HOOD SUBSTITUTED DISCHARGES OUTDOORS THROUGH A CAP PER NOTE 5 AND NEEDS AN APPROVED REVISION: THE WALL BEHIND UNIT 1'S RANGE STANDS OVER THE UNITS 2 AND 3 WALK.",
-    "8.  ACCESS AND CLEARANCES — 30\" x 30\" WORKING SPACE AT EACH WATER HEATER, RCO M1305.1, DRAWN ON A-101 AND A-102; THE OUTDOOR UNITS' DISCONNECTS WITHIN SIGHT, E-101 / E-102; OUTDOOR UNITS AT THE MANUFACTURER'S CLEARANCES FROM WALLS AND EACH OTHER. MAINTAIN %s MINIMUM ALONG THE WALL BETWEEN A DRYER TERMINATION AND AN OUTDOOR UNIT, OR THE GREATER MANUFACTURER-REQUIRED CLEARANCE." % fmt(ODU_TERM_CLR),
+    "8.  ACCESS AND CLEARANCES — 30\" x 30\" WORKING SPACE AT EACH WATER HEATER, RCO M1305.1, DRAWN ON A-101 AND A-102; UNIT 1'S AIR HANDLERS EACH THROUGH A REMOVABLE PANEL IN ITS SOFFIT'S UNDERSIDE, %s, LARGE ENOUGH TO LOWER THE UNIT OUT IN ITS PAN, OVER A %s x %s WORKING SPACE ON THE HALL FLOOR, RCO M1305.1; THE OUTDOOR UNITS' DISCONNECTS WITHIN SIGHT, E-101 / E-102; OUTDOOR UNITS AT THE MANUFACTURER'S CLEARANCES FROM WALLS AND EACH OTHER. MAINTAIN %s MINIMUM ALONG THE WALL BETWEEN A DRYER TERMINATION AND AN OUTDOOR UNIT, OR THE GREATER MANUFACTURER-REQUIRED CLEARANCE." % (_panels(), fmt(AHU_WORK), fmt(AHU_WORK), fmt(ODU_TERM_CLR)),
     "9.  TRADE PERMIT — ALL WORK BY A CONTRACTOR HOLDING AN OHIO OCILB HVAC LICENSE AND REGISTERED WITH THE CITY OF COLUMBUS; THE MECHANICAL PERMIT IS OBTAINED SEPARATELY AFTER THE BUILDING PERMIT, G-001 NOTE 14, WITH THE MANUAL J AND S CALCULATIONS AND THE EQUIPMENT SUBMITTALS.",
 ]
 

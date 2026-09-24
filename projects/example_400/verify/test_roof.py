@@ -38,6 +38,12 @@ class RoofTests(unittest.TestCase):
         devices = dict(devices); devices["UNIT 1"] = [(h.cx, h.cy)]
         self.assertTrue(any("ceiling device" in v for v in roof_checks_shared.roof_violations(r.B1_ROOF, rooms, devices, truss_oc=r.TRUSS_OC)))
 
+    def test_unit_1s_hatch_is_clear_of_the_hall_soffit_and_one_in_it_fails(self):
+        from src import roof as r
+        self.assertEqual(r.soffit_violations(r.B1_ROOF.hatches), [])
+        old = r._hatch('UNIT 1', 'A-101', 'HALL', 7.5, r._BETWEEN, 'b1')     # the cross-hall, over AHU-2
+        self.assertTrue(r.soffit_violations([old]))
+
     def test_the_vents_clear_806_and_a_poor_vent_does_not(self):
         from src import roof as r
         from arkitect.codes.ohio.rco import attic_ventilation as rco_attic

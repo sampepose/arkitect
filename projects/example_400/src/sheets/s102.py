@@ -8,7 +8,7 @@ from reportlab.lib.colors import black
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src import levels
-from src.building1 import B1_D, B1_W, b1_level
+from src.building1 import B1_D, B1_W
 from src.building2 import B2_D, B2_W, b2_level
 from src.framing import (B1_FLOOR, B2_FLOOR, DEAD_LOADS, DEFLECTION, F1_MAX_JOIST_OC, F1_MIN_TRUSS_DEPTH,
                          F2_JOIST, GROUND_SNOW, GUARD_LOAD, HEADERS, JOIST_OC, LIVE_LOADS, SUBFLOOR,
@@ -19,7 +19,7 @@ from arkitect.codes.ohio.rco.headers import HEADER_BRACING, UNBRACED_FACTOR, _fa
 from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 from src.sheets.e_common import grey_context
 from arkitect.lib.draw.kit import _fits, title
-from src.sheets.a101 import draw_b1_stair
+from src.sheets.a101 import b1_trade_level
 from src.sheets.a102 import draw_u5_stair
 from arkitect.lib.draw.framing_kit import _CARRIES_ABBR, _SCHED_COLS, _cut, _in0, _sched_cols, _typical
 from arkitect.lib.draw.framing_kit import _header_tags
@@ -251,8 +251,7 @@ def sheet_s102():
     oy = Y1-1.45*inch-B2_D*Q          # as E-102: room above for the Unit 3 stair
     ox1 = X0+1.0*inch
     ox2 = ox1+B1_W*Q+1.2*inch
-    lv = b1_level(1)
-    lv.over_plan = lambda pp: draw_b1_stair(pp, 1)
+    lv = b1_trade_level(1)
     lv.overlay = lambda p: (_framing(p, B1_FLOOR), _header_tags(p, 'BUILDING 1', header_positions=header_positions),
                             grey_context(p, B1_W, B1_D, 'OAK AVENUE', 'BUILDING 2 AND THE ALLEY BEYOND',
                                          '396 OAK AVE', '404 OAK AVE'))

@@ -117,6 +117,13 @@ _area = geom.area          # the local name this module already uses in places
 _open_r = PLAN_B2.poly([OA_B2[0]])[0][0]
 LIVING_SF, KITCHEN_SF = geom.split(_open_r, PLAN_B2.x(X_SPLIT,5.0), 'x')
 assert abs(LIVING_SF+KITCHEN_SF-geom.area(_open_r)) < 1e-6
+# The two halves' sizes, (width, depth) in feet, from the same rectangle and split: A-102
+# prints them with the areas.
+_ox0, _ox1 = min(x for x, _y in _open_r), max(x for x, _y in _open_r)
+_OPEN_D = max(y for _x, y in _open_r) - min(y for _x, y in _open_r)
+LIVING_WD = (PLAN_B2.x(X_SPLIT,5.0)-_ox0, _OPEN_D)
+KITCHEN_WD = (_ox1-PLAN_B2.x(X_SPLIT,5.0), _OPEN_D)
+assert abs(LIVING_WD[0]*LIVING_WD[1]-LIVING_SF) < 1e-6 and abs(KITCHEN_WD[0]*KITCHEN_WD[1]-KITCHEN_SF) < 1e-6
 OA_B2[0]=(OPEN_B2,_open_labels("%d SF"%round(LIVING_SF),"%d SF"%round(KITCHEN_SF)))
 
 # ---------------- fittings ----------------

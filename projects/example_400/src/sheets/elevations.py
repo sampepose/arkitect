@@ -11,6 +11,8 @@ drawn as someone standing in front of it sees it:
   north (396 Oak side)                           the front on the left: elevation x = plan y
   south (404 Oak side)                           the rear on the left: flipped
 """
+import math
+
 from arkitect.lib.draw.page import GREY, Sheet
 from arkitect.lib.units import IN, fmt, inches
 from reportlab.lib.colors import Color, black, white
@@ -23,6 +25,8 @@ from src.building1 import B1_D, B1_W
 from src.foundation import ROOF_OVERHANG
 from src.framing import TRUSS_OC
 from src.openings import WIN_FIXED, WIN_GEOM
+from src.sheets import a603 as A603
+from src.sheets.common import stoop_lines
 from arkitect.lib.draw.kit import datum_labels, knockout
 from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 
@@ -248,13 +252,23 @@ def u3_stair_elev(ox,oy,sc=Q):
     c.line(Xp(d),Yp(bottom),Xp(e),Yp(bottom))
     c.line(Xp(e),Yp(bottom),Xp(e),Yp(0))
     c.line(Xp(e),Yp(0),Xp(e-1.5),Yp(0))
+    # The nosing line runs from the landing's edge to the nosing of the lowest tread, one
+    # riser over the stoop: RCO 312.1.2 measures the guard from it and 311.7.8.1 the
+    # handrail, so both run parallel to it, at the heights A-603 details. The handrail
+    # runs from over the top riser to over the lowest, 311.7.8.2.
+    nb, nd = top, bottom+rise                          # the nosings at b and at d
     c.setLineWidth(1.4)
-    c.line(Xp(a),Yp(top+3.0),Xp(b),Yp(top+3.0))
-    c.line(Xp(b),Yp(top+3.0),Xp(d),Yp(bottom+3.0))
-    for xx,zz in ((a,top),(b,top),(d,bottom)):
-        c.line(Xp(xx),Yp(zz),Xp(xx),Yp(zz+3.0))
-    c.setStrokeColor(GREY); c.setLineWidth(0.8)
-    c.line(Xp(b),Yp(top-0.45),Xp(d),Yp(bottom-0.45))
+    c.line(Xp(a),Yp(top+A603.GUARD_H),Xp(b),Yp(top+A603.GUARD_H))
+    c.line(Xp(b),Yp(nb+A603.GUARD_H),Xp(d),Yp(nd+A603.GUARD_H))
+    for xx,zz,zt in ((a,top,top),(b,top,nb),(d,bottom,nd)):
+        c.line(Xp(xx),Yp(zz),Xp(xx),Yp(zt+A603.GUARD_H))
+    c.setLineWidth(0.8)
+    c.line(Xp(b),Yp(nb+A603.RAIL_LO),Xp(d),Yp(nd+A603.RAIL_LO))
+    # the stringer's underside, parallel to the pitch and its 2x12 depth under the nosings,
+    # to the foot of the flight, where it bears on its piers (S-101 note 5)
+    vd = A603.STRINGER*math.hypot(A603.TREAD, A603.RISER)/A603.TREAD
+    c.setStrokeColor(GREY)
+    c.line(Xp(b),Yp(nb-vd),Xp(d),Yp(nd-vd))
     clo=min(a,b)-0.5; chi=max(a,b)+0.5; cz=levels.FF2+8.4
     c.setStrokeColor(black); c.setLineWidth(1.0)
     c.line(Xp(chi),Yp(cz-0.2),Xp(clo),Yp(cz))
@@ -263,10 +277,11 @@ def u3_stair_elev(ox,oy,sc=Q):
     c.setStrokeColor(black); c.setFillColor(black); c.setFont("Helvetica",5.3)
     # the flight now descends to the right, so its labels hang off the head of the
     # flight to the right and the stoop's sit to the left of the stoop
-    knockout(Xp(b-1.0),Yp(top+3.25),"36\" GUARD · 34–38\" GRASPABLE HANDRAIL","Helvetica",5.3,"l")
-    knockout(Xp((clo+chi)/2),Yp(cz+0.25),"CANOPY OVER DOOR / TOP LANDING","Helvetica",5.3,"c")
-    knockout(Xp(e+0.2),Yp(-0.75),"CONCRETE STOOP — TOP +%s"%inches(U5_STOOP_Z),"Helvetica",5.3,"r")
-    knockout(Xp(e+0.2),Yp(-1.05),"ONE %s STEP DOWN TO THE WALK, C-103"%inches(G.STOOP_STEP),"Helvetica",5.3,"r")
+    knockout(Xp(b-1.0),Yp(top+A603.GUARD_H+0.25),"%d\" GUARD AND %d\" TO %d\" HANDRAIL OVER THE NOSINGS, A-603"
+             %tuple(round(v*12) for v in (A603.GUARD_H,A603.RAIL_LO,A603.RAIL_HI)),"Helvetica",5.3,"l")
+    knockout(Xp((clo+chi)/2),Yp(cz+0.25),"CANOPY, %s WIDE: A-603 NOTE 7"%fmt(A603.WIDTH),"Helvetica",5.3,"c")
+    for i,t in enumerate(stoop_lines()):            # A-102 prints the same two lines
+        knockout(Xp(e+0.2),Yp(-0.75-0.30*i),t,"Helvetica",5.3,"r")
     knockout(Xp(e+0.2),Yp(-1.35),U5_STAIR_TAG,"Helvetica",5.3,"r")
 
 
@@ -336,11 +351,61 @@ def _leader(ox, oy, x, mark, sc=Q):
     knockout(ox+x*sc, oy+(levels.FF1+4.2)*sc, mark, "Helvetica-Bold", 5.0, "c")
 
 
+def face_landings(n, which):
+    """The landing pads src/foundation.py pours against this face, as (x0, x1) along it:
+       the pads are in page feet, 396 Oak at x 0, so the front face reads them flipped.
+       The Unit 3 stoop is the stair's, and u3_stair_elev() draws it."""
+    from src.foundation import B1 as F1, B2 as F2
+    b = F1 if n == 1 else F2
+    out = []
+    for x0, y0, x1, y1, nm in b.pads:
+        if nm == "UNIT 3 STOOP":
+            continue
+        f = 'FRONT' if y1 <= 1e-6 else 'REAR' if y0 >= b.D-1e-6 else None
+        if f == which:
+            out.append((b.W-x1, b.W-x0) if f == 'FRONT' else (x0, x1))
+    return out
+
+
+def _landing(ox, oy, x0, x1, sc=Q):
+    """A landing pad in elevation: grade to its top, C-103 note 5 its rule's home."""
+    c.setStrokeColor(black); c.setFillColor(white); c.setLineWidth(0.9)
+    c.rect(ox+x0*sc, oy+levels.GRADE*sc, (x1-x0)*sc, (G.LANDING_TOP-levels.GRADE)*sc, fill=1, stroke=1)
+    c.setFillColor(black)
+    knockout(ox+(x0+x1)/2.0*sc, oy+(levels.GRADE-0.5)*sc, "LANDING, TOP +%s, C-103 NOTE 5" % inches(G.LANDING_TOP),
+             "Helvetica", 5.3, "c")
+
+
 def _leader_x(ld, n, which):
     """Where a C-103 leader stands along a face, as that face is read."""
     bx, by, W, D = (G.B1X0, G.B1Y0, B1_W, B1_D) if n == 1 else (G.B2X0, G.B2Y0, B2_W, B2_D)
     px, py = ld.x-bx, ld.y-by                      # page feet: 396 Oak at x 0, the front at y 0
     return {'FRONT': W-px, 'REAR': px, 'NORTH': py, 'SOUTH': D-py}[which]
+
+
+LEADER_OFF = IN(1.5)          # a leader's centre off its wall: half its 3" face
+CORNER_SEEN = 1.5             # a leader this near a corner is seen on the next face too
+
+
+def _leader_views(ld, n):
+    """Every face a leader is seen on, and where along it: its own face, and -- when it
+       stands near a corner -- the face round that corner, which sees it just outside
+       its own wall, so a side face shows the leader its eave's gutter drains to."""
+    bx, by, W, D = (G.B1X0, G.B1Y0, B1_W, B1_D) if n == 1 else (G.B2X0, G.B2Y0, B2_W, B2_D)
+    px, py = ld.x-bx, ld.y-by
+    own = _leader_face(ld, n)
+    out = [(own, _leader_x(ld, n, own))]
+    if own in ('FRONT', 'REAR'):
+        near, dist = ('NORTH', px) if px < W/2.0 else ('SOUTH', W-px)
+        oy = py+(LEADER_OFF if own == 'REAR' else -LEADER_OFF)
+        at = {'NORTH': oy, 'SOUTH': D-oy}[near]
+    else:
+        near, dist = ('FRONT', py) if py < D/2.0 else ('REAR', D-py)
+        ox = px+(LEADER_OFF if own == 'SOUTH' else -LEADER_OFF)
+        at = {'FRONT': W-ox, 'REAR': ox}[near]
+    if dist <= CORNER_SEEN:
+        out.append((near, at))
+    return out
 
 
 def _leader_face(ld, n):
@@ -352,18 +417,23 @@ def _leader_face(ld, n):
 
 
 def notes(n):
-    span = B1_W if n == 1 else B2_W
+    """A-201's notes 1 to 5 are the home of what the two buildings share; A-202 cites them
+       and carries only what is Building 2's own."""
+    assert abs(levels.height(B1_W)-levels.height(B2_W)) < 1e-9, "note 1 prints one building height for both"
+    if n == 2:
+        return [
+         "1.  HEIGHTS, ROOF, OPENING MARKS, WINDOWS AND TRIM: A-201 NOTES 1 TO 5 APPLY TO BUILDING 2.",
+         "2.  SERVICE EQUIPMENT: TWO-METER BANK EM-2 (E-102) AND TELECOM BOX TC-2 ON THE NORTH FACE, UNDERSIDES AS SHOWN; KEEP THE PARKING WALK CLEAR 3'-0\" IN FRONT OF EM-2, NEC 110.26(A). HEAT PUMP OUTDOOR UNITS HP-2 AND HP-3 ON WALL BRACKETS ON THE SOUTH FACE.",
+         "3.  UNIT 3 STAIR: BUILT TO A-603; ITS RISERS, TREADS, WIDTH, RUN AND LANDING AS A-102 PRINTS THEM.",
+         "4.  WALL CAPS: DRYERS DR-2 AND DR-3 ON THE NORTH FACE AND BATH EXHAUST EF-2 ON THE SOUTH FACE, PLACED AND SCHEDULED ON M-102."]
     return [
-     f"1.  HEIGHTS ARE ABOVE FINISHED GRADE AT THE FOUNDATION WALL, 0'-0\", C-103. THE FOUNDATION STANDS {inches(levels.SLAB_TOP-levels.GRADE)} OUT OF GRADE, S-101. BUILDING HEIGHT IS THE MEAN OF EAVE AND RIDGE, C.C. 3303.08: +{fmt(levels.height(span))}.",
+     f"1.  HEIGHTS ARE ABOVE FINISHED GRADE AT THE FOUNDATION WALL, 0'-0\", C-103. THE FOUNDATION STANDS {inches(levels.SLAB_TOP-levels.GRADE)} OUT OF GRADE, S-101. BUILDING HEIGHT IS THE MEAN OF EAVE AND RIDGE, C.C. 3303.08: +{fmt(levels.height(B1_W))}.",
      f"2.  ROOF: {round(levels.ROOF_PITCH*12)}:12 GABLE, PREFABRICATED WOOD TRUSSES AT {inches(TRUSS_OC)} O.C. BEARING ON THE SIDE WALLS, {inches(EAVE_OVERHANG)} OVERHANG AT EAVES AND RAKES. EAVE GUTTERS AND LEADERS DS-1 TO DS-4 PER C-103.",
      "3.  OPENINGS ARE MARKED AS THE PLANS MARK THEM. EVERY W-A GIVES THE NET CLEAR OPENING OF G-001 NOTE 8a. W-D, OVER THE UNIT 1 STAIR, IS FIXED.",
      f"4.  WINDOWS: {X.WINDOW_COLOUR}, NO GRILLES.",
      f"5.  TRIM, FLAT {X.TRIM_MATERIAL}: EVERY WINDOW AND DOOR ON EVERY FACE HAS CASINGS AND A HEAD CASING WITH A DRIP CAP. BUILDING 1'S OAK AVENUE FACE ALSO HAS A FRIEZE BOARD, CORNER BOARDS AND A FLAT SURROUND AT THE ENTRY.",
-    ]+(["6.  SERVICE EQUIPMENT ON BUILDING 1'S NORTH FACE: HEAT PUMP OUTDOOR UNIT HP-1 ON A WALL BRACKET, METER-MAIN EM-1 (E-101) AND TELECOM BOX TC-1, UNDERSIDES AS SHOWN; 3'-0\" CLEAR IN FRONT OF EM-1, NEC 110.26(A).",
-        "7.  WALL CAPS: DRYER DR-1 ON THE REAR FACE AND BATH EXHAUST EF-1A ON THE NORTH FACE, PLACED AND SCHEDULED ON M-101."] if n == 1 else
-       ["6.  SERVICE EQUIPMENT: TWO-METER BANK EM-2 (E-102) AND TELECOM BOX TC-2 ON THE NORTH FACE, THE PARKING WALK EM-2'S 3'-0\" WORKING SPACE, NEC 110.26(A); HEAT PUMP OUTDOOR UNITS HP-2 AND HP-3 ON WALL BRACKETS ON THE SOUTH FACE.",
-        "7.  UNIT 3 STAIR: PER S-101 NOTE 5 AND C-101 NOTE 5; 36\" GUARDS, 34\" TO 38\" GRASPABLE HANDRAIL, RCO 311.7 AND 312.",
-        "8.  WALL CAPS: DRYERS DR-2 AND DR-3 ON THE NORTH FACE AND BATH EXHAUST EF-2 ON THE SOUTH FACE, PLACED AND SCHEDULED ON M-102."] if n == 2 else [])
+     "6.  SERVICE EQUIPMENT ON BUILDING 1'S NORTH FACE: HEAT PUMP OUTDOOR UNIT HP-1 ON A WALL BRACKET, METER-MAIN EM-1 (E-101) AND TELECOM BOX TC-1, UNDERSIDES AS SHOWN; 3'-0\" CLEAR IN FRONT OF EM-1, NEC 110.26(A).",
+     "7.  WALL CAPS: DRYER DR-1 ON THE REAR FACE AND BATH EXHAUST EF-1A ON THE NORTH FACE, PLACED AND SCHEDULED ON M-101."]
 
 
 def face_terms(n, which):
@@ -398,9 +468,12 @@ def _sheet(n, no, names):
              boxes=[((b.along0, b.along1) if which == 'NORTH' else (ln-b.along1, ln-b.along0))
                     + (b.z0, b.z1, b.mark, services.POSITIONS.get(b.mark, 0 if b.kind == 'odu' else -1))
                     for b in services.on(n, which)])
+        for x0, x1 in face_landings(n, which):
+            _landing(ox, oy, x0, x1)
         for ld in leaders:
-            if _leader_face(ld, n) == which:
-                _leader(ox, oy, _leader_x(ld, n, which), ld.mark)
+            for f, at in _leader_views(ld, n):
+                if f == which:
+                    _leader(ox, oy, at, ld.mark)
         if n == 2 and which == 'FRONT':
             u3_stair_elev(ox, oy)
     c.setFillColor(black); c.setFont("Helvetica-Bold", 8); c.drawString(X0+0.3*inch, Y0+1.0*inch, "ELEVATION NOTES")

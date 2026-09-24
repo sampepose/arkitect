@@ -17,9 +17,9 @@ from arkitect.codes.ohio import opc_drainage as opc_drainage
 from arkitect.lib.model import runs as runs
 from src import levels
 from src import radon as RN
-from src.building1 import B1_D, B1_W, b1_level
+from src.building1 import B1_D, B1_W
 from src.building2 import B2_D, B2_W, b2_level
-from src.sheets.a101 import draw_b1_stair
+from src.sheets.a101 import b1_trade_level
 from src.sheets.a102 import draw_u5_stair
 from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
 from src.sheets.e_common import grey_context
@@ -380,8 +380,7 @@ def _water_note():
 
 # ---------------- the sheet ----------------
 def _level_b1(ox, oy):
-    lv = b1_level(1)
-    lv.over_plan = lambda pp: draw_b1_stair(pp, 1)
+    lv = b1_trade_level(1)
     def sanitary(p):
         draw_building(p, dr.BUILDING_1, ((p.X(0.9), p.Y(25.1)), 'WATER SUPPLY BELOW THE SLAB, P-102'))
         grey_context(p, B1_W, B1_D, 'OAK AVENUE', 'BUILDING 2 AND THE ALLEY BEYOND', '396 OAK AVE', '404 OAK AVE')

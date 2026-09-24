@@ -111,7 +111,7 @@ Y_CL = 5.5                       # the coat closet is 0.5 .. Y_CL
 # test off this set (A-602). M-101 places the units, the registers and the runs.
 U1_SOFFIT_ROOMS = {1: ('HALL',), 2: ('HALL',)}
 U1_SOFFIT_DROP  = IN(12)          # the 8" cabinet, its supply plenum and 2x framing
-U1_AHU = {1: (12.25, 30.0), 2: (5.0, 17.375)}     # model feet, each in its hall's soffit
+U1_AHU = {1: (12.25, 30.0), 2: (5.0, 17.375)}     # model feet, each in its hall's soffit, U1_SOFFIT
 
 L1_ROOMS=[(X_BATH1,Y_RB,19.5-X_BATH1,Y_REAR-Y_RB,"BATH 1",(-0.8,-0.3)),
           (X_HALL0,Y_RB,X_HALL1-X_HALL0,Y_REAR-Y_RB,"HALL"),
@@ -420,6 +420,59 @@ LEVEL = {1: dict(plan=PLAN_B1_L1, rooms=L1_ROOMS, openareas=OA_L1, furn=F_L1,
                  doors=L2_DOORS, wins=L2_WINS, openings=L2_OPS)}
 for _lv in LEVEL.values():
     _lv['chains'] = _chains(_lv['rooms'],_lv['openareas'])
+
+# Each level's hall soffit, as rectangles (x0, y0, x1, y1) in model feet: the ceiling
+# dropped U1_SOFFIT_DROP under the air handler and the runs that leave it. Level 1's is the
+# whole hall; its runs leave it up into the floor trusses. Level 2 has the attic over it,
+# where no duct may go (A-602), so its soffit carries every run to its room's hall wall: the
+# cross-hall, where the air handler hangs, and the corridor from the cross-hall to Bedroom
+# 2's wall, stopping Y_COR_SOFFIT from the front face -- 6" past the truss at 6'-0" that
+# frames the attic hatch's bay, so the hatch keeps the full ceiling.
+Y_COR_SOFFIT = 6.5
+U1_SOFFIT = {1: ((X_HALL0, Y_RB, X_HALL1, Y_REAR),),
+             2: ((0.5, Y_HALL0, 19.5, Y_HALL), (X_COR0, Y_COR_SOFFIT, X_COR1, Y_HALL0))}
+
+
+def soffit_pages(level):
+    """A level's hall soffit in page feet, one (x0, y0, x1, y1) per rectangle: its corners
+       are wall faces, so they go through the plan's regrid as the walls do, then the sheet
+       mirror."""
+    P = LEVEL[level]['plan']
+    out = []
+    for x0, y0, x1, y1 in U1_SOFFIT[level]:
+        xa, xb = B1_W-P.x(x0, y0), B1_W-P.x(x1, y1)
+        out.append((min(xa, xb), P.y(y0), max(xa, xb), P.y(y1)))
+    return out
+
+
+def soffit_outline(level):
+    """The outline of a level's soffit in page feet, one closed rectilinear polygon (or
+       more) traced round the union of its rectangles: two rectangles that meet read as
+       one soffit, with no line where they join."""
+    rects = soffit_pages(level)
+    xs = sorted({v for r in rects for v in (r[0], r[2])})
+    ys = sorted({v for r in rects for v in (r[1], r[3])})
+    def filled(i, j):
+        if not (0 <= i < len(xs)-1 and 0 <= j < len(ys)-1): return False
+        cx, cy = (xs[i]+xs[i+1])/2.0, (ys[j]+ys[j+1])/2.0
+        return any(r[0] < cx < r[2] and r[1] < cy < r[3] for r in rects)
+    edges = {}                                  # grid edge start -> end, the region on its left
+    for i in range(len(xs)-1):
+        for j in range(len(ys)-1):
+            if not filled(i, j): continue
+            for (a, b), out in ((((i, j), (i+1, j)), filled(i, j-1)), (((i+1, j), (i+1, j+1)), filled(i+1, j)),
+                                (((i+1, j+1), (i, j+1)), filled(i, j+1)), (((i, j+1), (i, j)), filled(i-1, j))):
+                if not out: edges[a] = b
+    loops = []
+    while edges:
+        start = next(iter(edges)); loop = [start]; k = edges.pop(start)
+        while k != start:
+            loop.append(k); k = edges.pop(k)
+        pts = [(xs[i], ys[j]) for i, j in loop]
+        n = len(pts)                            # keep the corners only
+        loops.append([pts[k] for k in range(n)
+                      if (pts[k-1][0] == pts[k][0]) != (pts[k][0] == pts[(k+1) % n][0])])
+    return loops
 
 
 def b1_level(level):

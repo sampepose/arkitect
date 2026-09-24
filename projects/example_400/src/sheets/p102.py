@@ -4,9 +4,9 @@ fixture-unit and pipe-size table, the supply diagram and the notes."""
 from arkitect.lib.draw.page import Sheet, end_plans
 from arkitect.lib.draw.sheets import draw_level
 from reportlab.lib.units import inch
-from src.building1 import B1_D, B1_W, b1_level
+from src.building1 import B1_D, B1_W
 from src.plumbing import BUILDING_1, sizes
-from src.sheets.a101 import draw_b1_stair
+from src.sheets.a101 import b1_trade_level
 from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c, knockout
 from src.sheets.e_common import grey_context
 from arkitect.lib.draw.kit import title
@@ -127,8 +127,7 @@ def _bath2(x, y, width):
 
 def _level(k, ox, oy):
     """One level of the house as a supply background, its water on it."""
-    lv = b1_level(k)
-    lv.over_plan = lambda pp: draw_b1_stair(pp, k)
+    lv = b1_trade_level(k)
     def water(p):
         if k == 1: draw_service(p, BUILDING_1, sizes(BUILDING_1))
         for u in BUILDING_1.units:

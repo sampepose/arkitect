@@ -1,6 +1,7 @@
 """What E-101 and E-102 share: putting a unit's devices on a greyed plan, the panel
 schedules, the one-line diagram and the notes. Every figure printed here is read from
 src/electrical.py, which check_model() has already passed."""
+import math
 from arkitect.lib.draw.page import LAY, GREY
 from arkitect.lib.draw.text import wrap_notes
 from arkitect.lib.symbols import electrical as es
@@ -15,18 +16,66 @@ from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from src.electrical import CIRCUITS_U1, CIRCUITS_U23, NEC_UNITS
-from arkitect.codes.nec.load import GEC_CEE, feeders, service_loads
+from arkitect.codes.nec.load import GEC_CEE, feeders, service_loads, service_size
 from arkitect.codes.nec.load import nec220_82
 from arkitect.codes.nec.dwelling import panel_spaces
 from arkitect.lib.draw.kit import c
 from arkitect.lib.draw.kit import notes_block
 
-def legend(p, x, y, devs, width):
-    kinds = [k for k in DEVICE_KINDS if any(d.kind == k for d in devs)]
-    for k in kinds:
-        w = pdfmetrics.stringWidth(DEVICE_KINDS[k], 'Helvetica', 5.6)
-        assert 20+w <= width, 'legend line runs out of its column: %r' % DEVICE_KINDS[k]
-    return es.legend(p, x, y, kinds, DEVICE_KINDS)
+from arkitect.lib.draw.electrical_kit import place as _place, _arrow
+from arkitect.lib.symbols.electrical import R as _R, stand_off
+
+# The engine sets a device's circuit number R+1.6 pt right of its centre, which clears a
+# receptacle's disc but lands on the box of a wider symbol; these carry theirs past the box.
+_WIDE = {'ahu': 2.4*_R, 'head': 2.0*_R}
+# The water heater is hardwired (a 240 V, 30 A 2-pole circuit, no cord and plug): the
+# engine's 'wh' symbol is a duplex receptacle, so these sheets draw it as a junction box
+# tagged WH, with its home run, and the legend says so.
+WH_TAG = 'WH'
+WH_LEGEND = 'JUNCTION BOX TAGGED WH: THE WATER HEATER, HARDWIRED, 30 A 2-POLE INDIVIDUAL CIRCUIT'
+
+
+def place(p, devs, plan, W):
+    """A unit's devices on PlanDraw p, as the engine's place() draws them, with each wide
+       symbol's circuit number set clear of its box and the water heater drawn as the
+       junction box it is wired to."""
+    def drawn(d):
+        if d.kind == 'wh':
+            return d._replace(kind='jbox', tag=WH_TAG)
+        return d._replace(circuit=None) if d.kind in _WIDE else d
+    _place(p, [drawn(d) for d in devs], plan, W)
+    def at(d):
+        m = {'e': 'w', 'w': 'e'}.get(d.mount, d.mount)
+        sx, sy = stand_off(W-plan.x(d.x, d.y), plan.y(d.y), m)
+        return p.X(sx), p.Y(sy)
+    LAY('E-ANNO-TEXT'); cc = p.c; cc.setFillColor(black); cc.setFont('Helvetica', 3.4)
+    for d in devs:
+        if d.kind in _WIDE:
+            X, Y = at(d)
+            if d.kind == 'head':        # a wall head's side may be its wall: under the box instead
+                cc.drawCentredString(X, Y-0.7*_R-4.2, str(d.circuit))
+            else:
+                cc.drawString(X+_WIDE[d.kind]+1.6, Y-4.4, str(d.circuit))
+    panel = [at(d) for d in devs if d.kind == 'panel']
+    for d in devs:                      # the heater's home run, as place() draws a 'wh' one
+        if d.kind == 'wh' and panel:
+            (X, Y), (PX, PY) = at(d), panel[0]
+            dx, dy = PX-X, PY-Y; L = math.hypot(dx, dy)
+            if L > 1: _arrow(p, X+dx/L*5.5, Y+dy/L*5.5, X+dx/L*16, Y+dy/L*16)
+
+
+def legend(p, x, y, devs, width, size=5.6, lead=14.0):
+    kinds = [k for k in DEVICE_KINDS if k != 'wh' and any(d.kind == k for d in devs)]
+    rows = [DEVICE_KINDS[k] for k in kinds]+([WH_LEGEND] if any(d.kind == 'wh' for d in devs) else [])
+    for t in rows:
+        w = pdfmetrics.stringWidth(t, 'Helvetica', size)
+        assert 20+w <= width, 'legend line runs out of its column: %r' % t
+    y = es.legend(p, x, y, kinds, DEVICE_KINDS, size, lead)
+    if any(d.kind == 'wh' for d in devs):
+        es.draw_device(p, 0, 0, 'jbox', 'n', WH_TAG, page=(x+6, y+size*0.36))
+        c.setFillColor(black); c.setFont('Helvetica', size); c.drawString(x+20, y, WH_LEGEND)
+        y -= lead
+    return y
 
 
 def schedule(x, y, title, circuits, devices, width, nec_row=None, panel_a=None):
@@ -74,6 +123,18 @@ def schedule(x, y, title, circuits, devices, width, nec_row=None, panel_a=None):
 _CKTS = {'U1': CIRCUITS_U1, 'U2': CIRCUITS_U23, 'U3': CIRCUITS_U23}
 
 
+def _why_size(s, gov, size):
+    """Why the service is the rating it is, read off the same figures service_loads() used:
+       the next standard rating above the load, or, for one dwelling, the panel it feeds or
+       230.79(C)'s 100 A where either is larger."""
+    if size == service_size(gov['amps']):
+        return 'THE NEXT STANDARD RATING AT OR ABOVE THE LOAD, NEC 240.6(A)'
+    code, a, _name = s['positions'][0]
+    if size == a:
+        return 'THE RATING OF PANEL %s, WHICH IT FEEDS' % code
+    return 'THE 100 A MINIMUM OF NEC 230.79(C)'
+
+
 def one_line(x, y, s, width):
     """The building's service, drawn: the drop, the entrance conductors, the meter bank
        with a position per meter, each position's breaker, the feeder to each panel."""
@@ -101,8 +162,13 @@ def one_line(x, y, s, width):
     c.setFillColor(black); c.setFont('Helvetica-Bold', S)
     c.drawString(bx+4, y-8, ('METER BANK %s, %d POSITIONS' % (s['mark'], n)) if n > 1 else ('METER %s, METER-MAIN' % s['mark']))
     c.setFont('Helvetica', S)
-    for j, t in enumerate(wrap_notes(['EACH POSITION: THE METER, THEN ITS BREAKER IN ITS OWN COMPARTMENT — THAT METER\'S SERVICE DISCONNECT.',
-                                      'THE BREAKERS ARE MARKED "%s".' % s['marking']], bw-8, S)):
+    if n > 1:
+        bank = ['EACH POSITION: THE METER, THEN ITS BREAKER IN ITS OWN COMPARTMENT — THAT METER\'S SERVICE DISCONNECT.',
+                'THE BREAKERS ARE MARKED "%s".' % s['marking']]
+    else:
+        bank = ['THE METER, THEN ITS MAIN BREAKER IN ITS OWN COMPARTMENT — THE SERVICE DISCONNECT.',
+                'THE BREAKER IS MARKED "%s".' % s['marking']]
+    for j, t in enumerate(wrap_notes(bank, bw-8, S)):
         _fits(t, 'Helvetica', S, bw-8, 'one-line bank line')
         c.drawString(bx+4, y-8-(S+1)*(j+1), t)
     hp = {'U1': 'HP-1', 'U2': 'HP-2', 'U3': 'HP-3'}
@@ -131,11 +197,12 @@ def one_line(x, y, s, width):
             c.drawCentredString(cx, py-0.26*inch-7, '%s: DISCONNECT AT THE OUTDOOR UNIT' % hp[code])
     y = y-bh-0.55*inch-0.26*inch-0.22*inch
     c.setFont('Helvetica', S); c.setFillColor(black)
+    at = 'THE BANK' if n > 1 else 'THE METER-MAIN'
     lines = [
-        'GROUNDING ELECTRODE: THE FOOTING\'S TWO #4 BARS, S-101 NOTE 1, ENCASED AT LEAST 2" IN CONCRETE IN CONTACT WITH EARTH; GEC %s CU, NEC 250.66(B); A #4 CU STUB LEFT UP AT THE BANK.' % GEC_CEE,
-        'MAIN BONDING JUMPER AT THE SERVICE DISCONNECTS ONLY; INTERSYSTEM BONDING TERMINATION AT THE BANK.',
-        'SERVICE LOAD: %s = %.0f A; %s = %.0f A. THE LESSER GOVERNS: %d A.'
-        % (std['method'], std['amps'], opt['method'], opt['amps'], size),
+        'GROUNDING ELECTRODE: THE FOOTING\'S TWO #4 BARS, S-101 NOTE 1, ENCASED AT LEAST 2" IN CONCRETE IN CONTACT WITH EARTH; GEC %s CU, NEC 250.66(B); A #4 CU STUB LEFT UP AT %s.' % (GEC_CEE, at),
+        'MAIN BONDING JUMPER AT THE SERVICE %s ONLY; INTERSYSTEM BONDING TERMINATION AT %s.' % ('DISCONNECTS' if n > 1 else 'DISCONNECT', at),
+        'SERVICE LOAD: %s = %.0f A; %s = %.0f A. THE LESSER, %.0f A, GOVERNS. PROVIDE A %d A SERVICE, %s.'
+        % (std['method'], std['amps'], opt['method'], opt['amps'], gov['amps'], size, _why_size(s, gov, size)),
         'THE METERING\'S LOCATION, RATING AND EQUIPMENT ARE SUBJECT TO AEP OHIO\'S APPROVAL BEFORE ROUGH-IN.',
     ]
     for t in wrap_notes(lines, width, S, indent='   '):
@@ -196,4 +263,4 @@ def grey_context(p, W, D, top, bottom, left, right, top_off=0.9, side_at=(None, 
     cc.setFillColor(black)
 
 
-__all__ = ['legend', 'schedule', 'one_line', 'notes', 'title', 'grey_context', 'inches']
+__all__ = ['place', 'legend', 'schedule', 'one_line', 'notes', 'title', 'grey_context', 'inches']

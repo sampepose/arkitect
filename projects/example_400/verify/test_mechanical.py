@@ -61,12 +61,59 @@ class MechanicalTests(unittest.TestCase):
             self.assertGreaterEqual(m.soffit_clear(level), m.HALL_CEILING_MIN)
             self.assertEqual(len(m.registers(1, level, returns=True)), 1)
             self.assertTrue(m.registers(1, level))
+        keep = dict(B1.U1_SOFFIT)
+        try:                                   # a soffit too short for the cabinet
+            (x0, y0, x1, y1), cor = B1.U1_SOFFIT[2]
+            B1.U1_SOFFIT[2] = ((x0, y0, x1, y0+1.5), cor)
+            self.assertTrue(any('cabinet leaves the soffit' in v for v in m.ducted_violations(m.UNIT_1)))
+        finally:
+            B1.U1_SOFFIT.update(keep)
         keep = B1.U1_SOFFIT_DROP
         try:                                   # a soffit deep enough to eat the hall's ceiling
             B1.U1_SOFFIT_DROP = IN(24)
             self.assertTrue(any('under RCO 305.1' in v for v in m.ducted_violations(m.UNIT_1)))
         finally:
             B1.U1_SOFFIT_DROP = keep
+
+    def test_each_air_handler_has_its_access_panel_and_working_space(self):
+        """RCO M1305.1: a removable panel in each soffit, passing the cabinet in its
+           M1411.3.1 pan, over 30" x 30" of hall floor. A panel too big for the Level 2
+           cross-hall, or a hall too narrow to work in, fails."""
+        from src import mechanical as m
+        from arkitect.lib.units import IN
+        self.assertEqual(m.ducted_violations(m.UNIT_1), [])
+        self.assertGreaterEqual(m.AHU_PANEL, m.AHU_PAN)
+        keep = m.AHU_PANEL, m.AHU_WORK
+        try:
+            m.AHU_PANEL = IN(18)
+            self.assertTrue(any('access panel leaves the soffit' in v for v in m.ducted_violations(m.UNIT_1)))
+            m.AHU_PANEL, m.AHU_WORK = keep[0], IN(40)
+            self.assertTrue(any("M1305.1" in v for v in m.ducted_violations(m.UNIT_1)))
+        finally:
+            m.AHU_PANEL, m.AHU_WORK = keep
+
+    def test_level_2s_runs_stay_in_its_soffit_and_a_cut_soffit_fails(self):
+        """a recorded decision: Level 2 has the attic over it, so every run stays in its hall soffit to a
+           sidewall register in the hall wall. Stop the corridor's soffit short of Bedroom
+           2's register and the run to it leaves the soffit; move a register off its hall
+           wall and it is no longer in one."""
+        from src import mechanical as m, building1 as B1
+        self.assertEqual(m.run_violations(), [])
+        L2 = [lv for lv in m.LEVELS if lv.unit == 1 and lv.level == 2]
+        keep = dict(B1.U1_SOFFIT)
+        try:
+            hall, (x0, y0, x1, y1) = B1.U1_SOFFIT[2]
+            B1.U1_SOFFIT[2] = (hall, (x0, y0+4.0, x1, y1))
+            self.assertTrue(any('BEDROOM 2' in v for v in m.run_violations(L2)))
+        finally:
+            B1.U1_SOFFIT.update(keep)
+        lv = L2[0]; regs, runs = lv.regs, lv.runs
+        try:
+            lv.regs = [(x, y+3.0 if rm == 'BEDROOM 1' else y, rm, mk) for x, y, rm, mk in regs]
+            lv.runs = []; m._supply_runs(lv)
+            self.assertTrue(any('BEDROOM 1: the register is not in a wall' in v for v in m.run_violations(L2)))
+        finally:
+            lv.regs, lv.runs = regs, runs
 
     def test_every_system_has_its_thermostat(self):
         """RCO 1103.1 (the designer, 2026-09-19): Unit 1's two ducted zones take a programmable
@@ -112,8 +159,9 @@ class MechanicalTests(unittest.TestCase):
         from src import mechanical as m
         got = m.lineset_lengths()
         self.assertLess(got[1], 45.0); self.assertLess(got[2], 45.0); self.assertLess(got[3], 40.0)
-        # Unit 1's two air handlers run 34 ft where its four heads ran 42
-        self.assertLess(got[1], 36.0)
+        # Unit 1's two air handlers run under the 42 ft its four heads ran, each set leaving
+        # its cabinet off the supply trunk's line so the two read apart on M-101
+        self.assertLess(got[1], 40.0)
         ahus = [a for lv in m.LEVELS if lv.unit == 1 for a in lv.ahus]
         self.assertEqual(len(ahus), 2)
 

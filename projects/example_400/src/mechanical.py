@@ -21,6 +21,7 @@ face — and heights are feet above finished grade, the elevations' datum.
 import math
 from collections import namedtuple
 from arkitect.lib.model import fit
+from arkitect.lib.model.regrid import EXT_STUD
 from arkitect.lib.units import IN, fmt
 from arkitect.lib.symbols.mechanical import HEAD_L
 from src import building1 as B1M, building2 as B2M, levels, services
@@ -188,14 +189,24 @@ def _box(mark):
 # hall soffit (src/building1.py). Every room it serves takes a supply register, and each
 # level's hall takes the return at the air handler. Model feet, as the plans are authored;
 # check_mechanical() holds each one inside the room it names, so a moved wall fails here.
+AHU_L, AHU_D = 3.75, 2.0          # the cabinet arkitect.lib.symbols.mechanical draws, plan feet
 DUCTED = (1,)                     # the units whose supply is ducted, not a head per room
 AHU_MARK = {(1, 1): 'AHU-1', (1, 2): 'AHU-2'}      # one zone per level, M-101
+# Level 2's registers are HIGH SIDEWALL registers, each in its room's hall wall, fed through
+# that wall from the hall soffit: Level 2 has the attic over it, and nothing goes there
+#. Each stands 0.3 ft into its room, clear of the door in that wall, and 3'-0"
+# off the thermostat, RCO 1103.1's CONTROL_REG_CLR. Level 1's are ceiling registers, fed
+# through the floor trusses over it.
+_SW = 0.3                         # a sidewall register's centre off its wall's stud face
 REGISTERS = {
     (1, 1): [(6.0, 4.5,  'LIVING / KITCHEN / DINING'), (6.5, 19.5, 'LIVING / KITCHEN / DINING'),
-             (17.0, 27.5, 'BATH 1'), (12.25, 27.0, 'HALL', 'RA')],
-    (1, 2): [(7.0, 3.0,  'BEDROOM 2'), (3.0, 20.5, 'BEDROOM 1'), (17.0, 20.5, 'BEDROOM 3'),
-             (8.0, 13.2, 'BATH 2'), (8.0, 17.375, 'HALL', 'RA')],
+             (18.05, 27.5, 'BATH 1'), (12.25, 26.07, 'HALL', 'RA')],     # the RA at the hall's head, M-101's label under it
+    (1, 2): [(B1M.X_FR1-_SW, (B1M.Y_COR_SOFFIT+B1M.BR2_CL[1])/2.0, 'BEDROOM 2'),   # its corridor wall, past the closet
+             (5.03, B1M.Y_BRR+_SW, 'BEDROOM 1'), (18.9, B1M.Y_BRR+_SW, 'BEDROOM 3'),
+             (6.7, B1M.Y_FR1-_SW, 'BATH 2'),
+             (B1M.U1_AHU[2][0]-AHU_L/2.0-0.8, B1M.U1_AHU[2][1], 'HALL', 'RA')],   # at the air handler's end, off the hall's label
 }
+SIDEWALL = {(1, 2)}               # the ducted levels whose supply registers are in a wall
 RA = 'RA'                         # what a return grille is marked
 
 
@@ -205,7 +216,56 @@ def registers(unit, level, returns=False):
 
 
 HALL_CEILING_MIN = 7.0            # RCO 305.1: a hall, like a habitable room, keeps 7'-0"
-AHU_L, AHU_D = 3.75, 2.0          # the cabinet arkitect.lib.symbols.mechanical draws, plan feet
+
+
+def ahu_horiz(level):
+    """Does a level's air handler lie across the building (its length along x)? Where the
+       soffit it hangs in is too narrow for that -- Level 1's hall, 3'-6" across -- it lies
+       along it."""
+    ax, ay = B1M.U1_AHU[level]
+    rects = B1M.U1_SOFFIT[level]                  # the one it hangs in; a cut soffit, the first
+    x0, _y0, x1, _y1 = next((r for r in rects if r[0] <= ax <= r[2] and r[1] <= ay <= r[3]), rects[0])
+    return x1-x0 >= AHU_L
+
+
+def _overlap(a, b):
+    """The area two rectangles (x0, y0, x1, y1) share."""
+    return max(0.0, min(a[2], b[2])-max(a[0], b[0]))*max(0.0, min(a[3], b[3])-max(a[1], b[1]))
+
+
+def in_soffit(level, box):
+    """Is a rectangle wholly inside a level's soffit? Its rectangles do not overlap, so the
+       area they share with it adds up to its own."""
+    return sum(_overlap(box, r) for r in B1M.U1_SOFFIT[level]) >= (box[2]-box[0])*(box[3]-box[1])-1e-6
+
+
+def ahu_box(level, x, y):
+    """The cabinet's rectangle (x0, y0, x1, y1) about its center, in the frame x, y are in."""
+    w, d = (AHU_L, AHU_D) if ahu_horiz(level) else (AHU_D, AHU_L)
+    return (x-w/2.0, y-d/2.0, x+w/2.0, y+d/2.0)
+
+
+# Each air handler is reached through a removable panel in its soffit's underside, sized to
+# lower the unit out whole in its auxiliary pan, over a working space on the hall floor.
+AHU_PAN = IN(3)                   # RCO M1411.3.1: the pan 3" larger than the unit each way
+AHU_PANEL = AHU_PAN+IN(1)         # the panel over the cabinet each way: the pan, and 1/2" a side
+AHU_WORK = IN(30)                 # RCO M1305.1: 30" x 30" of level working space at the unit
+
+
+def ahu_panel(level, x, y):
+    """A level's access panel (x0, y0, x1, y1) about its air handler's center."""
+    x0, y0, x1, y1 = ahu_box(level, x, y)
+    g = AHU_PANEL/2.0
+    return (x0-g, y0-g, x1+g, y1+g)
+
+
+def ahu_work(level):
+    """The hall floor under a level's air handler, finished face to finished face: the
+       soffit rectangle it hangs in, less the board on each wall."""
+    ax, ay = B1M.U1_AHU[level]
+    x0, y0, x1, y1 = next((r for r in B1M.U1_SOFFIT[level] if r[0] <= ax <= r[2] and r[1] <= ay <= r[3]),
+                          B1M.U1_SOFFIT[level][0])
+    return (x1-x0-2*B1M.GYP, y1-y0-2*B1M.GYP)
 
 
 def soffit_clear(level):
@@ -228,6 +288,13 @@ def ducted_violations(ut, unit_no=1):
             if room not in B1M.U1_SOFFIT_ROOMS[level]:
                 bad.append('%s: the air handler stands in %s, not the soffit of %s'
                            % (lv.name, room or 'the open', ', '.join(B1M.U1_SOFFIT_ROOMS[level])))
+            if not in_soffit(level, ahu_box(level, d.x, d.y)):
+                bad.append("%s: the air handler's cabinet leaves the soffit" % lv.name)
+            if not in_soffit(level, ahu_panel(level, d.x, d.y)):
+                bad.append("%s: the air handler's access panel leaves the soffit" % lv.name)
+            if min(ahu_work(level)) < AHU_WORK-1e-9:
+                bad.append("%s: the hall under the air handler is %s wide, under RCO M1305.1's %s"
+                           % (lv.name, fmt(min(ahu_work(level))), fmt(AHU_WORK)))
         if len(registers(unit_no, level, returns=True)) != 1:
             bad.append('%s: the return grille is not one' % lv.name)
         for r in REGISTERS.get((unit_no, level), []):
@@ -253,6 +320,7 @@ class MLevel:
         s.ff = FF[level]
         s.heads, s.fans, s.ducts, s.terms, s.linesets, s.roofcaps = [], [], [], [], [], []
         s.ahus, s.regs = [], []            # the ducted zones: air handlers and their registers
+        s.runs = []                        # (register, polyline): each supply run, diagrammatic
         s.hp_box = _box(hp)
         s.sleeve = None
         s.drop = None                      # where Level 2 line sets go down to a Level 1 sleeve
@@ -282,6 +350,66 @@ def _place_registers(m):
         m.regs.append((x, y, r[2], r[3] if len(r) > 3 else ''))
 
 
+def _supply_runs(m):
+    """Each supply run, air handler to register, in page feet. A level fed through the
+       floor trusses runs square across to its register's line and along it. A sidewall
+       level runs inside its soffit: along the rectangle the air handler hangs in, then,
+       for a register on another rectangle, up that one beside the wall the register is
+       in, and last through the wall to the register."""
+    for ax, ay, _room in m.ahus:
+        for reg in m.regs:
+            rx, ry, _rm, mark = reg
+            if mark: continue
+            pts = [(ax, ay), (rx, ay), (rx, ry)]
+            yb = m.plan.y(B1M.Y_RB) if m.unit == 1 and m.level == 1 else None
+            if yb is not None and ry < yb and rx > ax:
+                # a run to the front leaves the rear band up the mechanical room's hall
+                # side, at the heater's working space, and over the band's wall: the room's
+                # label is in the patch past it, between the panel's space and the W/D
+                xr = _fit(m, B1M.F_L1, 'whclear')[2]-0.15
+                pts = [(ax, ay), (xr, ay), (xr, yb-0.3), (rx, yb-0.3), (rx, ry)]
+            if (m.unit, m.level) in SIDEWALL:
+                rects = B1M.soffit_pages(m.level)
+                home = next(r for r in rects if r[0] <= ax <= r[2] and r[1] <= ay <= r[3])
+                near = min(rects, key=lambda r: math.hypot(max(r[0]-rx, 0, rx-r[2]), max(r[1]-ry, 0, ry-r[3])))
+                if near is not home:
+                    xc = near[2]-_SW if abs(rx-near[2]) < abs(rx-near[0]) else near[0]+_SW
+                    pts = [(ax, ay), (xc, ay), (xc, ry), (rx, ry)]
+            m.runs.append((reg, pts))
+
+
+def run_violations(levs=None):
+    """A sidewall level's runs stay in its soffit: every point of each run, but for
+       its last reach through the wall to the register, inside the soffit, and every
+       register within that reach of it -- so a register moved off its hall wall, or a
+       soffit cut back, stops the build."""
+    from arkitect.lib.model.runs import in_rect, points
+    bad = []
+    for m in (LEVELS if levs is None else levs):
+        if (m.unit, m.level) not in SIDEWALL: continue
+        rects = B1M.soffit_pages(m.level)
+        for (rx, ry, room, _mk), pts in m.runs:
+            if not any(math.hypot(max(r[0]-rx, 0, rx-r[2]), max(r[1]-ry, 0, ry-r[3])) <= SW_REACH for r in rects):
+                bad.append('%s %s: the register is not in a wall of the soffit' % (m.name, room))
+            for q in points(pts):
+                if math.hypot(q[0]-rx, q[1]-ry) <= SW_REACH: continue
+                if not any(in_rect(q, (r[0], r[1], r[2]-r[0], r[3]-r[1])) for r in rects):
+                    bad.append('%s %s: the supply run leaves the soffit' % (m.name, room)); break
+    return bad
+
+
+def reg_horiz(m, reg):
+    """Does a register lie along x? A ceiling register does; a sidewall register lies along
+       its wall, which is the soffit face it is nearest."""
+    rx, ry = reg[0], reg[1]
+    if (m.unit, m.level) not in SIDEWALL or reg[3]: return True
+    r = min(B1M.soffit_pages(m.level), key=lambda r: math.hypot(max(r[0]-rx, 0, rx-r[2]), max(r[1]-ry, 0, ry-r[3])))
+    return max(r[0]-rx, 0, rx-r[2]) <= max(r[1]-ry, 0, ry-r[3])
+
+
+SW_REACH = _SW+B1M.PARTITION+0.05  # a sidewall register's reach: through its wall, to the soffit's face
+
+
 def _bath_exhaust(m, walls, marks):
     """Each bath fan's duct to its cap: through a wall for a Level 1 bath, up through the
        roof for a Level 2 one."""
@@ -304,6 +432,12 @@ def _bath_exhaust(m, walls, marks):
         m.roofcaps.append(t)
     m.terms.append(t); marks.setdefault(t.wall, []).append(t)
     m.ducts.append(Duct(t, pts, DUCT_SIZE))
+
+
+def _fit(m, fixtures, kind):
+    """A fitting's page rectangle (x0, y0, x1, y1): its origin regridded, its size kept."""
+    f = m.plan.keep(next(f for f in fixtures if f[4] == kind))
+    return m.W-f[0]-f[2], f[1], m.W-f[0], f[1]+f[3]
 
 
 def _wd(m, fixtures):
@@ -341,6 +475,15 @@ def _appliance_exhaust(m, marks):
     m.terms.append(dr); marks.setdefault(dr.wall, []).append(dr)
 
 
+LS_DROP = 0.5                     # Unit 1's drop in the north wall, this far along it from the sleeve
+
+
+def dx_wall(sx):
+    """The middle of the exterior wall whose outer face is at page x sx: the cavity a set
+       drops through between levels."""
+    return sx+EXT_STUD/2.0 if sx < 1.0 else sx-EXT_STUD/2.0
+
+
 def _linesets(m):
     """Each head's line set to the unit's sleeve: off its wall, along to the trunk line
        on the sleeve's side, along that to the sleeve's position, out. Unit 1's Level 2
@@ -352,16 +495,25 @@ def _linesets(m):
     m.sleeve = (sx, sy)
     tx = 0.5+LINE_OFF if on_left else m.W-0.5-LINE_OFF
     off = {'n': (0, LINE_OFF), 's': (0, -LINE_OFF), 'e': (-LINE_OFF, 0), 'w': (LINE_OFF, 0)}
-    for hx, hy, mt, room in m.heads+[(a[0], a[1], 'c', a[2]) for a in m.ahus]:
+    # An air handler's set leaves it off the supply trunk's line, which runs out of the
+    # cabinet along y = its centre: LINE_OFF toward the rear where the cabinet lies across
+    # the house, and at its rear end, LINE_OFF in, where it lies along its hall (R-033).
+    for a in m.ahus:
+        off[('ahu', a)] = (0.0, LINE_OFF if ahu_horiz(m.level) else AHU_L/2.0-LINE_OFF)
+    for hx, hy, mt, room in m.heads+[(a[0], a[1], ('ahu', a), a[2]) for a in m.ahus]:
         dx, dy = off.get(mt, (0.0, 0.0))
         pts = [(hx, hy), (hx+dx, hy+dy), (tx, hy+dy), (tx, sy)]
         if m.unit == 1 and m.level == 2:
-            m.drop = (tx, sy)
+            # into the north wall at the set's own line, along the cavity to the drop
+            m.drop = (dx_wall(sx), sy-LS_DROP)
+            pts = [(hx, hy), (hx+dx, hy+dy), (m.drop[0], hy+dy), m.drop]
         else:
             pts.append((sx, sy))
         m.linesets.append([q for i, q in enumerate(pts) if i == 0 or math.hypot(q[0]-pts[i-1][0], q[1]-pts[i-1][1]) > 1e-9])
     if m.unit == 1 and m.level == 1:
-        m.drop = (tx, sy)
+        # Level 2's sets come down the same cavity and along it to this level's sleeve
+        m.drop = (dx_wall(sx), sy-LS_DROP)
+        m.linesets.append([m.drop, (m.drop[0], sy), (sx, sy)])
 
 
 def build():
@@ -374,6 +526,7 @@ def build():
         m = MLevel(*row)
         _place_devices(m)
         _place_registers(m)
+        _supply_runs(m)
         _appliance_exhaust(m, marks[m.bldg])
         _bath_exhaust(m, wl[m.bldg], marks[m.bldg])
         _linesets(m)
@@ -521,6 +674,7 @@ def check_mechanical():
                     bad.append('%s %s: no %s' % (lv.name, nm, 'supply register' if ducted else 'heat-pump head'))
         if ducted:
             bad += ducted_violations(ut, unit_no)
+            bad += run_violations([m for m in LEVELS if m.unit == unit_no])
             for pts, nm in [(p, n) for p, n in lv.polys]+[(None, r[4]) for r in lv.rooms]:
                 if 'BATH' in nm.upper() and not any(d.kind in ('fanc', 'fan') and room_of(d, lv) == nm for d in lv.devices):
                     bad.append('%s %s: no exhaust fan' % (lv.name, nm))

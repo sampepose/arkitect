@@ -8,8 +8,7 @@ from src.building2 import B2_D, B2_W, PLAN_B2, b2_level
 from src.electrical import CIRCUITS_U23, E_B2, E_U2_ONLY, E_U3_ONLY, LEVEL_U2, NEC_UNITS, SERVICES
 from src.sheets.a102 import draw_u5_stair
 from arkitect.lib.draw.kit import Q, X0, X1, Y0, Y1, c
-from src.sheets.e_common import grey_context, legend, notes, one_line, schedule
-from arkitect.lib.draw.electrical_kit import place
+from src.sheets.e_common import place, grey_context, legend, notes, one_line, schedule
 from arkitect.lib.draw.kit import title
 
 

@@ -13,8 +13,9 @@ exhaust straight up, so each roof cap is its fan's place in src/electrical.py.
 from collections import namedtuple
 from arkitect.lib.units import IN
 from arkitect.lib.model.regrid import EXT_STUD
+from arkitect.lib.model.runs import rects_overlap
 from src import levels
-from src.building1 import B1_D, B1_W, PLAN_B1_L2
+from src.building1 import B1_D, B1_W, PLAN_B1_L2, X_COR0, X_COR1, soffit_pages
 from src.building2 import B2_D, B2_W, PLAN_B2
 from src.foundation import ROOF_OVERHANG
 from src.framing import TRUSS_OC
@@ -65,11 +66,15 @@ def _roof(name, W, D, gables, hatches):
                 attics=[_attic('%s ATTIC' % name, W, 0.0, D)])
 
 
-# Each hatch is in its unit's Level 2 hall, between the trusses at 16'-0" and 18'-0" from
-# the front face, clear of that hall's luminaire and alarms.
+# Each hatch is in its unit's Level 2 hall, between two trusses, clear of that hall's
+# luminaires and alarms. Unit 3's is between the trusses at 16'-0" and 18'-0" from the
+# front face. Unit 1's is in the corridor beside the well, between those at 4'-0" and
+# 6'-0": its cross-hall is the soffit that hides AHU-2 and its runs, and the hatch stays
+# out of it.
 _BETWEEN = 8*TRUSS_OC+TRUSS_OC/2.0
+_B1_BETWEEN = 2*TRUSS_OC+TRUSS_OC/2.0
 B1_ROOF = _roof('BUILDING 1', B1_W, B1_D, [(0.0, 'OAK AVENUE'), (B1_D, 'REAR')],
-                [_hatch('UNIT 1', 'A-101', 'HALL', 7.5, _BETWEEN, 'b1')])
+                [_hatch('UNIT 1', 'A-101', 'HALL', (X_COR0+X_COR1)/2.0, _B1_BETWEEN, 'b1')])
 B2_ROOF = _roof('BUILDING 2', B2_W, B2_D, [(0.0, 'COURTYARD'), (B2_D, 'REAR')],
                 [_hatch('UNIT 3', 'A-102', 'HALL', 10.0, _BETWEEN, 'b2')])
 
@@ -136,11 +141,24 @@ def between_trusses(h):
     return k*TRUSS_OC+IN(0.75) <= h.page[1]+1e-9 and h.page[3] <= (k+1)*TRUSS_OC-IN(0.75)+1e-9
 
 
+def _wh(r):
+    """(x0, y0, x1, y1) as the (x, y, w, h) arkitect.lib.model.runs takes."""
+    return (r[0], r[1], r[2]-r[0], r[3]-r[1])
+
+
+def soffit_violations(hatches):
+    """Unit 1's hatch may not open into the Level 2 hall soffit: that is where AHU-2 and
+       its runs are, between the ceiling and the attic the hatch is for."""
+    return ['%s: hatch in the hall soffit, over the air handler and its runs' % h.unit
+            for h in hatches if any(rects_overlap(_wh(h.page), _wh(r)) for r in soffit_pages(2))]
+
+
 def check_roof():
     """Fails the build when a roof line no longer agrees with the plans it is derived from."""
     rooms, devices = _ceilings()
     v = [x for r in ROOFS for x in roof_violations(r, rooms, devices, penetrations(r), truss_oc=TRUSS_OC)]
     v += ['%s: hatch across a truss' % h.unit for h in HATCHES if not between_trusses(h)]
+    v += soffit_violations(B1_ROOF.hatches)
     for r in ROOFS:
         for av in attic_vents(r, penetrations(r)):
             print("ROOF %-18s trusses at %g in, %.0f SF attic: vents %d sq in of %d required; hatch %s; caps %s"

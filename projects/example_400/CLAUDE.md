@@ -84,7 +84,10 @@ and the sheets follow or the build fails with the rule named. Oak-specific ones:
   it replaced and two filters to keep instead of four heads to clean). One two-zone system
   on HP-1: `AHU_MARK` is AHU-1 (Level 1) and AHU-2 (Level 2), each a concealed air handler
   in that level's hall soffit (`building1.U1_SOFFIT_ROOMS`, `U1_SOFFIT_DROP` 12",
-  `U1_AHU`), each an `ahu` device on the heat-pump circuit so E-101 and the NEC walk see
+  `U1_AHU`; `U1_SOFFIT` is the extent A-101 and M-101 dash -- Level 1's whole hall, Level 2's
+  cross-hall and the corridor back from 6'-6", so the attic hatch stands clear of it at the
+  corridor's front, a design call; Level 2's runs stay in it to sidewall registers in the
+  hall walls, `run_violations()`, a design call), each an `ahu` device on the heat-pump circuit so E-101 and the NEC walk see
   it. `REGISTERS` holds every supply register and the one return per level, in model feet;
   `ducted_violations()` (from `check_mechanical()`) fails the build if a level has other
   than one air handler, if it stands outside its hall, if a register is not inside the room
@@ -92,7 +95,8 @@ and the sheets follow or the build fails with the rule named. Oak-specific ones:
   (`soffit_clear()`: 7'-8-3/8" on Level 1, 7'-11-3/8" on Level 2). **Nothing is in the
   attic** — that is what keeps 1103.3.3's duct test off the set, and A-602 says so; put a
   duct or an air handler up there and that row is false. The line sets went 42'-6" to
-  34'-2". M-101 note 6a has Manual D, the dampers, the filter and the return path; note 3
+  about 38'-0" as drawn, each leaving its air handler off the supply trunk and Level 2's
+  dropping inside the north wall. M-101 note 6a has Manual D, the dampers, the filter and the return path; note 3
   adds RCO M1411.3.1's auxiliary pan, which a unit over a finished ceiling needs. The
   legend lists what a building draws (`m_common.legend_kinds()`), which is why 300's M
   sheets are byte-identical though `arkitect/lib/symbols/mechanical.py` gained two symbols.
