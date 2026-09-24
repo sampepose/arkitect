@@ -117,7 +117,12 @@ def zone_faces(rects,polys,axis,lo,hi):
     return out
 
 class Zone:
-    def __init__(s,rects,polys,ylo,yhi,W,new_ylo,new_yhi,xpins=None,ypins=None,yhold=(),xhold=()):
+    def __init__(s,rects,polys,ylo,yhi,W,new_ylo,new_yhi,xpins=None,ypins=None,yhold=(),xhold=(),
+                 sheet_W=None):
+        # W is the width the rooms are authored on; sheet_W, where given, the width the
+        # building is built to, so a building can be narrowed without re-authoring its
+        # rooms: the floor takes the difference and every held span keeps its size.
+        SW=W if sheet_W is None else sheet_W
         xs=zone_faces(rects,polys,0,ylo,yhi) | {0.5,W-0.5}
         ys=zone_faces(rects,polys,1,0.5,W-0.5) | {ylo,yhi}
         s.ylo,s.yhi=ylo,yhi
@@ -127,9 +132,9 @@ class Zone:
         # walls either end of it leave.
         hx={(r[0],r[0]+r[2]) for r in rects if r[4]=="CL." and r[2]<r[3]} | set(xhold)
         hy={(r[1],r[1]+r[3]) for r in rects if r[4]=="CL." and r[3]<r[2]} | set(yhold)
-        s.xm=axis_map({c for c in xs if 0.5<=c<=W-0.5},EXT_STUD,W-EXT_STUD,xpins,hold=hx)
+        s.xm=axis_map({c for c in xs if 0.5<=c<=W-0.5},EXT_STUD,SW-EXT_STUD,xpins,hold=hx)
         s.ym=axis_map({c for c in ys if ylo<=c<=yhi},new_ylo,new_yhi,ypins,hold=hy)
-        s.xm[0.0]=0.0; s.xm[W]=W
+        s.xm[0.0]=0.0; s.xm[W]=SW
 
 def _inv(m,v):
     """the inverse of _interp: the model coordinate whose mapped position is v. The map
