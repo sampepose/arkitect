@@ -355,7 +355,7 @@ def sheet_s103():
     ry = Y1-0.35*inch
     half = (rw-0.3*inch)/2.0
     y_a = _loads(rx, ry, half, bc_dead=BC_DEAD, ground_snow=GROUND_SNOW, roof_deflection=ROOF_DEFLECTION, roof_live=ROOF_LIVE, tc_dead=TC_DEAD, wind=WIND)
-    y_b = _ventilation(rx+half+0.3*inch, ry, half, roofs=ROOFS, penetrations=penetrations,
+    y_b = _ventilation(rx+half+0.3*inch, ry, half, roofs=ROOFS, penetrations=penetrations, vent_note=6,
                        roof_areas=lambda r: (plan_area(r), sloped_area(plan_area(r), ROOF_PITCH)))
     ry = notes_block(rx, min(y_a, y_b)-8, rw, _notes_text(), 'ROOF FRAMING NOTES', 'S-ANNO-TEXT', 'roof framing note')
     assert ry > Y0, 'S-103 notes run off the sheet'

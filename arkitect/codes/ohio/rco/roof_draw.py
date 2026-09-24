@@ -10,11 +10,11 @@ from arkitect.lib.draw.kit import c, _fits
 from arkitect.codes.ohio.rco.attic_ventilation import EAVE_NFA, RIDGE_NFA, VENT_RATIO, attic_vents
 
 
-def _ventilation(x, y, width, *, roofs, penetrations, roof_areas=None):
+def _ventilation(x, y, width, *, roofs, penetrations, vent_note, roof_areas=None):
     """ATTIC VENTILATION: one row per attic of src.roof, area and required net free area,
        and under it the eave and ridge runs the plans draw and the area they provide at
-       note 7's minimum ratings. Each length prints rounded down to a tenth of a foot and
-       each area is computed from the printed length and rounded down, so the row's
+       the minimum ratings of the project's own ventilation note, `vent_note`, which it
+       numbers. Each length prints rounded down to a tenth of a foot and each area is computed from the printed length and rounded down, so the row's
        arithmetic checks on the sheet and never overstates the model's figure.
 
        `roof_areas`, a roof -> (plan SF, sloped SF), adds the takeoff a roofer bids from."""
@@ -37,7 +37,7 @@ def _ventilation(x, y, width, *, roofs, penetrations, roof_areas=None):
             prov = 'PROVIDED %d SQ IN' % (intake+exhaust)
             _fits(runs, 'Helvetica', S, width-6-pdfmetrics.stringWidth(prov, 'Helvetica', S)-8, 'ventilation runs')
             c.drawString(x+6, y, runs); c.drawRightString(x+width, y, prov); y -= LEAD
-    tail = 'VENT RUNS AS DRAWN, AT THE MINIMUM RATINGS OF NOTE 7 IN SQ IN PER LF'
+    tail = 'VENT RUNS AS DRAWN, AT THE MINIMUM RATINGS OF NOTE %s IN SQ IN PER LF' % vent_note
     _fits(tail, 'Helvetica', S, width, 'ventilation tail')
     c.drawString(x, y, tail); y -= LEAD
     if roof_areas is not None:
