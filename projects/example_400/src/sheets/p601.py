@@ -496,7 +496,7 @@ def sheet_p601():
         "P-601 draws one service entry: the two buildings no longer take the same service"
     ey = y-0.34*inch
     c.setFillColor(black); c.setFont("Helvetica-Bold", 12)
-    c.drawString(x, ey, "WATER SERVICE ENTRY"); ey -= 0.24*inch
+    c.drawString(x, ey, "WATER SUPPLY ENTRY"); ey -= 0.24*inch
     a0, a1 = X0, X0+6.0*inch                      # detail 1 and its labels
     b0, b1 = X0+6.2*inch, X0+12.4*inch            # detail 2 and its labels
     n0 = X0+12.7*inch                             # the notes, two columns in this band
@@ -505,13 +505,13 @@ def sheet_p601():
                                bar_cover=BAR_COVER, bar_dia=FTG_BAR_DIA, bar=FTG_BAR,
                                gravel_t=GRAVEL_T, slab_top=LV.SLAB_TOP, grade=LV.GRADE,
                                water_sheets='P-102 AND P-103', sheet='P-601',
-                               max_h=ey-Y0-0.95*inch)
+                               max_h=ey-Y0-0.95*inch, line='SUPPLY')
     lo = min(lo, service_entry_elevation(ey, b0, b1, e, ftg_w=FTG_W, bar=FTG_BAR,
-                                         sheet='P-601'))
+                                         sheet='P-601', line='SUPPLY'))
     lo = min(lo, service_entry_notes(n0, ey, X1-n0, e, gravel_t=GRAVEL_T,
                                      bar=FTG_BAR, water_sheets='P-102 AND P-103', layer='P-ANNO-TEXT',
                              water_utility=JUR.WATER_UTILITY,
-                                     cols=2, located='S-101'))
+                                     cols=2, located='S-101', line='SUPPLY'))
     assert lo >= Y0, "P-601 service entry runs off the sheet by %.2f in" % ((Y0-lo)/inch)
     LAY('P-DOMW-HOTW')   # the layer this sheet left current before the block above:
     c.showPage()         # the next document's first record draws on it, as S-101 does

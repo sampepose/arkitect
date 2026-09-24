@@ -269,11 +269,11 @@ def sheet_p601():
                                bar_cover=BAR_COVER, bar_dia=FTG_BAR_DIA, bar=FTG_BAR,
                                gravel_t=GRAVEL_T, slab_top=levels.SLAB_TOP, grade=levels.GRADE,
                                water_sheets='P-102 AND P-103', sheet='P-601',
-                               max_h=4.2*inch)
-    ey = service_entry_elevation(ey, ex0, X1, e, ftg_w=FTG_W, bar=FTG_BAR, sheet='P-601')
+                               max_h=4.2*inch, line='SERVICE')
+    ey = service_entry_elevation(ey, ex0, X1, e, ftg_w=FTG_W, bar=FTG_BAR, sheet='P-601', line='SERVICE')
     ey = service_entry_notes(ex0, ey, ew, e, gravel_t=GRAVEL_T,
                              bar=FTG_BAR, water_sheets='P-102 AND P-103', layer='P-ANNO-TEXT',
-                             water_utility=JUR.WATER_UTILITY)
+                             water_utility=JUR.WATER_UTILITY, line='SERVICE')
     assert ey >= Y0, "P-601 service entry runs off the sheet by %.2f in" % ((Y0-ey)/inch)
     LAY('P-DOMW-HOTW')   # the layer this sheet left current before the block above:
     c.showPage()         # the next document's first record draws on it, as S-101 does
