@@ -59,7 +59,7 @@ def _fit_scale(avail, span, labels, max_h=None, tall=None, what='elevation'):
 # to carry it rather than trenched beneath.
 def service_entry_section(top, left, right, e, wall_t, ftg_proj, insul_t, edge_insul_run,
                           slab_t, bar_cover, bar_dia, bar, gravel_t, slab_top, grade,
-                          water_sheets, sheet, max_h, *, line):
+                          water_sheets, sheet, max_h, *, line, wall_says=('NO PIPE', 'PASSES THROUGH IT')):
     """Detail 1: the section across the wall, cut along the service."""
     pipe = e.pipe_od
     ctr = (e.pipe_top+e.pipe_bot)/2.0
@@ -108,8 +108,8 @@ def service_entry_section(top, left, right, e, wall_t, ftg_proj, insul_t, edge_i
            'SOIL — DETAIL 2'))
     d.lab(wall_t/2.0, (e.ftg_top+slab_top)/2.0, 'R',
           ('%s FOUNDATION WALL, BOTTOM %s' % (inches(wall_t), inches(-e.ftg_top)),
-           'BELOW FINISHED GRADE: NO PIPE',
-           'PASSES THROUGH IT'))
+           'BELOW FINISHED GRADE: %s' % wall_says[0],
+           wall_says[1]))
     d.lab(wall_t+ftg_proj, ctr, 'R',
           ('%s" SLEEVE, %s OUTSIDE — TWO PIPE' % (e.sleeve, inches(e.sleeve_od)),
            'SIZES LARGER, CAST THROUGH THE',
