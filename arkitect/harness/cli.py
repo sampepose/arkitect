@@ -10,6 +10,7 @@
     arkitect intake | scaffold | progress | review | decisions | config | hooks | hook | engine
     arkitect jurisdiction list | check <state>/<city> | new <state>/<city>   the cities encoded, and adding one
     arkitect release check              in your workspace: is the engine fit to publish?
+    arkitect web [--port 8765]          the local web UI over this workspace (docs/web-ui.md)
     arkitect disclaimer                 what this engine's output is not
     arkitect --version
 
@@ -38,6 +39,7 @@ TOOLS = {
     'hook': 'arkitect.harness.hook',
     'engine': 'arkitect.harness.engine',
     'disclaimer': 'arkitect.harness.disclaimer',
+    'web': 'arkitect.web.server',
     'jurisdiction': 'arkitect.harness.jurisdiction',
     'release': 'arkitect.harness.release',
 }

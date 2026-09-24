@@ -38,3 +38,4 @@ include = ["arkitect*"]
 
 [tool.setuptools.package-data]
 "arkitect.lib.assets" = ["*.png", "*.svg"]
+"arkitect.web" = ["static/*"]

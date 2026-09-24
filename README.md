@@ -124,6 +124,15 @@ move a sheet, the patch number for anything that cannot, and each release is tag
 whose first keys are `schema`, `kind`, `engine` and `workspace`. Within a schema number a
 field may be added, never removed or renamed. `docs/interface.md` lists every field.
 
+## In a browser
+
+    arkitect web                   # inside your workspace; opens http://127.0.0.1:8765/
+
+A local web UI over the same files: the workspace, every sheet rendered with its plan-review
+findings pinned on it, the gate with each moved sheet compared against the base, the decisions
+waiting on you, and the review. Every button runs the command you would type and commits what
+it changes, nothing more. [docs/web-ui.md](docs/web-ui.md).
+
 ## A new address
 
 Ask Claude Code for one: the `new-address` skill asks the intake questions, checks the
@@ -154,6 +163,7 @@ skills and agents, so a session opened there has the workflows. The policy is
     arkitect/codes/        the code rules, each with its citation: Ohio's residential code, plumbing,
                   the NEC, Columbus zoning. One pin per transcribed table in arkitect/codes/verify/.
     arkitect/harness/      the tools that start, advance, review and record a project.
+    arkitect/web/          the local web UI (`arkitect web`): a page and a JSON API over the tools.
     style/        the house style every sheet is held to; the plan reviewer reads it.
     projects/     the two examples.
     .claude/      the hooks, skills and agents for Claude Code.

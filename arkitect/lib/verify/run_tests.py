@@ -45,6 +45,7 @@ ROOTS = {
     os.path.join('arkitect', 'lib'): 147,
     os.path.join('arkitect', 'codes'): 163,
     os.path.join('arkitect', 'harness'): 79,
+    os.path.join('arkitect', 'web'): 10,
 }
 """The engine's test roots and the least each must collect. RAISE ONE when you add tests
    to it. A PROJECT's floor is not here: it is the number in projects/<slug>/verify/FLOOR,
