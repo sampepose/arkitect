@@ -31,6 +31,7 @@ from reportlab.lib.colors import black
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 
+from functools import partial
 from arkitect.lib.draw.kit import c, knockout
 from arkitect.lib.draw.page import GREY
 
@@ -160,6 +161,7 @@ def _bracket(x, y0, y1, label, tick=0.05):
 
 def riser(ox, oy, cell, w=W, h=H):
     """One riser cell, drawn from its bottom-left corner. Returns the top of its title."""
+    later = []                                   # the vent labels, drawn after every line
     xs = ox+(0.50 if cell.ends else 0.46)*w*inch   # the stack: past its branch's fixtures where they shift
     x_end = ox+0.85*w*inch                       # where the drain leaves the cell
     y_note = oy+0.02*inch
@@ -252,8 +254,8 @@ def riser(ox, oy, cell, w=W, h=H):
         c.setStrokeColor(black); c.setLineWidth(1.3); _dash()
         if sl.tie is None:                       # this cell's riser IS that vent
             _dash(False)
-            knockout(xs+6.0, y_lv[2]+0.34*inch, '%s  %s  %s' % (sl.mark, sl.size, sl.method),
-                     "Helvetica-Bold", SUB)
+            later.append(partial(knockout, xs+6.0, y_lv[2]+0.34*inch, '%s  %s  %s' % (sl.mark, sl.size, sl.method),
+                                 "Helvetica-Bold", SUB))
         else:
             top = vent_base+0.10*inch+n*0.20*inch
             if cell.ends:                        # into the head vent in the attic, over every rim
@@ -262,10 +264,10 @@ def riser(ox, oy, cell, w=W, h=H):
             c.line(head, top, xv, top)
             _dash(False); _dot(xv, top)
             if cell.ends:                        # between the levels, left of the stack, where nothing runs
-                _cell_label(ox, y_lv[1]+0.60*inch, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie),
-                            (xs-ox)/inch-0.05)
+                later.append(partial(_cell_label, ox, y_lv[1]+0.60*inch, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie),
+                                     (xs-ox)/inch-0.05))
             else:
-                _cell_label(ox, top+3.0, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie), w)
+                later.append(partial(_cell_label, ox, top+3.0, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie), w))
 
     # ---- a branch in a floor, into the stack's top, and the dry vents that protect it ----
     # A fixture whose trap hangs IN this floor (a closet bend, a tub) is vented by the branch
@@ -322,11 +324,11 @@ def riser(ox, oy, cell, w=W, h=H):
         for i, (rx, (mark, size)) in enumerate(risers):
             c.setFillColor(black)
             if cell.ends and rx == xv:           # the head vent's mark, left of it under the roof
-                knockout(rx-3.0, y_top-0.40*inch, '%s %s' % (mark, size), "Helvetica-Bold", SUB, align="r")
+                later.append(partial(knockout, rx-3.0, y_top-0.40*inch, '%s %s' % (mark, size), "Helvetica-Bold", SUB, align="r"))
                 continue
-            knockout(rx+2.0, top-i*VENT_STAGGER*inch+2.2, '%s %s' % (mark, size),
-                     "Helvetica-Bold", SUB)
-        _cell_label(ox, (y_top-0.60*inch) if cell.ends else top+0.17*inch, '%s — %s' % (fl.method, fl.tie), w)
+            later.append(partial(knockout, rx+2.0, top-i*VENT_STAGGER*inch+2.2, '%s %s' % (mark, size),
+                                 "Helvetica-Bold", SUB))
+        later.append(partial(_cell_label, ox, (y_top-0.60*inch) if cell.ends else top+0.17*inch, '%s — %s' % (fl.method, fl.tie), w))
 
     # ---- the foot: the offset a waste stack makes to it is drawn, 913.2 ----
     if cell.foot:
@@ -348,6 +350,11 @@ def riser(ox, oy, cell, w=W, h=H):
         # see it -- the strings share a baseline but it pairs only what it is looking for.
         c.setFillColor(black)
         _cell_label(ox, y_note, cell.note, w, font="Helvetica")
+    # Every vent's label after EVERY line of the cell: a vent drawn for a later level or
+    # floor would otherwise run its dashes through a label an earlier one had knocked out.
+    for draw in later:
+        c.setFillColor(black)
+        draw()
     c.setFillColor(black)
     for lv, label in sorted(cell.levels.items()):
         knockout(ox, y_lv[lv]+3.0, label, "Helvetica-Bold", LEVEL)
