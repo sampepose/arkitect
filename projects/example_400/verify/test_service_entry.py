@@ -83,7 +83,7 @@ class SheetTextTests(unittest.TestCase):
                     self.fail('%s still sends the water through the wall: %r' % (no, t))
 
     def test_p601_draws_the_entry_and_the_others_cite_it(self):
-        self.assertTrue(any('WATER SERVICE ENTRY' in t for t in STRINGS['P-601']),
+        self.assertTrue(any('WATER SUPPLY ENTRY' in t for t in STRINGS['P-601']),     # one service for the lot
                         'P-601 no longer draws the service entry')
         for no in ('P-102', 'P-103', 'P-101', 'S-101'):
             self.assertTrue(any('P-601' in t for t in STRINGS[no]), '%s no longer cites P-601' % no)
