@@ -85,21 +85,29 @@ def manifold(cc, X, Y, W, H):
 SHORT = 36.0        # a run whose longest segment is under this many points takes no label
 
 
-def run_label(cc, pts, text, size=3.8, always=False):
+def longest(pts):
+    """The index of a polyline's longest segment: where its label goes."""
+    return max(range(len(pts)-1), key=lambda i: math.hypot(pts[i+1][0]-pts[i][0], pts[i+1][1]-pts[i][1]))
+
+
+def run_label(cc, pts, text, size=3.8, always=False, flip=False):
     """On the longest segment of a polyline, at its middle, masked, along it. A short
        run — a stub in a closet — takes none: its fixture code says what it is and the
-       supply diagram gives its count."""
-    (a, b) = max(zip(pts, pts[1:]), key=lambda s: math.hypot(s[1][0]-s[0][0], s[1][1]-s[0][1]))
+       supply diagram gives its count. `flip` puts it on the other side of the line:
+       below a run along x, right of one along y."""
+    i = longest(pts); a, b = pts[i], pts[i+1]
     if not always and math.hypot(b[0]-a[0], b[1]-a[1]) < SHORT: return
     mx, my = (a[0]+b[0])/2.0, (a[1]+b[1])/2.0
     w = pdfmetrics.stringWidth(text, 'Helvetica', size)
     LAY('P-ANNO-TEXT'); cc.setFillColor(white)
     if abs(b[0]-a[0]) >= abs(b[1]-a[1]):
-        cc.rect(mx-w/2.0-1.5, my+2.2, w+3, size+1.6, fill=1, stroke=0)
-        _text(cc, mx, my+3.4, text, size)
+        dy = -(size+4.4) if flip else 0.0
+        cc.rect(mx-w/2.0-1.5, my+2.2+dy, w+3, size+1.6, fill=1, stroke=0)
+        _text(cc, mx, my+3.4+dy, text, size)
     else:
-        cc.rect(mx-size-4.6, my-w/2.0-1.5, size+1.6, w+3, fill=1, stroke=0)
-        cc.saveState(); cc.translate(mx-3.8, my); cc.rotate(90)
+        dx = size+7.0 if flip else 0.0
+        cc.rect(mx-size-4.6+dx, my-w/2.0-1.5, size+1.6, w+3, fill=1, stroke=0)
+        cc.saveState(); cc.translate(mx-3.8+dx, my); cc.rotate(90)
         _text(cc, 0, 0, text, size); cc.restoreState()
 
 
@@ -124,9 +132,16 @@ def fixture_end(cc, X, Y, kind, side=1):
     _text(cc, X+2.6*side, Y-1.3, CODE[kind], 3.4, anchor='l' if side > 0 else 'r')
 
 
-def draw_unit(p, u, tag_riser=None, riser_side=1, *, pm):
+TAG_CLEAR = 4.6    # points: a code set off its run, on the fixture's side, past the hot line
+
+
+def draw_unit(p, u, tag_riser=None, riser_side=1, *, pm, tags_clear=False):
     """The manifolds, the valve and submeter, the riser and every home-run bundle of one
-       unit on PlanDraw p. Fixtures come out of src/plumbing.py in page feet."""
+       unit on PlanDraw p. Fixtures come out of src/plumbing.py in page feet.
+
+       With `tags_clear`, a fixture whose edge lies on or beside its run takes its code on the
+       fixture's side of the run, clear of the hot line, and the run's label is drawn first
+       so no mask covers a code."""
     cc = p.c
     for r in u.runs:
         fx = water.run_fixtures(r, u)
@@ -134,14 +149,30 @@ def draw_unit(p, u, tag_riser=None, riser_side=1, *, pm):
         pts = [_P(p, q) for q in r.path]
         cold_line(cc, pts)
         if hot: hot_line(cc, pts)
+        if tags_clear:
+            # the label on the side of its segment AWAY from the fixtures that connect to it
+            L = longest(pts); a, b = pts[L], pts[L+1]
+            along_x = abs(b[0]-a[0]) >= abs(b[1]-a[1])
+            side = [(_P(p, (f.x+f.w/2.0, f.y+f.h/2.0))[1] > a[1]) if along_x else
+                    (_P(p, (f.x+f.w/2.0, f.y+f.h/2.0))[0] < a[0])
+                    for f in fx if water.stub(r, f, where=True)[2] == L]
+            run_label(cc, pts, _label_for(r, cold, hot, pm=pm), flip=any(side))
         for f in fx:
-            q, e = water.stub(r, f)
+            q, e, i = water.stub(r, f, where=True)
             Q, E = _P(p, q), _P(p, e)
             if Q != E:
                 cold_line(cc, [Q, E], width=0.6)
                 if f.kind != 'wc' and hot: hot_line(cc, [Q, E])
-            fixture_end(cc, E[0], E[1], f.kind, side=1 if e[0] >= q[0] else -1)
-        run_label(cc, pts, _label_for(r, cold, hot, pm=pm))
+            F = _P(p, (f.x+f.w/2.0, f.y+f.h/2.0))
+            if tags_clear and math.hypot(E[0]-Q[0], E[1]-Q[1]) < 6.0 and abs(F[1]-E[1]) >= abs(F[0]-E[0]):
+                # the fixture stands across the run from its dot: its code centered over the
+                # dot, on the fixture's side, clear of the hot line
+                LAY('P-DOMW-COLD'); cc.setFillColor(black); cc.circle(E[0], E[1], 1.5, fill=1, stroke=0)
+                _text(cc, E[0], E[1]-TAG_CLEAR-2.4 if F[1] < E[1] else E[1]+TAG_CLEAR, CODE[f.kind], 3.4)
+            else:
+                fixture_end(cc, E[0], E[1], f.kind, side=1 if e[0] >= q[0] else -1)
+        if not tags_clear:
+            run_label(cc, pts, _label_for(r, cold, hot, pm=pm))
     if u.manifold is not None:
         mx, my, mw, mh = u.manifold
         manifold(cc, p.X(mx), p.Y(my+mh), mw*p.sc, mh*p.sc)
