@@ -53,21 +53,30 @@ def header_fit(depth, room, tol=1e-9):
     return depth <= room+tol
 
 
-def lvl_violations(plf, opening, width, depth, fb, fv, e, deflection=360, bearing=IN(1.5)):
-    """Every way a rectangular engineered header `width` x `depth` (feet) fails under a
-       uniform `plf` over `opening` plus `bearing` at each end: allowable bending `fb` and
-       shear `fv` in psi, modulus `e` in psi, total-load deflection L/`deflection`."""
+def lvl_check(plf, opening, width, depth, fb, fv, e, deflection=360, bearing=IN(1.5)):
+    """A rectangular engineered header `width` x `depth` (feet) under a uniform `plf` over
+       `opening` plus `bearing` at each end, simply supported: {'span', 'bending', 'shear',
+       'deflection'}, each check a (demand, capacity) pair -- ft-lb, lb and inches -- against
+       allowable bending `fb` and shear `fv` in psi, modulus `e` in psi, and L/`deflection`."""
     L = opening+2*bearing
     b, d = width*12.0, depth*12.0
     S, A, I = b*d*d/6.0, b*d, b*d**3/12.0
+    return {'span': L,
+            'bending': (plf*L*L/8.0, fb*S/12.0),
+            'shear': (plf*L/2.0, fv*A*2.0/3.0),
+            'deflection': (5.0*(plf/12.0)*(L*12.0)**4/(384.0*e*I), L*12.0/deflection)}
+
+
+def lvl_violations(plf, opening, width, depth, fb, fv, e, deflection=360, bearing=IN(1.5)):
+    """Every way lvl_check()'s header fails: bending, shear, then total-load deflection."""
+    r = lvl_check(plf, opening, width, depth, fb, fv, e, deflection, bearing)
     v = []
-    if plf*L*L/8.0*12.0 > fb*S:
-        v.append('bending %.0f ft-lb over %.0f' % (plf*L*L/8.0, fb*S/12.0))
-    if plf*L/2.0 > fv*A*2.0/3.0:
-        v.append('shear %.0f lb over %.0f' % (plf*L/2.0, fv*A*2.0/3.0))
-    defl = 5.0*(plf/12.0)*(L*12.0)**4/(384.0*e*I)
-    if defl > L*12.0/deflection:
-        v.append('deflection %.2f" over L/%d' % (defl, deflection))
+    if r['bending'][0] > r['bending'][1]:
+        v.append('bending %.0f ft-lb over %.0f' % r['bending'])
+    if r['shear'][0] > r['shear'][1]:
+        v.append('shear %.0f lb over %.0f' % r['shear'])
+    if r['deflection'][0] > r['deflection'][1]:
+        v.append('deflection %.2f" over L/%d' % (r['deflection'][0], deflection))
     return v
 
 
