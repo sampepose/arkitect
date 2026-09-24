@@ -108,6 +108,13 @@ def stack_in_cavity(x, y, width, wall, pipe, fill, dims, sheet_scale, title, sub
     c.line(cx-fitting*s/2.0-3.0, Y(sheathing+extra+cavity+added),
            cx+fitting*s/2.0+3.0, Y(sheathing+extra+cavity+added))
 
+    # where the bay is deeper than the wall, the wall's own stud face, dashed across the bay
+    # and out to the dimension that splits there: the tick has a line to stand on
+    if added > 0:
+        c.setLineWidth(0.4); c.setStrokeColor(black); c.setDash(2.0, 1.6)
+        c.line(x0-0.50*inch, Y(sheathing+extra+cavity), x0+bay*s, Y(sheathing+extra+cavity))
+        c.setDash()
+
     # ---- the figures the reviewer's arithmetic turns on, at the left
     _vdim(x0-0.50*inch, Y(sheathing+extra), Y(sheathing+extra+cavity), dims['cavity'])
     if added > 0:
