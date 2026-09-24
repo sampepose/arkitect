@@ -122,12 +122,23 @@ def draw_odu(p, rect, mark, page=None):
         c.drawCentredString(0, -1.6, mark); c.restoreState()
 
 
-def draw_fan(p, x, y, cont, mark='', page=None):
+def draw_fan(p, x, y, cont, mark='', page=None, ground=False):
+    """With `ground`, the tags stand on white so a fixture or cap drawn under them cannot
+       strike them."""
     LAY(LAYER['fanc' if cont else 'fan']); c = p.c
     X, Y = page if page is not None else (p.X(x), p.Y(y))
     c.setStrokeColor(black); c.setFillColor(white); c.setLineWidth(0.6)
     c.circle(X, Y, R, fill=1, stroke=1)
     c.line(X-R, Y, X+R, Y); c.line(X, Y-R, X, Y+R)
+    if ground:
+        from arkitect.lib.draw.kit import knockout
+        LAY('M-ANNO-TEXT'); c.setFillColor(black)
+        knockout(X+R+1.6, Y+2.6, 'EF', 'Helvetica-Bold', 3.4)
+        if cont:
+            c.setFillColor(black); knockout(X-R-1.0, Y+2.6, 'C', 'Helvetica-Bold', 3.2, align='r')
+        if mark:
+            c.setFillColor(black); knockout(X+R+1.6, Y-4.6, mark, 'Helvetica', 3.4)
+        return
     _text(c, X+R+3.6, Y+2.2, 'EF', 3.4, True)
     if cont:
         c.setFont('Helvetica-Bold', 3.2); c.drawRightString(X-R-1.0, Y+2.4, 'C')
