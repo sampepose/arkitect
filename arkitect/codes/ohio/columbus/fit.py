@@ -151,7 +151,8 @@ def fit(massing):
         add(_row(m, 'adu_in_rear', 'ADU in the rear yard', 'BEHIND THE PRINCIPAL BUILDING',
                  'YES' if behind else 'NO', behind))
         share_max = ADU_REAR_ONE if n_a == 1 else ADU_REAR_TWO
-        adu_fp = sum(b['width']*b['depth'] for b in m.adus)
+        # a structure marked 'adu' -- an ADU's own exterior stair -- counts with the ADU
+        adu_fp = sum(b['width']*b['depth'] for b in m.adus)+sum(t['width']*t['depth'] for t in m.structures if t.get('adu'))
         share = adu_fp/rear if rear > 0 else float('inf')
         add(_row(m, 'adu_share', 'ADU share of the rear yard', '%.0f%% MAX' % (100*share_max),
                  '%s = %.1f%%' % (_sf(adu_fp), 100*share), share <= share_max+1e-9))
