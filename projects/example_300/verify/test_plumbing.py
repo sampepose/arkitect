@@ -92,7 +92,7 @@ class GeometryTests(unittest.TestCase):
         bath = next(r for r in u.runs if r.group == 'BATH')
         self.assertEqual(water.run_lines(bath, u.fixtures), (3, 2))
         self.assertEqual(water.run_lines(next(r for r in u.runs if r.group == 'HEATER'), u.fixtures), (1, 1))
-        self.assertEqual(water.run_lines(next(r for r in u.runs if r.group == 'KITCHEN'), u.fixtures), (2, 2))
+        self.assertEqual(water.run_lines(next(r for r in u.runs if r.group == 'KITCHEN'), u.fixtures), (1, 2))    # the dishwasher takes hot only
 
     def test_developed_lengths_include_the_assumed_main_and_the_rise(self):
         from src import plumbing as p

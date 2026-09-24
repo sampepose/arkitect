@@ -511,7 +511,7 @@ def sheet_p601():
     lo = min(lo, service_entry_notes(n0, ey, X1-n0, e, gravel_t=GRAVEL_T,
                                      bar=FTG_BAR, water_sheets='P-102 AND P-103', layer='P-ANNO-TEXT',
                              water_utility=JUR.WATER_UTILITY,
-                                     cols=2, located='S-101', line='SUPPLY'))
+                                     cols=2, located='S-101', notes_sheet='P-102', line='SUPPLY'))
     assert lo >= Y0, "P-601 service entry runs off the sheet by %.2f in" % ((Y0-lo)/inch)
     LAY('P-DOMW-HOTW')   # the layer this sheet left current before the block above:
     c.showPage()         # the next document's first record draws on it, as S-101 does

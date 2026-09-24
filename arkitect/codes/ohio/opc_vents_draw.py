@@ -212,7 +212,8 @@ def riser(ox, oy, cell, w=W, h=H):
         c.setStrokeColor(GREY); c.setLineWidth(0.7)
         c.line(ox, y_lv[lv], ox+0.94*w*inch, y_lv[lv])
         c.setStrokeColor(black)
-        knockout(ox, y_lv[lv]+3.0, label, "Helvetica-Bold", LEVEL)
+    # the level and method labels are drawn LAST, at the end of riser(), so their white
+    # ground covers the vents and the drain foot that cross them (a plan review, 2026-09-24)
 
     # ---- every fixture ON the stack: its connection, its arm, its trap ----
     for y, fx in conns:
@@ -225,11 +226,6 @@ def riser(ox, oy, cell, w=W, h=H):
         if fx.sub:
             c.setFont("Helvetica", SUB)
             c.drawString(tx+5.0, y-8.0, fx.sub)
-    for hg in cell.hangs:
-        if hg.method:
-            # right of the stack, where nothing else runs: the dry vents rise at the left
-            knockout(ox+0.94*w*inch, y_lv[hg.level]-8.0, hg.method, "Helvetica-Bold", METHOD,
-                     align="r")
     if cell.span is not None and conns:
         _bracket(xs-0.13*inch, min(y for y, _f in conns), max(y for y, _f in conns), cell.span)
 
@@ -352,6 +348,14 @@ def riser(ox, oy, cell, w=W, h=H):
         # see it -- the strings share a baseline but it pairs only what it is looking for.
         c.setFillColor(black)
         _cell_label(ox, y_note, cell.note, w, font="Helvetica")
+    c.setFillColor(black)
+    for lv, label in sorted(cell.levels.items()):
+        knockout(ox, y_lv[lv]+3.0, label, "Helvetica-Bold", LEVEL)
+    for hg in cell.hangs:
+        if hg.method:
+            # right of the stack, where nothing else runs: the dry vents rise at the left
+            knockout(ox+0.94*w*inch, y_lv[hg.level]-8.0, hg.method, "Helvetica-Bold", METHOD,
+                     align="r")
     return oy+h*inch
 
 
