@@ -25,6 +25,10 @@ WSFU = {
 BATH_GROUP = (2.7, 1.5, 3.6)      # bathroom group, flush tank: a wc, a lav and a tub or a shower together
 FIXTURE_KINDS = tuple(WSFU)       # what the tally counts
 SUPPLY_KINDS = FIXTURE_KINDS+('wh',)   # what a home run reaches: the fixtures and the heater
+# A refrigerator's ice maker has no row in Table E103.3(2) or Table 604.5: a project that
+# supplies one adds this kind to the ones its home runs reach. It takes a cold line of its
+# own (water.run_lines) and adds nothing to the tally.
+ICE_MAKER = 'fridge'
 
 # Table 604.5, minimum size of the fixture supply, inches; every home run here is 1/2".
 MIN_SUPPLY = {'lav': '3/8', 'wc': '3/8', 'tub': '1/2', 'shower': '1/2', 'sink': '1/2', 'dw': '1/2', 'wd': '1/2'}

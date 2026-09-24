@@ -54,11 +54,11 @@ def stub(run, fixture, where=False):
 
 def run_lines(run, fixtures):
     """(cold, hot): how many 1/2" lines the bundle carries — a cold to every fixture in
-       it but the dishwasher, which takes hot only, and a hot to all but the water closet.
-       The heater's run is its 3/4" pair."""
+       it but the dishwasher, which takes hot only, and a hot to all but the water closet
+       and a refrigerator's ice maker, which take cold only. The heater's run is its 3/4" pair."""
     ks = [f.kind for f in fixtures if f.kind in run.fixtures]
     if ks == ['wh']: return 1, 1
-    return len([k for k in ks if k != 'dw']), len([k for k in ks if k != 'wc'])
+    return len([k for k in ks if k != 'dw']), len([k for k in ks if k not in ('wc', 'fridge')])
 
 
 def run_fixtures(run, unit):

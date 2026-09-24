@@ -110,10 +110,12 @@ def _P(p, xy):
 def _label_for(run, cold, hot, *, pm):
     if run.fixtures == ('wh',):
         return '%s: %s" C + %s" H' % (run.group, pm.HEATER_CONN, pm.HEATER_CONN)
+    if not hot:                      # a cold-only line: an ice maker's
+        return '%s: %dC %s" PEX' % (run.group, cold, pm.HOME_RUN)
     return '%s: %dC + %dH %s" PEX' % (run.group, cold, hot, pm.HOME_RUN)
 
 
-CODE = {'tub': 'TUB', 'shower': 'SH', 'wc': 'WC', 'lav': 'LAV', 'sink': 'KS', 'dw': 'DW', 'wd': 'CW', 'wh': 'WH'}
+CODE = {'tub': 'TUB', 'shower': 'SH', 'wc': 'WC', 'lav': 'LAV', 'sink': 'KS', 'dw': 'DW', 'wd': 'CW', 'wh': 'WH', 'fridge': 'REF'}
 
 
 def fixture_end(cc, X, Y, kind, side=1):
