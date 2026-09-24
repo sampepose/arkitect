@@ -52,8 +52,12 @@ Slab = namedtuple('Slab', 'mark size method fixes tie')
 # the label for the size change 903.2 asks for where a vent is smaller than the roof takes
 # -- drawn on the vent, inside the thermal envelope, because a note that says "at the
 # increaser drawn" has to have one to point at.
-Cell = namedtuple('Cell', 'title size vent_only vtr levels hangs slabs span note foot increaser floors')
-Cell.__new__.__defaults__ = ((),)
+# `ends` is a stack that ENDS at the floor branch it carries: waste up to that junction and no
+# vent of its own, the branch's head vent carried to the roof in its place, the other vents
+# tying into it -- where the stack's top is under a fixture and a vent of its own would have to
+# leave it sideways below the rims, 905.4.
+Cell = namedtuple('Cell', 'title size vent_only vtr levels hangs slabs span note foot increaser floors ends')
+Cell.__new__.__defaults__ = ((), False)
 # A branch IN A FLOOR above the first -- a bathroom group draining horizontally through the
 # floor framing into the TOP of the stack below it, 912.1's horizontal wet vent at an upper
 # level: the level it hangs under, the dry vent's mark and size, the arrangement, the
@@ -63,6 +67,8 @@ FLOOR_BR = 0.30                    # the branch under its level's line, inches
 FLOOR_PITCH = 0.25                 # one fixture on it to the next
 TRAP_OVER = 0.17                   # a trap that STANDS ON that floor, over its line
 VENT_STAGGER = 0.19                # one floor vent's reconnection to the next, so the marks clear
+ENDS_SHIFT = 0.08                  # where the stack ends at its branch: its fixtures right, clear of a slab vent's riser
+ENDS_JOIN = 0.80                   # ... and the joins into the head vent this far under the roof
 
 W, H = 3.20, 4.55                  # the cell, inches
 TITLE, LEVEL, FIX, SUB, METHOD = 8.6, 7.6, 7.2, 7.0, 7.0
@@ -154,7 +160,7 @@ def _bracket(x, y0, y1, label, tick=0.05):
 
 def riser(ox, oy, cell, w=W, h=H):
     """One riser cell, drawn from its bottom-left corner. Returns the top of its title."""
-    xs = ox+0.46*w*inch                          # the stack
+    xs = ox+(0.50 if cell.ends else 0.46)*w*inch   # the stack: past its branch's fixtures where they shift
     x_end = ox+0.85*w*inch                       # where the drain leaves the cell
     y_note = oy+0.02*inch
     y_lv = {1: oy+1.30*inch, 2: oy+2.70*inch}
@@ -172,24 +178,34 @@ def riser(ox, oy, cell, w=W, h=H):
     # a slab vent reconnects above every fixture the stack carries, which a floor's group stands over
     vent_base = max([highest]+[y_lv[fl.level]+0.62*inch for fl in cell.floors])
 
+    # the pipe that goes through the roof: the stack's vent, or where the stack ends at its
+    # branch, that branch's head vent, rising from the head fixture's arm
+    xv = xs
+    if cell.ends:
+        fl = cell.floors[0]
+        xv = next(ox+(0.14*w+ENDS_SHIFT)*inch+i*FLOOR_PITCH*inch for i, fx in enumerate(fl.fixes)
+                  if fx.vent and fx.vent[0] == fl.mark)
+
     c.setFillColor(black); c.setFont("Helvetica-Bold", TITLE)
     c.drawString(ox, oy+h*inch, cell.title)
     c.setStrokeColor(black); c.setLineWidth(1.9)
     if cell.vent_only:
         _dash(); c.line(xs, oy+0.85*inch, xs, y_top); _dash(False)
+    elif cell.ends:
+        c.line(xs, y_ft, xs, highest)            # waste, to the branch it ends at
     else:
         c.line(xs, y_ft, xs, highest)            # waste
         _dash(); c.line(xs, highest, xs, y_top); _dash(False)   # the stack vent over it
     c.setLineWidth(1.0)
-    c.line(xs-3.0, y_top, xs+4.0, y_top+5.0)                    # the roof
+    c.line(xv-3.0, y_top, xv+4.0, y_top+5.0)                    # the roof
     c.setFillColor(black); c.setFont("Helvetica", SUB)
-    c.drawString(xs+6.0, y_top+3.0, cell.vtr)
+    c.drawString(xv+6.0, y_top+3.0, cell.vtr)
     if cell.increaser:                           # 903.2, where the roof takes more than the pipe
-        iy = y_top-0.30*inch
+        iy = y_top-(0.22 if cell.ends else 0.30)*inch
         c.setLineWidth(0.9); c.setStrokeColor(black)
-        c.line(xs-0.07*inch, iy, xs+0.07*inch, iy)
+        c.line(xv-0.07*inch, iy, xv+0.07*inch, iy)
         c.setFillColor(black); c.setFont("Helvetica", SUB)
-        c.drawString(xs+0.10*inch, iy-2.0, cell.increaser)
+        c.drawString(xv+0.10*inch, iy-2.0, cell.increaser)
 
     # ---- the levels ----
     for lv, label in sorted(cell.levels.items()):
@@ -244,10 +260,16 @@ def riser(ox, oy, cell, w=W, h=H):
                      "Helvetica-Bold", SUB)
         else:
             top = vent_base+0.10*inch+n*0.20*inch
+            if cell.ends:                        # into the head vent in the attic, over every rim
+                top = y_top-ENDS_JOIN*inch-n*2*VENT_STAGGER*inch
             c.line(head, y_br, head, top)
-            c.line(head, top, xs, top)
-            _dash(False); _dot(xs, top)
-            _cell_label(ox, top+3.0, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie), w)
+            c.line(head, top, xv, top)
+            _dash(False); _dot(xv, top)
+            if cell.ends:                        # between the levels, left of the stack, where nothing runs
+                _cell_label(ox, y_lv[1]+0.60*inch, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie),
+                            (xs-ox)/inch-0.05)
+            else:
+                _cell_label(ox, top+3.0, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie), w)
 
     # ---- a branch in a floor, into the stack's top, and the dry vents that protect it ----
     # A fixture whose trap hangs IN this floor (a closet bend, a tub) is vented by the branch
@@ -260,8 +282,8 @@ def riser(ox, oy, cell, w=W, h=H):
         y_fl = y_lv[fl.level]
         y_br = y_fl-FLOOR_BR*inch
         y_arm = y_fl+TRAP_OVER*inch
-        x0 = ox+0.14*w*inch                      # clear of a slab vent rising at the cell's left edge
-        top = y_top-0.44*inch
+        x0 = ox+(0.14*w+(ENDS_SHIFT if cell.ends else 0.0))*inch   # clear of a slab vent rising at the cell's left edge
+        top = y_top-(ENDS_JOIN if cell.ends else 0.44)*inch
         made, risers = [], []
         for i, fx in enumerate(fl.fixes):
             fx_x = x0+i*FLOOR_PITCH*inch
@@ -288,16 +310,27 @@ def riser(ox, oy, cell, w=W, h=H):
         # is a label with a dash through it.
         c.setStrokeColor(black); c.setLineWidth(1.3); _dash()
         for i, (rx, _v) in enumerate(risers):
+            if cell.ends and rx == xv:           # the head vent: straight up, through the roof
+                c.line(rx, y_arm, rx, y_top)
+                continue
             c.line(rx, y_arm, rx, top-i*VENT_STAGGER*inch)
-            c.line(rx, top-i*VENT_STAGGER*inch, xs, top-i*VENT_STAGGER*inch)
+            c.line(rx, top-i*VENT_STAGGER*inch, xv, top-i*VENT_STAGGER*inch)
         if not risers:
             c.line(head, top, xs, top)
-        _dash(False); _dot(xs, top)
+        _dash(False)
+        if not cell.ends:
+            _dot(xs, top)
+        for i, (rx, _v) in enumerate(risers):
+            if cell.ends and rx != xv:
+                _dot(xv, top-i*VENT_STAGGER*inch)
         for i, (rx, (mark, size)) in enumerate(risers):
             c.setFillColor(black)
+            if cell.ends and rx == xv:           # the head vent's mark, left of it under the roof
+                knockout(rx-3.0, y_top-0.40*inch, '%s %s' % (mark, size), "Helvetica-Bold", SUB, align="r")
+                continue
             knockout(rx+2.0, top-i*VENT_STAGGER*inch+2.2, '%s %s' % (mark, size),
                      "Helvetica-Bold", SUB)
-        _cell_label(ox, top+0.17*inch, '%s — %s' % (fl.method, fl.tie), w)
+        _cell_label(ox, (y_top-0.60*inch) if cell.ends else top+0.17*inch, '%s — %s' % (fl.method, fl.tie), w)
 
     # ---- the foot: the offset a waste stack makes to it is drawn, 913.2 ----
     if cell.foot:
