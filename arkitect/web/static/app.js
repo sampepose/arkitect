@@ -86,6 +86,8 @@ async function loadDecisions(force) {
   return S.decisions;
 }
 function refresh() { S.ws = null; S.projects = {}; S.decisions = null; }
+// each project's address, for the pickers: its sheet index, cached per tree state by the server
+const loadNames = (ws) => Promise.all(ws.projects.map((p) => loadProject(p.slug).catch(() => null)));
 
 const DISCIPLINE = { G: 'GENERAL', C: 'CIVIL', A: 'ARCHITECTURAL', S: 'STRUCTURAL', M: 'MECHANICAL',
                      E: 'ELECTRICAL', P: 'PLUMBING', L: 'LANDSCAPE', F: 'FIRE' };
@@ -582,6 +584,7 @@ const D = { filter: 'open', project: '', answers: {} };
 async function viewDecisions(id) {
   loading(rail('decisions'), 'Reading the ledger…');
   const ws = await loadWorkspace();
+  await loadNames(ws);
   const all = await loadDecisions();
   const inProj = all.filter((d) => !D.project || (d.projects || []).includes(D.project) || (d.projects || []).includes('all'));
   const counts = {};
@@ -667,6 +670,7 @@ const R = { chip: 'all', slug: null };
 async function viewReview(slug, id) {
   loading(rail('review'), 'Reading the plan review…');
   const ws = await loadWorkspace();
+  await loadNames(ws);
   const withReview = [];
   for (const p of ws.projects) if (p.has_review) withReview.push(p.slug);
   slug = slug || R.slug || withReview[0];
