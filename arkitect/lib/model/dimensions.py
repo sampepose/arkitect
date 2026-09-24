@@ -423,7 +423,11 @@ def wc_dims(rects,polys,furn=(),finish=0.0):
        apart, and the reader has to take on faith that they are the same one.
 
        The line runs THROUGH the pan, over its own symbol, which is where a reader
-       looks for it and how it is drawn by hand. The pan's symbol is symmetric about
+       looks for it and how it is drawn by hand, and its figures stand on a white ground
+       (dim()'s mask), so the bowl's outline stops under them rather than running through
+       the numbers. In front of the bowl is where a bath's label and its own dimensions
+       already stand; tried there, it printed over one or the other in four baths of five.
+       The pan's symbol is symmetric about
        its footprint, so the middle of the footprint is the centerline. Obstructions
        are whatever else stands along the same wall — the tub and the vanity here —
        falling back to the room if nothing does.
@@ -440,8 +444,8 @@ def wc_dims(rects,polys,furn=(),finish=0.0):
        meet on; in inches the numbers are short enough to sit on their own segments."""
     out=[]
     for m in wc_clearances(rects,polys,furn,finish):
-        out.append((m['lo'],m['cl'],m['o'],m['at'],inches(m['cl']-m['lo'])))
-        out.append((m['cl'],m['hi'],m['o'],m['at'],inches(m['hi']-m['cl'])))
+        out.append((m['lo'],m['cl'],m['o'],m['at'],inches(m['cl']-m['lo']),1,True))
+        out.append((m['cl'],m['hi'],m['o'],m['at'],inches(m['hi']-m['cl']),1,True))
     return out
 
 

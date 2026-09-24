@@ -215,11 +215,13 @@ class PlanDraw:
             for fx in (f0,f1): c.line(s.X(fx),s.Y(y),s.X(fx),s.Y(y+ln))
             if mark:
                 c.setFont("Helvetica",5.2); c.drawString(s.X(cx)+T/2+2,s.Y(y+ln/2),mark)
-    def dim(s,a,b,o,at,txt=None,sd=1):
+    def dim(s,a,b,o,at,txt=None,sd=1,mask=False):
         """dimension between a and b along o ('h' horizontal run at y=at, 'v' vertical at x=at).
            sd is the side of the line the figure sits on: +1 is above a horizontal run and
            left of a vertical one, -1 the other side — for a string that runs inside an
-           outline, so the figure reads toward the middle and not into the wall."""
+           outline, so the figure reads toward the middle and not into the wall.
+           mask=True paints the figure's ground white first, as dimchain's mask does, for a
+           string drawn across a fixture: the outline stops under the number."""
         LAY("A-ANNO-DIMS")
         c=s.c; c.setStrokeColor(black); c.setLineWidth(0.5); c.setFillColor(black)
         _cap=6.4*0.72                                      # Helvetica cap height at 6.4 pt
@@ -227,12 +229,21 @@ class PlanDraw:
             y=s.Y(at); c.line(s.X(a),y,s.X(b),y)
             for xv in (a,b): c.line(s.X(xv)-3,y-3,s.X(xv)+3,y+3)
             c.setFont("Helvetica",6.4)
+            if mask: s._dim_mask(s.X((a+b)/2),y+3 if sd>0 else y-3-_cap,txt or fmt(b-a))
             c.drawCentredString(s.X((a+b)/2),y+3 if sd>0 else y-3-_cap,txt or fmt(b-a))
         else:
             x=s.X(at); c.line(x,s.Y(a),x,s.Y(b))
             for yv in (a,b): c.line(x-3,s.Y(yv)-3,x+3,s.Y(yv)+3)
             c.saveState(); c.translate(x-3 if sd>0 else x+3+_cap,s.Y((a+b)/2)); c.rotate(90)
+            if mask: s._dim_mask(0,0,txt or fmt(b-a))
             c.setFont("Helvetica",6.4); c.drawCentredString(0,0,txt or fmt(b-a)); c.restoreState()
+    def _dim_mask(s,x,y,txt,size=6.4,pad=1.0):
+        """A white ground under a centred figure whose baseline is at (x, y): from just under
+           the baseline to the cap height, so the dimension line under it is left alone."""
+        c=s.c; w=pdfmetrics.stringWidth(txt,"Helvetica",size)
+        c.saveState(); c.setFillColor(white)
+        c.rect(x-w/2.0-pad,y-0.5,w+2*pad,size*0.72+1.5,fill=1,stroke=0)
+        c.restoreState(); c.setFillColor(black)
     def dimchain(s,cs,o,at,sd=1,minlab=0.0,mask=False,labat=None,size=5.8,row=0.155*inch):
         """Running dimension string: a tick at every coordinate in cs, every segment
            labeled. A segment too narrow to hold its own label keeps it — the label

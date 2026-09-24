@@ -186,9 +186,9 @@ class Plan:
     def keep(s,f):   return (s.x(f[0],f[1]),s.y(f[1]))+tuple(f[2:])
     def note(s,n):   return (s.x(n[0],n[1]),s.y(n[1]))+tuple(n[2:])
     def dim(s,d):
-        a,b,o,at,t=d
-        if o=="h": return (s.x(a,at),s.x(b,at),o,s.y(at),t)
-        return (s.y(a),s.y(b),o,s.x(at,(a+b)/2.0),t)
+        a,b,o,at,t=d[:5]                 # past the figure: dim()'s side and mask, carried as they are
+        if o=="h": return (s.x(a,at),s.x(b,at),o,s.y(at),t)+tuple(d[5:])
+        return (s.y(a),s.y(b),o,s.x(at,(a+b)/2.0),t)+tuple(d[5:])
     def chain(s,c):
         cs,o,at,sd,ml,mk,la=c
         if o=='h':

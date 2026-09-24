@@ -49,8 +49,8 @@ def mdims(ds,W,on=True):
     if not on: return ds
     out=[]
     for d in ds:
-        a,bb,o,at,t=d
-        out.append((W-bb,W-a,o,at,t) if o=='h' else (a,bb,o,W-at,t))
+        a,bb,o,at,t=d[:5]
+        out.append(((W-bb,W-a,o,at,t) if o=='h' else (a,bb,o,W-at,t))+tuple(d[5:]))
     return out
 def mtags(ts,W,on=None):
     if on is not None and not on: return ts
