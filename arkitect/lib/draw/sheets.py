@@ -171,7 +171,7 @@ def mirror_everything(W,rooms,openareas,doors,wins,openings,dims,notes,tags,
              for j in joists for (a,at,b,prefix) in (j[:4],)])
 
 
-def draw_the_plan(p,W,sc,g,sep,bypass_flags,over_plan=None,captions=None,sep_rows=None):
+def draw_the_plan(p,W,sc,g,sep,bypass_flags,over_plan=None,captions=None,sep_rows=None,marks_last=False):
     """The plan itself, in the order the drawing has to be built.
 
     The poche goes down first and every room is punched white out of it, so THE WALL IS
@@ -208,7 +208,7 @@ def draw_the_plan(p,W,sc,g,sep,bypass_flags,over_plan=None,captions=None,sep_row
     # a device drawn after it and was painted out -- 39 of 287 marks, measured. Drawing
     # the windows after the furniture puts every mark on top of what shares its square
     # inch; the glazing itself sits in the wall, where nothing else is drawn.
-    for (x,y,ln,o,mark) in wins: p.window(x,y,ln,o,'W-'+mark)
+    for (x,y,ln,o,mark) in wins: p.window(x,y,ln,o,'' if marks_last else 'W-'+mark)
     if over_plan: over_plan(p)
 
 
@@ -358,7 +358,7 @@ def draw_level(c,lv,ox,oy,sc=Q):
     chains = list(chains)+room_dims(rooms,openareas,chains,furn,doors)
     if lv.full_dims:
         chains = (list(chains)
-                  + closet_dims(rooms,openareas,chains)
+                  + (closet_dims(rooms,openareas,chains) if lv.closet_dims else [])
                   + closet_opening_dims(rooms,openareas,chains,openings))
         # in plan coordinates still, so mdims mirrors it with everything else
         dims = list(dims)+wc_dims(rooms,openareas,furn,lv.wall_finish)
@@ -367,13 +367,21 @@ def draw_level(c,lv,ox,oy,sc=Q):
         # the background of a trade plan: the plan and the project's own drawing
         # in grey, none of the annotation, then the trade's work with the real pen
         p.c = GreyPen(c)
-        draw_the_plan(p,W,sc,g,sep,bypass_flags,lv.over_plan,lv.captions,lv.sep_rows)
+        draw_the_plan(p,W,sc,g,sep,bypass_flags,lv.over_plan,lv.captions,lv.sep_rows,lv.marks_last)
         if lv.over_dims: lv.over_dims(p)
         p.c = c
         lv.overlay(p)
         if lv.labels_last:
             p.c = GreyPen(c); p.labels(g.rooms, ground=True); p.c = c
+        if lv.marks_last:
+            p.c = GreyPen(c); _marks(p,g.wins); p.c = c
         return p
-    draw_the_plan(p,W,sc,g,sep,bypass_flags,lv.over_plan,lv.captions,lv.sep_rows)
+    draw_the_plan(p,W,sc,g,sep,bypass_flags,lv.over_plan,lv.captions,lv.sep_rows,lv.marks_last)
     draw_the_annotation(p,W,plan,g,lv.over_dims)
+    if lv.marks_last: _marks(p,g.wins)
     return p
+
+
+def _marks(p,wins):
+    """Every window's mark on a white ground, drawn last (Level.marks_last)."""
+    for (x,y,ln,o,mark) in wins: p.window_mark(x,y,ln,o,'W-'+mark,ground=True)

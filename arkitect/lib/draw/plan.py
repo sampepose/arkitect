@@ -218,12 +218,32 @@ class PlanDraw:
         c.setStrokeColor(black); c.setFillColor(black); c.setLineWidth(0.6)
         if o=="h":
             for fy in (f0,f1): c.line(s.X(x),s.Y(fy),s.X(x+ln),s.Y(fy))
-            if mark:
-                c.setFont("Helvetica",5.2); c.drawCentredString(s.X(x+ln/2),s.Y(cy)+T/2+3,mark)
         else:
             for fx in (f0,f1): c.line(s.X(fx),s.Y(y),s.X(fx),s.Y(y+ln))
-            if mark:
-                c.setFont("Helvetica",5.2); c.drawString(s.X(cx)+T/2+2,s.Y(y+ln/2),mark)
+        if mark:
+            s.window_mark(x,y,ln,o,mark)
+
+    def window_mark(s,x,y,ln,o,mark,ground=False):
+        """A window's mark, where window() puts it; `ground` sets it on white first."""
+        c=s.c
+        near = (y < s.D/2) if o=="h" else (x < s.W/2)
+        t   = (y if near else s.D-y) if o=="h" else (x if near else s.W-x)
+        ext = (0.0 if near else s.D) if o=="h" else (0.0 if near else s.W)
+        inw = 1.0 if near else -1.0
+        cx,cy = (x, ext+inw*t/2) if o=="h" else (ext+inw*t/2, y)
+        T=t*s.sc
+        if o=="h":
+            X0,Y0,al = s.X(x+ln/2),s.Y(cy)+T/2+3,'c'
+        else:
+            X0,Y0,al = s.X(cx)+T/2+2,s.Y(y+ln/2),'l'
+        if ground:
+            w=c.stringWidth(mark,"Helvetica",5.2)
+            xl = X0-w/2 if al=='c' else X0
+            c.setFillColor(white); c.rect(xl-0.8,Y0-1.2,w+1.6,5.4,fill=1,stroke=0)
+            c.setFillColor(black)
+        c.setFont("Helvetica",5.2)
+        if al=='c': c.drawCentredString(X0,Y0,mark)
+        else:       c.drawString(X0,Y0,mark)
     def dim(s,a,b,o,at,txt=None,sd=1,mask=False):
         """dimension between a and b along o ('h' horizontal run at y=at, 'v' vertical at x=at).
            sd is the side of the line the figure sits on: +1 is above a horizontal run and
