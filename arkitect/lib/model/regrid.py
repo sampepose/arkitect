@@ -49,7 +49,11 @@ def axis_map(C,new_lo,new_hi,pins=None,tol=0.02,hold=()):
         out={}
         for (a_old,a_new),(b_old,b_new) in zip(anchors,anchors[1:]):
             sub=[c for c in C if a_old-1e-9<=c<=b_old+1e-9]
-            out.update(_axis_run(sub,a_new,b_new,tol,hold))
+            # a hold applies within a run only when both its ends lie in that run: one that
+            # crosses a pin is the pins' to keep, and applied to half of itself it misplaces
+            # every face between
+            h_run=tuple(h for h in hold if a_old-1e-9<=h[0] and h[1]<=b_old+1e-9)
+            out.update(_axis_run(sub,a_new,b_new,tol,h_run))
         return out
     return _axis_run(C,new_lo,new_hi,tol,hold)
 
