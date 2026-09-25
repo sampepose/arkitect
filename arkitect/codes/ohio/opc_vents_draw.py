@@ -184,10 +184,12 @@ def _bracket(x, y0, y1, label, tick=0.05):
     knockout(x-2.0, (y0+y1)/2.0-1.5, label, "Helvetica-Bold", SUB, align="r")
 
 
-def riser(ox, oy, cell, w=W, h=H, tie_label_close=False):
+def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False):
     """One riser cell, drawn from its bottom-left corner. Returns the top of its title.
        `tie_label_close` sets a slab vent's label just over its tie and left of the pipe it
-       ties into, rather than across the cell, where its ground can cover another tie."""
+       ties into, rather than across the cell, where its ground can cover another tie.
+       `method_low` sets a level's method label under the foot's own label where no
+       connection hangs under the floor, so it cannot cover the drain and its arrow."""
     later = []                                   # the vent labels, drawn after every line
     joins = []                                   # where dry vents join the pipe through the roof
     xs = ox+(0.50 if cell.ends else 0.46)*w*inch   # the stack: past its branch's fixtures where they shift
@@ -411,7 +413,8 @@ def riser(ox, oy, cell, w=W, h=H, tie_label_close=False):
     for hg in cell.hangs:
         if hg.method:
             # right of the stack, where nothing else runs: the dry vents rise at the left
-            _ground(ox+0.94*w*inch, meth_y.get(hg.level, y_lv[hg.level]-8.0), hg.method, "Helvetica-Bold", METHOD,
+            my = meth_y.get(hg.level, (y_ft-20.0) if (method_low and cell.foot) else y_lv[hg.level]-8.0)
+            _ground(ox+0.94*w*inch, my, hg.method, "Helvetica-Bold", METHOD,
                      align="r")
     return oy+h*inch
 

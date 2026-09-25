@@ -16,14 +16,16 @@ VA, heat pump VA at MCA, panel A); a service is a dict with `units`, `house_va`,
 from arkitect.codes.nec.dwelling import STD_RATINGS, WIRE_AMPS, egc_min
 
 
-def nec220_82(area, rng, dry, dw, wh, hp):
-    """NEC 220.82 optional method, one dwelling unit. Floor area from outside dimensions."""
+def nec220_82(area, rng, dry, dw, wh, hp, other=0):
+    """NEC 220.82 optional method, one dwelling unit. Floor area from outside dimensions.
+       `other`: any further appliance on a specific circuit, 220.82(B)(3) (a refrigerator
+       on its individual circuit, say)."""
     gen = 3.0*area                   # 220.82(B)(1), 3 VA per square foot
     sa = 2*1500                      # 220.82(B)(2), two small-appliance circuits
     ldy = 1500                       # 220.82(B)(2), laundry
-    sub = gen+sa+ldy+rng+dry+dw+wh   # 220.82(B)(3), the fastened-in-place appliances
+    sub = gen+sa+ldy+rng+dry+dw+wh+other   # 220.82(B)(3), the fastened-in-place appliances
     rem = 0.4*max(sub-10000.0, 0.0)  # 220.82(B): first 10 kVA at 100 %, the rest at 40 %
-    return dict(gen=gen, sa=sa, ldy=ldy, rng=rng, dry=dry, dw=dw, wh=wh, sub=sub,
+    return dict(gen=gen, sa=sa, ldy=ldy, rng=rng, dry=dry, dw=dw, wh=wh, other=other, sub=sub,
                 first=min(sub, 10000.0), rem=rem, hp=hp,
                 tot=min(sub, 10000.0)+rem+hp, amps=(min(sub, 10000.0)+rem+hp)/240.0)
 
@@ -45,7 +47,7 @@ def service_load_standard(units, house_va):
     # 220.53: the fastened-in-place appliances other than ranges, dryers and the space
     # conditioning of 220.60 — the dishwashers and the storage water heaters. Four or more
     # of them on one service take 75 %.
-    fixed = [u[4] for u in units if u[4]] + [u[5] for u in units if u[5]]
+    fixed = [u[4] for u in units if u[4]] + [u[5] for u in units if u[5]] + [_other(u) for u in units if _other(u)]
     d['appliances'] = sum(fixed) * (0.75 if len(fixed) >= 4 else 1.0)     # 220.53
     d['hvac'] = sum(u[6] for u in units)                                  # 220.60, the heat pumps at MCA
     d['motor'] = 0.25*max(u[6] for u in units)                            # 220.50, the largest motor
@@ -56,14 +58,20 @@ def service_load_standard(units, house_va):
     return d
 
 
+def _other(u):
+    """A row's 9th field, when a project gives one (the 8th is the panel's rating): another
+       appliance on a specific circuit, 220.82(B)(3)."""
+    return u[8] if len(u) > 8 else 0
+
+
 def _connected_220_84(u):
-    return 3.0*u[1] + 3000 + 1500 + u[2] + u[3] + u[4] + u[5] + u[6]
+    return 3.0*u[1] + 3000 + 1500 + u[2] + u[3] + u[4] + u[5] + u[6] + _other(u)
 
 
 def service_load_220_82(units, house_va):
     """One dwelling unit: the optional method of 220.82 is the service's."""
     assert len(units) == 1
-    r = nec220_82(*units[0][1:7])
+    r = nec220_82(*units[0][1:7], other=_other(units[0]))
     return dict(va=r['tot']+house_va, amps=(r['tot']+house_va)/240.0, method='NEC 220.82')
 
 
