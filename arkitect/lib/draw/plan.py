@@ -105,9 +105,18 @@ class PlanDraw:
             x,y,w,h=r[:4]
             c.setFillColor(white); c.setStrokeColor(black); c.setLineWidth(0.5)
             c.rect(s.X(x),s.Y(y+h),w*s.sc,h*s.sc,fill=1,stroke=1)
-    def labels(s,rooms):
+    def labels(s,rooms,ground=False):
+        """Each room's name, size and area at its middle; with `ground`, each line on a
+           white ground, for captions drawn again over a trade's work."""
         LAY("A-ANNO-IDEN")
         c=s.c
+        def put(font,size,x,y,t):
+            c.setFont(font,size)
+            if ground:
+                wd=pdfmetrics.stringWidth(t,font,size)
+                c.setFillColor(white); c.rect(x-wd/2-1.0,y-size*0.25,wd+2.0,size*1.05,fill=1,stroke=0)
+                c.setFillColor(black)
+            c.drawCentredString(x,y,t)
         for r in rooms:
             if "nolabel" in r[6:]:
                 continue
@@ -119,11 +128,11 @@ class PlanDraw:
             small = w*s.sc<52 or h*s.sc<30 or compact
             c.setFillColor(black)
             if small:
-                c.setFont("Helvetica-Bold",5.6); c.drawCentredString(cx,cy-2,name)
+                put("Helvetica-Bold",5.6,cx,cy-2,name)
             else:
-                c.setFont("Helvetica-Bold",7.2); c.drawCentredString(cx,cy+5,name)
-                c.setFont("Helvetica",6.2); c.drawCentredString(cx,cy-3.5,f"{fmt(w)} x {fmt(h)}")
-                c.setFont("Helvetica",6.2); c.drawCentredString(cx,cy-11,f"{w*h:.0f} SF")
+                put("Helvetica-Bold",7.2,cx,cy+5,name)
+                put("Helvetica",6.2,cx,cy-3.5,f"{fmt(w)} x {fmt(h)}")
+                put("Helvetica",6.2,cx,cy-11,f"{w*h:.0f} SF")
     def door(s,x,y,ln,o,swing=1,ext=False,far=False):
         """Hinge at (x,y). o='h': opening runs +x, leaf swings +y*swing.
                             o='v': opening runs +y, leaf swings +x*swing.

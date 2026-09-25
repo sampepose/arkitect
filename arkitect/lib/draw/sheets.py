@@ -371,6 +371,8 @@ def draw_level(c,lv,ox,oy,sc=Q):
         if lv.over_dims: lv.over_dims(p)
         p.c = c
         lv.overlay(p)
+        if lv.labels_last:
+            p.c = GreyPen(c); p.labels(g.rooms, ground=True); p.c = c
         return p
     draw_the_plan(p,W,sc,g,sep,bypass_flags,lv.over_plan,lv.captions,lv.sep_rows)
     draw_the_annotation(p,W,plan,g,lv.over_dims)

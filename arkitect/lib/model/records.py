@@ -62,6 +62,9 @@ class PlanLevel:
                         over_dims hook in grey, no dimension strings, chains, notes,
                         joist arrows or tags; then this runs with the real pen and draws
                         the trade's work on it.
+        labels_last     with an overlay: the rooms' grey captions drawn again after it,
+                        each line on a white ground, so a trade line crossing a room
+                        cannot strike its name or size.
 
         stair_side      how far to shift the REAR context label clear of an exterior
                         stair that runs past the rear wall, in plan feet. 0 if nothing
@@ -74,7 +77,7 @@ class PlanLevel:
                  fixed_chains=(), tags=None, units=None, ctx=None,
                  pos=None, full_dims=True, wall_finish=0.0,
                  over_plan=None, over_dims=None, over_all=None, stair_side=0.0,
-                 overlay=None, captions=None, sep_rows=None):
+                 overlay=None, captions=None, sep_rows=None, labels_last=False):
         s.plan, s.W, s.D = plan, W, D
         s.rooms, s.openareas = rooms, openareas
         s.doors, s.wins, s.openings, s.furn = doors, wins, openings, furn
@@ -88,6 +91,7 @@ class PlanLevel:
         s.stair_side = stair_side
         s.overlay = overlay
         s.captions = captions
+        s.labels_last = labels_last
 
 
 # ---------------- the geometry, and which coordinate space it is in ----------------
