@@ -90,5 +90,14 @@ class ClearSpace(Symbol):
         c.setFillColor(white); c.setLineWidth(s.weight); c.setDash(list(s.dash), 0)
         c.rect(X, Y, W, H, fill=0, stroke=1); c.setDash()
         c.setFillColor(black); c.setFont('Helvetica', 4.2)
-        c.drawCentredString(X + W / 2, Y + H * s.caption_at + 1.3, s.caption[0])
-        c.drawCentredString(X + W / 2, Y + H * s.caption_at - 4.0, s.caption[1])
+        # an item may carry its own height as a 7th field, where its kind's default meets a
+        # neighbour's caption
+        at = s.extra(6, s.caption_at)
+        rows = ((Y + H * at + 1.3, s.caption[0]), (Y + H * at - 4.0, s.caption[1]))
+        if s.extra(7):           # an 8th field: on white, where another box's edge crosses it
+            for yy, t in rows:
+                w = c.stringWidth(t, 'Helvetica', 4.2)
+                c.setFillColor(white); c.rect(X + W / 2 - w / 2 - 0.8, yy - 1.2, w + 1.6, 5.0, fill=1, stroke=0)
+            c.setFillColor(black)
+        for yy, t in rows:
+            c.drawCentredString(X + W / 2, yy, t)
