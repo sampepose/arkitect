@@ -160,7 +160,7 @@ def service_entry_elevation(top, left, right, e, ftg_w, bar, sheet, *, line):
 
 
 def service_entry_notes(x, y, width, e, gravel_t, bar, water_sheets, layer, *, water_utility, line, cols=1,
-                        located=None, notes_sheet=None):
+                        located=None, notes_sheet=None, plain=False):
     """SE1 to SE6: what a builder does, in the order it is built. `water_utility` is the
        jurisdiction's (its WATER_UTILITY), whose own depth may govern the service. `cols` is 1 in a tall
        narrow column and 2 in a short wide band -- the sheet knows which it has. `located`
@@ -186,9 +186,10 @@ def service_entry_notes(x, y, width, e, gravel_t, bar, water_sheets, layer, *, w
         'SE4. BEARING — THE THICKENED FOOTING BEARS ON UNDISTURBED SOIL FOR ITS WHOLE LENGTH, S-101 NOTE 9. DO NOT TRENCH UNDER A '
         'POURED FOOTING AND DO NOT BACKFILL UNDER ONE. THE TWO %s BOTTOM BARS RUN THROUGH STRAIGHT AT THEIR TYPICAL DEPTH, %s CLEAR '
         'OVER THE SLEEVE; THE CONCRETE BELOW THEM IS PLAIN.' % (bar, inches(e.bar_clear)),
-        'SE5. INSIDE — THE %s RISES WITHIN THE FOUNDATION WALL AND ITS SLAB-EDGE INSULATION INTO THE %s CLEAN AGGREGATE UNDER THE '
-        'SLAB, S-101 NOTE 2, AND RUNS TO ITS RISER IN ONE CONTINUOUS LENGTH WITH NO JOINT BELOW THE SLAB, %s NOTE 6.'
+        ('SE5. INSIDE — THE %s RISES ' + ('INSIDE THE INTERIOR FACE OF THE FOUNDATION WALL' if plain else 'WITHIN THE FOUNDATION WALL')
+         + ' AND ITS SLAB-EDGE INSULATION INTO THE %s CLEAN AGGREGATE UNDER THE '
+         'SLAB, S-101 NOTE 2, AND RUNS TO ITS RISER IN ONE CONTINUOUS LENGTH WITH NO JOINT BELOW THE SLAB, %s NOTE 6.')
         % (W['noun'], inches(gravel_t), notes_sheet or water_sheets),
         'SE6. WHERE P-101 NOTE 9 CALLS FOR A CONTINUOUS SLEEVE PAST A SEWER CROSSING, OPC 603.2, THAT SLEEVE IS CARRIED THROUGH THE '
-        'FOOTING AS THIS DETAIL DRAWS IT; THERE IS NOT A SECOND ONE.',
+        + ('FOOTING AS THIS DETAIL DRAWS IT.' if plain else 'FOOTING AS THIS DETAIL DRAWS IT; THERE IS NOT A SECOND ONE.'),
     ], 'WATER %s ENTRY NOTES' % W['noun'], layer, 'service entry note', cols, 5.2, 7.0)

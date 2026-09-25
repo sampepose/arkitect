@@ -68,6 +68,8 @@ class PlanLevel:
         marks_last      the window marks drawn after everything else on the plan (the
                         overlay included), each on a white ground, so a stair tread,
                         a fixture or a trade line cannot strike one.
+        room_dim_skip   room names whose overall strings room_dims() leaves out, beyond its
+                        defaults (a bath whose tag already prints its size).
         closet_dims     with full_dims: the closet depth strings. False leaves each
                         closet's size to its room tag, where the string would print
                         on another line (a soffit's edge).
@@ -84,7 +86,7 @@ class PlanLevel:
                  pos=None, full_dims=True, wall_finish=0.0,
                  over_plan=None, over_dims=None, over_all=None, stair_side=0.0,
                  overlay=None, captions=None, sep_rows=None, labels_last=False,
-                 marks_last=False, closet_dims=True):
+                 marks_last=False, closet_dims=True, room_dim_skip=()):
         s.plan, s.W, s.D = plan, W, D
         s.rooms, s.openareas = rooms, openareas
         s.doors, s.wins, s.openings, s.furn = doors, wins, openings, furn
@@ -101,6 +103,7 @@ class PlanLevel:
         s.labels_last = labels_last
         s.marks_last = marks_last
         s.closet_dims = closet_dims
+        s.room_dim_skip = tuple(room_dim_skip)
 
 
 # ---------------- the geometry, and which coordinate space it is in ----------------

@@ -355,7 +355,8 @@ def draw_level(c,lv,ox,oy,sc=Q):
     chains,dims = g.chains,g.dims
     if lv.full_dims:
         chains = closet_ticks_removed(chains,rooms,openareas,openings,bypass_flags)
-    chains = list(chains)+room_dims(rooms,openareas,chains,furn,doors)
+    _skip = {} if not lv.room_dim_skip else dict(skip=('CL.','STOR.','MECH','STORAGE','HALL')+lv.room_dim_skip)
+    chains = list(chains)+room_dims(rooms,openareas,chains,furn,doors,**_skip)
     if lv.full_dims:
         chains = (list(chains)
                   + (closet_dims(rooms,openareas,chains) if lv.closet_dims else [])

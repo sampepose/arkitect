@@ -135,7 +135,7 @@ def fixture_end(cc, X, Y, kind, side=1):
 TAG_CLEAR = 4.6    # points: a code set off its run, on the fixture's side, past the hot line
 
 
-def draw_unit(p, u, tag_riser=None, riser_side=1, *, pm, tags_clear=False):
+def draw_unit(p, u, tag_riser=None, riser_side=1, *, pm, tags_clear=False, untagged=()):
     """The manifolds, the valve and submeter, the riser and every home-run bundle of one
        unit on PlanDraw p. Fixtures come out of src/plumbing.py in page feet.
 
@@ -164,11 +164,13 @@ def draw_unit(p, u, tag_riser=None, riser_side=1, *, pm, tags_clear=False):
                 cold_line(cc, [Q, E], width=0.6)
                 if f.kind != 'wc' and hot: hot_line(cc, [Q, E])
             F = _P(p, (f.x+f.w/2.0, f.y+f.h/2.0))
-            if tags_clear and math.hypot(E[0]-Q[0], E[1]-Q[1]) < 6.0 and abs(F[1]-E[1]) >= abs(F[0]-E[0]):
+            if tags_clear and f.kind not in untagged and math.hypot(E[0]-Q[0], E[1]-Q[1]) < 6.0 and abs(F[1]-E[1]) >= abs(F[0]-E[0]):
                 # the fixture stands across the run from its dot: its code centered over the
                 # dot, on the fixture's side, clear of the hot line
                 LAY('P-DOMW-COLD'); cc.setFillColor(black); cc.circle(E[0], E[1], 1.5, fill=1, stroke=0)
                 _text(cc, E[0], E[1]-TAG_CLEAR-2.4 if F[1] < E[1] else E[1]+TAG_CLEAR, CODE[f.kind], 3.4)
+            elif f.kind in untagged:    # the plan symbol already prints its code: the dot alone
+                LAY('P-DOMW-COLD'); cc.setFillColor(black); cc.circle(E[0], E[1], 1.5, fill=1, stroke=0)
             else:
                 fixture_end(cc, E[0], E[1], f.kind, side=1 if e[0] >= q[0] else -1)
         if not tags_clear:
