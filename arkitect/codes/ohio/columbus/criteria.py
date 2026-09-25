@@ -17,10 +17,14 @@ ones for a building that is not this one. `bracing.py` asserts the column still 
 
 Nothing here imports a project, so any project module may import this one.
 """
+import math
 
-# Wind, RCO Table 301.2(1). Vult is the ULTIMATE design speed; Columbus CIC-09's 90 mph
-# is its nominal (ASD) equivalent, which is what G-001 note 12a exists to say.
+
+# Wind, RCO Table 301.2(1). Vult is the ULTIMATE design speed. Its nominal (ASD) speed is RCO
+# Table 301.2.1.3's, Vult x sqrt(0.6) rounded, which reproduces every row of the adopted table
+# (OAC 4101:8-3-01): 115 mph is 89. CIC-09's 90 mph is the old map's basic speed, not this.
 WIND_VULT = 115                  # mph, ultimate
+WIND_VASD = int(round(WIND_VULT*math.sqrt(0.6)))     # mph, nominal, Table 301.2.1.3
 WIND_EXPOSURE = 'B'              # built-up residential streets on all sides
 WIND_EXPOSURE_BASIS = 'BUILT-UP RESIDENTIAL STREETS ON ALL SIDES'
 
