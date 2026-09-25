@@ -59,7 +59,8 @@ def _fit_scale(avail, span, labels, max_h=None, tall=None, what='elevation'):
 # to carry it rather than trenched beneath.
 def service_entry_section(top, left, right, e, wall_t, ftg_proj, insul_t, edge_insul_run,
                           slab_t, bar_cover, bar_dia, bar, gravel_t, slab_top, grade,
-                          water_sheets, sheet, max_h, *, line, wall_says=('NO PIPE', 'PASSES THROUGH IT')):
+                          water_sheets, sheet, max_h, *, line, wall_says=('NO PIPE', 'PASSES THROUGH IT'),
+                          footing_says=('BEARS AT THE FROST LINE, S-101,', 'SO THE PIPE RUNS BELOW IT. NOTE SE1.')):
     """Detail 1: the section across the wall, cut along the service."""
     pipe = e.pipe_od
     ctr = (e.pipe_top+e.pipe_bot)/2.0
@@ -100,8 +101,8 @@ def service_entry_section(top, left, right, e, wall_t, ftg_proj, insul_t, edge_i
           ('%s" WATER %s, TOP %s BELOW' % (e.service, _WORDS[line]['noun'], inches(e.bury)),
            'FINISHED GRADE — %s UNDER THE %s' % (inches(e.bury-e.frost), inches(e.frost)),
            'FROST LINE, OPC 305.4. THE FOOTING',
-           'BEARS AT THE FROST LINE, S-101,',
-           'SO THE PIPE RUNS BELOW IT. NOTE SE1.'))
+           footing_says[0],
+           footing_says[1]))
     d.lab(-ftg_proj, e.deep_bot, 'L',
           ('FOOTING THICKENED TO %s HERE,' % inches(e.thick),
            'BOTTOM %s DOWN, ON UNDISTURBED' % inches(-e.deep_bot),
