@@ -184,8 +184,10 @@ def _bracket(x, y0, y1, label, tick=0.05):
     knockout(x-2.0, (y0+y1)/2.0-1.5, label, "Helvetica-Bold", SUB, align="r")
 
 
-def riser(ox, oy, cell, w=W, h=H):
-    """One riser cell, drawn from its bottom-left corner. Returns the top of its title."""
+def riser(ox, oy, cell, w=W, h=H, tie_label_close=False):
+    """One riser cell, drawn from its bottom-left corner. Returns the top of its title.
+       `tie_label_close` sets a slab vent's label just over its tie and left of the pipe it
+       ties into, rather than across the cell, where its ground can cover another tie."""
     later = []                                   # the vent labels, drawn after every line
     joins = []                                   # where dry vents join the pipe through the roof
     xs = ox+(0.50 if cell.ends else 0.46)*w*inch   # the stack: past its branch's fixtures where they shift
@@ -302,6 +304,9 @@ def riser(ox, oy, cell, w=W, h=H):
             if cell.ends:                        # between the levels, left of the stack, where nothing runs
                 later.append(partial(_cell_label, ox, y_lv[1]+0.60*inch, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie),
                                      (xs-ox)/inch-0.05))
+            elif tie_label_close:
+                later.append(partial(_cell_label, ox, top+0.06*inch, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie),
+                                     (xv-ox)/inch-0.08))
             else:
                 later.append(partial(_cell_label, ox, top+3.0, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie), w))
 

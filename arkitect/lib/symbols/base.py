@@ -94,10 +94,12 @@ class ClearSpace(Symbol):
         # neighbour's caption
         at = s.extra(6, s.caption_at)
         rows = ((Y + H * at + 1.3, s.caption[0]), (Y + H * at - 4.0, s.caption[1]))
+        # a 9th field: where across its box the caption centres, where another box covers part of it
+        cx = X + W * s.extra(8, 0.5)
         if s.extra(7):           # an 8th field: on white, where another box's edge crosses it
             for yy, t in rows:
                 w = c.stringWidth(t, 'Helvetica', 4.2)
-                c.setFillColor(white); c.rect(X + W / 2 - w / 2 - 0.8, yy - 1.2, w + 1.6, 5.0, fill=1, stroke=0)
+                c.setFillColor(white); c.rect(cx - w / 2 - 0.8, yy - 1.2, w + 1.6, 5.0, fill=1, stroke=0)
             c.setFillColor(black)
         for yy, t in rows:
-            c.drawCentredString(X + W / 2, yy, t)
+            c.drawCentredString(cx, yy, t)

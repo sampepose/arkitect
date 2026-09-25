@@ -127,7 +127,9 @@ def _dim_v(d, x, y0, y1, text, size=4.2):
     LAY('S-DETL')
 
 
-def _schedule(x, y, width, *, br):
+def _schedule(x, y, width, *, br, used_ends_only=False):
+    """`used_ends_only` keys only the end conditions some line takes, and the hold-down only
+       where one is drawn; otherwise the legend keys all five."""
     S, LEAD = 5.4, 7.0
     LAY('S-ANNO-TEXT')
     y = _heading(x, y, width, 'BRACING SCHEDULE — RCO 602.10, EVERY BRACED WALL LINE AT EACH LEVEL')
@@ -163,13 +165,36 @@ def _schedule(x, y, width, *, br):
              + ' x '.join('%s %.3f' % (nm, v) for nm, v in factors)
              + ', TABLE 602.10.3(2)')
         _fits(t, 'Helvetica', S, width, 'S-104 factor line'); c.drawString(x, y, t); y -= LEAD
-    for t in ('PANELS PROVIDED: FULL-HEIGHT SEGMENTS, EACH NOT LESS THAN TABLE 602.10.5 FOR ITS TALLER ADJACENT OPENING; CS-PF CONTRIBUTES %.1f x ITS LENGTH.' % rco_bracing.CS_PF_CREDIT,
+    if used_ends_only:
+        legend = _used_ends_legend(br)
+    else:
+        legend = None
+    for t in ('PANELS PROVIDED: FULL-HEIGHT SEGMENTS, EACH NOT LESS THAN TABLE 602.10.5 FOR ITS TALLER ADJACENT OPENING; CS-PF CONTRIBUTES %.1f x ITS LENGTH.' % rco_bracing.CS_PF_CREDIT,) + (legend or (
               'ENDS, FIGURE 602.10.7, START / END OF THE LINE: 1 END PANEL AND %s RETURN PANEL; 2 END PANEL AND HOLD-DOWN; 3 END PANEL %s OR LONGER;'
               % (inches(rco_bracing.RETURN_MIN), inches(rco_bracing.END_PANEL_ALONE)),
               '     4 FIRST PANEL WITHIN %s, %s RETURN PANEL AND %s CORNER TO OPENING; 5 FIRST PANEL WITHIN %s AND HOLD-DOWN. HD = %d LB HOLD-DOWN, DRAWN.'
-              % (fmt(rco_bracing.FIRST_PANEL_MAX), inches(rco_bracing.RETURN_MIN), inches(rco_bracing.CORNER_D_MIN), fmt(rco_bracing.FIRST_PANEL_MAX), rco_bracing.HOLD_DOWN_LB)):
+              % (fmt(rco_bracing.FIRST_PANEL_MAX), inches(rco_bracing.RETURN_MIN), inches(rco_bracing.CORNER_D_MIN), fmt(rco_bracing.FIRST_PANEL_MAX), rco_bracing.HOLD_DOWN_LB))):
         _fits(t, 'Helvetica', S, width, 'S-104 legend'); c.drawString(x, y, t); y -= LEAD
     return y
+
+
+def _used_ends_legend(br):
+    """The ENDS legend for the conditions the lines use, one to a line, and the hold-down
+       sentence only when some end takes one."""
+    text = {1: '1 END PANEL AND %s RETURN PANEL' % inches(rco_bracing.RETURN_MIN),
+            2: '2 END PANEL AND HOLD-DOWN',
+            3: '3 END PANEL %s OR LONGER' % inches(rco_bracing.END_PANEL_ALONE),
+            4: '4 FIRST PANEL WITHIN %s, %s RETURN PANEL AND %s CORNER TO OPENING'
+               % (fmt(rco_bracing.FIRST_PANEL_MAX), inches(rco_bracing.RETURN_MIN), inches(rco_bracing.CORNER_D_MIN)),
+            5: '5 FIRST PANEL WITHIN %s AND HOLD-DOWN' % fmt(rco_bracing.FIRST_PANEL_MAX)}
+    ends = [e for ln in br.LINES for e in ln.ends]
+    used = sorted({e.condition for e in ends if e.condition is not None})
+    items = [text[n] for n in used]
+    if any(e.hold_down is not None for e in ends):
+        items[-1] += '. HD = %d LB HOLD-DOWN, DRAWN' % rco_bracing.HOLD_DOWN_LB
+    lines = ['ENDS, FIGURE 602.10.7, START / END OF THE LINE: ' + items[0]]
+    lines += ['     ' + t for t in items[1:]]
+    return tuple(t + ('.' if i == len(lines)-1 else ';') for i, t in enumerate(lines))
 
 
 def _portal_levels(*, br):
