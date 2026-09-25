@@ -27,7 +27,7 @@ so neither project carries a copy of the drawing.
 """
 from collections import namedtuple
 
-from reportlab.lib.colors import black
+from reportlab.lib.colors import black, white
 from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 
@@ -39,8 +39,8 @@ from arkitect.lib.draw.page import GREY
 # connection is made at, which is the fact 912.1.1 turns on. `vent` is (mark, size) where
 # that fixture's TRAP STANDS ABOVE the floor the branch runs in and so takes a dry vent of
 # its own, above its weir and before its drop (909.2); None where the branch is its vent.
-Fix = namedtuple('Fix', 'label sub vent')
-Fix.__new__.__defaults__ = (None,)
+Fix = namedtuple('Fix', 'label sub vent z')
+Fix.__new__.__defaults__ = (None, None)       # z: the connection's height over its floor, feet; under it is negative
 # What hangs on the stack at one level, its fixes LOWEST CONNECTION FIRST, and the name of
 # the arrangement that vents them (blank where the level above carries the label).
 Hang = namedtuple('Hang', 'level method fixes')
@@ -76,6 +76,10 @@ TITLE, LEVEL, FIX, SUB, METHOD = 8.6, 7.6, 7.2, 7.0, 7.0
 STEP = 0.22                        # one connection to the next on a stack
 ROW = 0.47                         # one branch below the slab to the next
 DOT = 2.3
+ARM_OVER = 0.20                    # a slab fixture's trap arm over its branch: where its dry vent tees on
+UNDER = 0.10                       # the highest connection UNDER a floor, below its line
+CEIL = 0.08                        # the attic line under the lowest join into a head vent
+GROUND = 0.30                      # a riser label's white ground past its letters, top and bottom, x its size
 
 
 def _dash(on=True, pat=(3.2, 2.2)):
@@ -98,7 +102,7 @@ def _drop_trap(x, top, y_br, w=0.09, dip=0.065, arm=0.14, lw=1.0):
        the slab, and the trap arm out and down into the branch at `y_br`. Returns the x the
        connection is made at, which stands off the fixture by the trap and its arm, as it is
        built -- the arm the TRAP ARMS schedule measures."""
-    y_arm = y_br+0.20*inch
+    y_arm = y_br+ARM_OVER*inch
     y_seal = y_arm-dip*inch
     cx = x+(w+arm)*inch
     c.setLineWidth(lw); c.setStrokeColor(black)
@@ -121,6 +125,21 @@ def _arrow(x, y, dx=5.0):
     c.line(x, y, x+dx, y)
     c.line(x+dx-3.0, y+2.0, x+dx, y)
     c.line(x+dx-3.0, y-2.0, x+dx, y)
+
+
+def _ground(x, y, label, font, size, align="l", text=True):
+    """A riser label on a white ground taller than its letters: a dashed vent stopping at
+       the letters' own height still reads as running through them (a plan review,
+       2026-09-24), so the ground stands GROUND x the size clear above and below. With
+       `text` False only the ground is laid, for a caller that sets the words after."""
+    wd = pdfmetrics.stringWidth(label, font, size)
+    x0 = x if align == "l" else (x-wd/2.0 if align == "c" else x-wd)
+    c.saveState(); c.setFillColor(white)
+    c.rect(x0-1.5, y-size*(0.25+GROUND), wd+3.0, size*(1.0+2*GROUND), fill=1, stroke=0)
+    c.restoreState()
+    if text:
+        c.setFillColor(black)
+        knockout(x, y, label, font, size, align=align)
 
 
 def _cell_label(ox, y, text, w, size=None, lead=0.115, gap=0.10, font="Helvetica-Bold"):
@@ -146,7 +165,13 @@ def _cell_label(ox, y, text, w, size=None, lead=0.115, gap=0.10, font="Helvetica
     for i, ln in enumerate(lines):
         assert pdfmetrics.stringWidth(ln, font, size) <= room+0.5, \
             'a riser label does not fit its cell at %.1f pt: %r' % (size, ln[:48])
-        knockout(ox, y+(len(lines)-1-i)*lead*inch, ln, font, size)
+    # every line's ground first, then every line's words: a lower line's ground cannot clip the
+    # line above it
+    for i, ln in enumerate(lines):
+        _ground(ox, y+(len(lines)-1-i)*lead*inch, ln, font, size, text=False)
+    c.setFillColor(black); c.setFont(font, size)
+    for i, ln in enumerate(lines):
+        c.drawString(ox, y+(len(lines)-1-i)*lead*inch, ln)
     return y+(len(lines)-1)*lead*inch
 
 
@@ -162,6 +187,7 @@ def _bracket(x, y0, y1, label, tick=0.05):
 def riser(ox, oy, cell, w=W, h=H):
     """One riser cell, drawn from its bottom-left corner. Returns the top of its title."""
     later = []                                   # the vent labels, drawn after every line
+    joins = []                                   # where dry vents join the pipe through the roof
     xs = ox+(0.50 if cell.ends else 0.46)*w*inch   # the stack: past its branch's fixtures where they shift
     x_end = ox+0.85*w*inch                       # where the drain leaves the cell
     y_note = oy+0.02*inch
@@ -170,10 +196,18 @@ def riser(ox, oy, cell, w=W, h=H):
     y_top = oy+h*inch-0.30*inch
 
     # ---- what the stack carries, and the height from which it is only a vent ----
-    conns = []
+    conns, meth_y = [], {}
     for hg in cell.hangs:
+        # lowest first: those UNDER the floor stand under its line, the rest over it, a STEP apart
+        n_under = sum(1 for fx in hg.fixes if fx.z is not None and fx.z < -1e-9)
         for i, fx in enumerate(hg.fixes):
-            conns.append((y_lv[hg.level]+0.16*inch+i*STEP*inch, fx))
+            if i < n_under:
+                y = y_lv[hg.level]-UNDER*inch-(n_under-1-i)*STEP*inch
+            else:
+                y = y_lv[hg.level]+0.16*inch+(i-n_under)*STEP*inch
+            conns.append((y, fx))
+        if n_under:              # the method label under the lowest connection's height line
+            meth_y[hg.level] = y_lv[hg.level]-UNDER*inch-(n_under-1)*STEP*inch-18.0
     highest = max((y for y, _f in conns), default=y_lv[1])
     for fl in cell.floors:                       # a branch in a floor ends the waste at its junction
         highest = max(highest, y_lv[fl.level]-FLOOR_BR*inch)
@@ -191,8 +225,8 @@ def riser(ox, oy, cell, w=W, h=H):
     c.setFillColor(black); c.setFont("Helvetica-Bold", TITLE)
     c.drawString(ox, oy+h*inch, cell.title)
     c.setStrokeColor(black); c.setLineWidth(1.9)
-    if cell.vent_only:
-        _dash(); c.line(xs, oy+0.85*inch, xs, y_top); _dash(False)
+    if cell.vent_only:           # up from the head fixture's arm, which is where it tees on
+        _dash(); c.line(xs, oy+(0.85+ARM_OVER)*inch, xs, y_top); _dash(False)
     elif cell.ends:
         c.line(xs, y_ft, xs, highest)            # waste, to the branch it ends at
     else:
@@ -252,17 +286,19 @@ def riser(ox, oy, cell, w=W, h=H):
             _dot(cx, y_br)
         # the takeoff, at the fixture the vent stands on, and where it reconnects
         c.setStrokeColor(black); c.setLineWidth(1.3); _dash()
+        _dot(head, y_br+ARM_OVER*inch)           # the tee on the head fixture's arm, over its weir
         if sl.tie is None:                       # this cell's riser IS that vent
             _dash(False)
-            later.append(partial(knockout, xs+6.0, y_lv[2]+0.34*inch, '%s  %s  %s' % (sl.mark, sl.size, sl.method),
-                                 "Helvetica-Bold", SUB))
+            later.append(partial(_cell_label, xs+6.0, y_lv[2]+0.34*inch, '%s  %s  %s' % (sl.mark, sl.size, sl.method),
+                                 (ox+w*inch-xs-6.0)/inch))
         else:
             top = vent_base+0.10*inch+n*0.20*inch
             if cell.ends:                        # into the head vent in the attic, over every rim
                 top = y_top-ENDS_JOIN*inch-n*2*VENT_STAGGER*inch
-            c.line(head, y_br, head, top)
+            c.line(head, y_br+ARM_OVER*inch, head, top)
             c.line(head, top, xv, top)
             _dash(False); _dot(xv, top)
+            joins.append(top)
             if cell.ends:                        # between the levels, left of the stack, where nothing runs
                 later.append(partial(_cell_label, ox, y_lv[1]+0.60*inch, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie),
                                      (xs-ox)/inch-0.05))
@@ -321,14 +357,23 @@ def riser(ox, oy, cell, w=W, h=H):
         for i, (rx, _v) in enumerate(risers):
             if cell.ends and rx != xv:
                 _dot(xv, top-i*VENT_STAGGER*inch)
+                joins.append(top-i*VENT_STAGGER*inch)
         for i, (rx, (mark, size)) in enumerate(risers):
             c.setFillColor(black)
             if cell.ends and rx == xv:           # the head vent's mark, left of it under the roof
-                later.append(partial(knockout, rx-3.0, y_top-0.40*inch, '%s %s' % (mark, size), "Helvetica-Bold", SUB, align="r"))
+                later.append(partial(_ground, rx-3.0, y_top-0.33*inch, '%s %s' % (mark, size), "Helvetica-Bold", SUB, align="r"))
                 continue
-            later.append(partial(knockout, rx+2.0, top-i*VENT_STAGGER*inch+2.2, '%s %s' % (mark, size),
+            later.append(partial(_ground, rx+2.0, top-i*VENT_STAGGER*inch+2.2, '%s %s' % (mark, size),
                                  "Helvetica-Bold", SUB))
         later.append(partial(_cell_label, ox, (y_top-0.60*inch) if cell.ends else top+0.17*inch, '%s — %s' % (fl.method, fl.tie), w))
+
+    # ---- where the dry vents join the head vent, the attic: its floor drawn under the joins ----
+    if cell.ends and joins:
+        y_c = min(joins)-CEIL*inch
+        c.setStrokeColor(GREY); c.setLineWidth(0.7)
+        c.line(ox, y_c, ox+0.94*w*inch, y_c)
+        c.setStrokeColor(black)
+        later.append(partial(_ground, ox+0.94*w*inch, y_c+3.0, 'CEILING — ATTIC OVER', "Helvetica-Bold", SUB, align="r"))
 
     # ---- the foot: the offset a waste stack makes to it is drawn, 913.2 ----
     if cell.foot:
@@ -352,16 +397,16 @@ def riser(ox, oy, cell, w=W, h=H):
         _cell_label(ox, y_note, cell.note, w, font="Helvetica")
     # Every vent's label after EVERY line of the cell: a vent drawn for a later level or
     # floor would otherwise run its dashes through a label an earlier one had knocked out.
-    for draw in later:
+    for draw in sorted(later, key=lambda d: d.func is not _cell_label):   # the wrapped labels, then the marks over them
         c.setFillColor(black)
         draw()
     c.setFillColor(black)
     for lv, label in sorted(cell.levels.items()):
-        knockout(ox, y_lv[lv]+3.0, label, "Helvetica-Bold", LEVEL)
+        _ground(ox, y_lv[lv]+3.0, label, "Helvetica-Bold", LEVEL)
     for hg in cell.hangs:
         if hg.method:
             # right of the stack, where nothing else runs: the dry vents rise at the left
-            knockout(ox+0.94*w*inch, y_lv[hg.level]-8.0, hg.method, "Helvetica-Bold", METHOD,
+            _ground(ox+0.94*w*inch, meth_y.get(hg.level, y_lv[hg.level]-8.0), hg.method, "Helvetica-Bold", METHOD,
                      align="r")
     return oy+h*inch
 
