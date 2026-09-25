@@ -60,8 +60,11 @@ def _fit_scale(avail, span, labels, max_h=None, tall=None, what='elevation'):
 def service_entry_section(top, left, right, e, wall_t, ftg_proj, insul_t, edge_insul_run,
                           slab_t, bar_cover, bar_dia, bar, gravel_t, slab_top, grade,
                           water_sheets, sheet, max_h, *, line, wall_says=('NO PIPE', 'PASSES THROUGH IT'),
-                          footing_says=('BEARS AT THE FROST LINE, S-101,', 'SO THE PIPE RUNS BELOW IT. NOTE SE1.')):
-    """Detail 1: the section across the wall, cut along the service."""
+                          footing_says=('BEARS AT THE FROST LINE, S-101,', 'SO THE PIPE RUNS BELOW IT. NOTE SE1.'),
+                          sleeve_inside=False):
+    """Detail 1: the section across the wall, cut along the service. `sleeve_inside` carries the
+       sleeve on past the footing's inside face with the pipe, up its rise and along the aggregate
+       to the riser, for a set that sleeves its supply the whole length under the slab."""
     pipe = e.pipe_od
     ctr = (e.pipe_top+e.pipe_bot)/2.0
     rise = wall_t+ftg_proj+e.past+IN(2)                 # the elbow, clear of the sleeve's end
@@ -84,10 +87,21 @@ def service_entry_section(top, left, right, e, wall_t, ftg_proj, insul_t, edge_i
     for bx in (-ftg_proj+bar_cover+bar_dia/2.0, wall_t+ftg_proj-bar_cover-bar_dia/2.0):
         c.circle(d.X(bx), d.Y(e.bar_bot+bar_dia/2.0), 1.5, fill=1, stroke=0)
     # the sleeve, cast through the footing and past each face
-    for z in (e.sleeve_top, e.sleeve_bot):
-        d.line(-ftg_proj-e.past, z, wall_t+ftg_proj+e.past, z, lw=0.5)
-    for x in (-ftg_proj-e.past, wall_t+ftg_proj+e.past):
-        d.line(x, e.sleeve_top, x, e.sleeve_bot, lw=0.5)
+    if sleeve_inside:
+        # on with the pipe: the same annulus round its elbow, its rise and its run to the riser
+        a = (e.sleeve_od-pipe)/2.0
+        d.line(-ftg_proj-e.past, e.sleeve_top, rise-pipe/2.0-a, e.sleeve_top, lw=0.5)
+        d.line(rise-pipe/2.0-a, e.sleeve_top, rise-pipe/2.0-a, e.bed+pipe+a, lw=0.5)
+        d.line(rise-pipe/2.0-a, e.bed+pipe+a, 2.0, e.bed+pipe+a, lw=0.5)
+        d.line(-ftg_proj-e.past, e.sleeve_bot, rise+pipe/2.0+a, e.sleeve_bot, lw=0.5)
+        d.line(rise+pipe/2.0+a, e.sleeve_bot, rise+pipe/2.0+a, e.bed-a, lw=0.5)
+        d.line(rise+pipe/2.0+a, e.bed-a, 2.0, e.bed-a, lw=0.5)
+        d.line(-ftg_proj-e.past, e.sleeve_top, -ftg_proj-e.past, e.sleeve_bot, lw=0.5)
+    else:
+        for z in (e.sleeve_top, e.sleeve_bot):
+            d.line(-ftg_proj-e.past, z, wall_t+ftg_proj+e.past, z, lw=0.5)
+        for x in (-ftg_proj-e.past, wall_t+ftg_proj+e.past):
+            d.line(x, e.sleeve_top, x, e.sleeve_bot, lw=0.5)
     # the service: in from the main below frost, under the footing, up inside the wall
     # into the aggregate, and away to its riser
     d.line(-1.0, e.pipe_top, rise-pipe/2.0, e.pipe_top, lw=1.0)
@@ -114,7 +128,10 @@ def service_entry_section(top, left, right, e, wall_t, ftg_proj, insul_t, edge_i
     d.lab(wall_t+ftg_proj, ctr, 'R',
           ('%s" SLEEVE, %s OUTSIDE — TWO PIPE' % (e.sleeve, inches(e.sleeve_od)),
            'SIZES LARGER, CAST THROUGH THE',
-           'FOOTING AND %s PAST EACH FACE,' % inches(e.past),
+           *(('FOOTING, %s PAST THE OUTSIDE FACE' % inches(e.past),
+              'AND ON WITH THE %s TO ITS RISER,' % _WORDS[line]['noun'])
+             if sleeve_inside else
+             ('FOOTING AND %s PAST EACH FACE,' % inches(e.past),)),
            'ANNULUS SEALED — OPC 305.3'))
     d.lab(wall_t+ftg_proj-bar_cover, e.bar_bot, 'R',
           ('2-%s CONT. AT THEIR TYPICAL' % bar, 'DEPTH, %s CLEAR OVER THE SLEEVE' % inches(e.bar_clear)))
@@ -160,7 +177,7 @@ def service_entry_elevation(top, left, right, e, ftg_w, bar, sheet, *, line):
 
 
 def service_entry_notes(x, y, width, e, gravel_t, bar, water_sheets, layer, *, water_utility, line, cols=1,
-                        located=None, notes_sheet=None, plain=False):
+                        located=None, notes_sheet=None, plain=False, sleeve_inside=False):
     """SE1 to SE6: what a builder does, in the order it is built. `water_utility` is the
        jurisdiction's (its WATER_UTILITY), whose own depth may govern the service. `cols` is 1 in a tall
        narrow column and 2 in a short wide band -- the sheet knows which it has. `located`
@@ -174,9 +191,12 @@ def service_entry_notes(x, y, width, e, gravel_t, bar, water_sheets, layer, *, w
         'REQUIRES IT. THE %s RISES ONLY INSIDE THE FOUNDATION WALL; NO PART OF IT RISES IN OUTSIDE GROUND.'
         % (W['one'], water_sheets, inches(e.bury), W['from'], inches(e.bury-e.frost), inches(e.frost), inches(MIN_COVER),
            water_utility, W['noun']),
-        'SE2. SLEEVE — %s" NON-METALLIC, %s OUTSIDE, TWO PIPE SIZES LARGER THAN THE %s, OPC 305.3, SET IN THE FOOTING TRENCH '
-        'BEFORE THE FOOTING IS POURED AND RUNNING %s PAST EACH FACE. SEAL THE ANNULUS BOTH ENDS. NO CONCRETE BEARS ON THE %s '
-        'AND NO JOINT OCCURS INSIDE THE FOOTING, OPC 305.2 AND 305.3.' % (e.sleeve, inches(e.sleeve_od), W['noun'], inches(e.past), W['noun']),
+        ('SE2. SLEEVE — %s" NON-METALLIC, %s OUTSIDE, TWO PIPE SIZES LARGER THAN THE %s, OPC 305.3, SET IN THE FOOTING TRENCH '
+         'BEFORE THE FOOTING IS POURED AND RUNNING %s PAST ' % (e.sleeve, inches(e.sleeve_od), W['noun'], inches(e.past))
+         + ('THE OUTSIDE FACE AND ON INSIDE WITH THE %s TO ITS RISER, %s NOTE 6.' % (W['noun'], notes_sheet or water_sheets)
+            if sleeve_inside else 'EACH FACE.')
+         + ' SEAL THE ANNULUS BOTH ENDS. NO CONCRETE BEARS ON THE %s '
+         'AND NO JOINT OCCURS INSIDE THE FOOTING, OPC 305.2 AND 305.3.' % W['noun']),
         'SE3. FOOTING — THE %s PASSES THROUGH THE FOOTING, NOT UNDER IT: AT THE CROSSING THE FOOTING IS THICKENED TO %s, ITS '
         'BOTTOM %s LOWER THAN THE TYPICAL %s OF S-101 NOTE 1, WHICH LEAVES %s OF CONCRETE UNDER THE SLEEVE. THE BOTTOM RETURNS TO '
         'ITS TYPICAL DEPTH AT ONE UNIT IN TEN OVER %s EACH SIDE, RCO 403.1.5, AND THE TOP STAYS LEVEL.'
@@ -188,7 +208,8 @@ def service_entry_notes(x, y, width, e, gravel_t, bar, water_sheets, layer, *, w
         'OVER THE SLEEVE; THE CONCRETE BELOW THEM IS PLAIN.' % (bar, inches(e.bar_clear)),
         ('SE5. INSIDE — THE %s RISES ' + ('INSIDE THE INTERIOR FACE OF THE FOUNDATION WALL' if plain else 'WITHIN THE FOUNDATION WALL')
          + ' AND ITS SLAB-EDGE INSULATION INTO THE %s CLEAN AGGREGATE UNDER THE '
-         'SLAB, S-101 NOTE 2, AND RUNS TO ITS RISER IN ONE CONTINUOUS LENGTH WITH NO JOINT BELOW THE SLAB, %s NOTE 6.')
+         'SLAB, S-101 NOTE 2, AND RUNS TO ITS RISER IN ONE CONTINUOUS LENGTH' + (' IN THAT SLEEVE' if sleeve_inside else '')
+         + ' WITH NO JOINT BELOW THE SLAB, %s NOTE 6.')
         % (W['noun'], inches(gravel_t), notes_sheet or water_sheets),
         'SE6. WHERE P-101 NOTE 9 CALLS FOR A CONTINUOUS SLEEVE PAST A SEWER CROSSING, OPC 603.2, THAT SLEEVE IS CARRIED THROUGH THE '
         + ('FOOTING AS THIS DETAIL DRAWS IT.' if plain else 'FOOTING AS THIS DETAIL DRAWS IT; THERE IS NOT A SECOND ONE.'),
