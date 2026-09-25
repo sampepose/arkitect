@@ -36,6 +36,7 @@ def fmt(v, sep="-"):
        `sep` joins the whole inches to the fraction. The set hyphenates (10'-1-3/4");
        the labels inside Unit 1's plans came from the supplied study and space it
        (10'-1 3/4"), which is the only thing that made them a separate formatter."""
+    if round(v*96)<0: return '-'+fmt(-v, sep)     # the sign ahead of the figure, never inside it
     f=int(v+1e-6); e=int(round((v-f)*96))          # eighths of an inch
     if e>=96: f,e = f+1, e-96
     w,r = divmod(e,8)
@@ -49,6 +50,7 @@ def inches(v, sep="-"):
        get in the way of reading it: a code minimum is written 15", so the dimension
        demonstrating it should read 16-1/2", not 1'-4-1/2". `sep` as in fmt()."""
     e=int(round(v*96))                             # eighths of an inch
+    if e<0: return '-'+inches(-v, sep)             # divmod floors a negative: -1/2" read -1-1/2"
     w,r = divmod(e,8)
     if r==0: return f'{w}"'
     d=math.gcd(r,8)
@@ -61,6 +63,7 @@ def inches32(v, sep="-"):
        120-1/2" over 15 risers is 8.03", which inches16() prints 8-1/16" -- and 15 of those
        are 120-15/16". Print the total rise beside it; that is the figure that controls."""
     n=int(round(v*384))                            # thirty-seconds of an inch
+    if n<0: return '-'+inches32(-v, sep)
     w,r = divmod(n,32)
     if r==0: return f'{w}"'
     d=math.gcd(r,32)
@@ -72,6 +75,7 @@ def inches16(v, sep="-"):
     """Inches to the nearest 1/16, for a figure a divided rise makes: 121" over 15 risers is
        8.07", which inches() would print 8-1/8", overstating every riser."""
     n=int(round(v*192))                            # sixteenths of an inch
+    if n<0: return '-'+inches16(-v, sep)
     w,r = divmod(n,16)
     if r==0: return f'{w}"'
     d=math.gcd(r,16)

@@ -76,6 +76,11 @@ class LoadTests(unittest.TestCase):
         self.assertEqual(service[:4], ('SERVICE', 'EM-1', 125, '#1'))
         self.assertEqual((unit[4], service[4]), (4, 3))                      # a feeder's neutral is isolated
 
+    def test_a_100_a_unit_feeder_has_the_ampacity_220_82_asks(self):
+        s = _service(1, positions=(('U1', 100, 'UNIT 1'),))
+        unit, _service_row = L.feeders(s)
+        self.assertEqual(unit[3], '#3')        # 310.12's #4 is 85 A; 220.82(A) asks 100 A
+
     def test_no_standard_rating_is_an_error(self):
         with self.assertRaises(ValueError):
             L.service_size(10000)

@@ -3,7 +3,7 @@
    Every helper here takes FEET, as the models do, and prints inches."""
 import unittest
 
-from arkitect.lib.units import IN, inches, inches16, inches32
+from arkitect.lib.units import IN, fmt, inches, inches16, inches32
 
 
 class Inches32Tests(unittest.TestCase):
@@ -18,6 +18,18 @@ class Inches32Tests(unittest.TestCase):
         self.assertEqual(inches32(IN(8.0625)), '8-1/16"')        # reduced, not 8-2/32"
         self.assertEqual(inches32(IN(8.5), sep=" "), '8 1/2"')
 
+
+
+class NegativeTests(unittest.TestCase):
+
+    def test_the_sign_stands_ahead_of_the_figure(self):
+        # divmod floors a negative, so -1/2" used to print -1-1/2" and -16-3/4" -17-1/4"
+        self.assertEqual(inches(-IN(0.5)), '-1/2"')
+        self.assertEqual(inches(-IN(16.75)), '-16-3/4"')
+        self.assertEqual(inches16(-IN(8.0625)), '-8-1/16"')
+        self.assertEqual(inches32(-IN(0.03125)), '-1/32"')
+        self.assertEqual(fmt(-1.5), '-1\'-6"')
+        self.assertEqual(inches(-IN(0.01)), '0"')                 # under 1/16" rounds to nothing, unsigned
 
 if __name__ == '__main__':
     unittest.main()

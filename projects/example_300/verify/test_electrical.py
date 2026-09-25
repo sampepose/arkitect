@@ -114,7 +114,7 @@ class RealUnitsTests(unittest.TestCase):
         self.assertEqual(nec_load.service_size(179.5), 200); self.assertEqual(nec_load.service_size(200), 200)
         f1 = nec_load.feeders(b1)
         # the service entrance grew with the service: 200 A #3/0 -> 225 A #4/0
-        self.assertEqual([(p, w) for p, _n, _a, w, *_r in f1], [('U1', '#2'), ('U2', '#4'), ('U3', '#4'), ('H', '#6'), ('SERVICE', '#4/0')])
+        self.assertEqual([(p, w) for p, _n, _a, w, *_r in f1], [('U1', '#2'), ('U2', '#3'), ('U3', '#3'), ('H', '#6'), ('SERVICE', '#4/0')])
         self.assertEqual([r[4] for r in f1], [4, 4, 4, 4, 3])
         self.assertEqual([r[6] for r in f1], ['#6', '#8', '#8', '#10', '—'])
         self.assertEqual(nec_load.feeders(b2)[-1][3], '#3/0')       # 175 A #2/0 -> 200 A #3/0

@@ -115,6 +115,9 @@ def service_loads(s):
 
 # Table 310.12(A): a feeder to an individual dwelling unit at 83 % of its rating, copper.
 UNIT_FEEDER_310_12 = {100: '#4', 125: '#2', 150: '#1', 175: '#1/0', 200: '#2/0'}
+# 220.82(A): the optional method applies to a dwelling whose feeder conductors have an
+# ampacity of not less than 100 A, so a 100 A unit feeder cannot take 310.12's #4 (85 A).
+OPTIONAL_MIN_AMPACITY = 100
 GEC_CEE = '#4'      # 250.66(B): to a concrete-encased electrode, no larger than #4 Cu is required
 
 
@@ -127,11 +130,13 @@ def _by_310_16(amps):
 
 def feeders(s):
     """(position, name, ocpd, conductor, wires, neutral, egc) per meter position, then the
-       service-entrance conductors last. A unit's feeder (position 'U…') takes 310.12(B); a house
+       service-entrance conductors last. A unit's feeder (position 'U…') takes 310.12(B), not under 220.82(A)'s 100 A; a house
        feeder and the service conductors do not qualify and take Table 310.16 at 100 %."""
     out = []
     for pos, a, name in s['positions']:
         wire = UNIT_FEEDER_310_12[a] if pos.startswith('U') else _by_310_16(a)
+        if pos.startswith('U') and WIRE_AMPS[wire] < OPTIONAL_MIN_AMPACITY:
+            wire = _by_310_16(OPTIONAL_MIN_AMPACITY)   # 220.82(A): the unit's load is taken by 220.82
         out.append((pos, name, a, wire, 4, 'ISOLATED FROM GROUND AT THE PANEL', egc_min(a)))
     size = service_loads(s)[3]
     out.append(('SERVICE', s['mark'], size, _by_310_16(size), 3, 'BONDED AT THE SERVICE DISCONNECT', '—'))
