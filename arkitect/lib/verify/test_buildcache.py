@@ -108,7 +108,7 @@ class RecordingTests(unittest.TestCase):
     def test_a_part_that_fails_is_never_kept(self):
         # a DXF exporter that cannot import: the trace is good, the recording is not whole
         engine = os.path.join(self.tmp, 'engine')
-        shutil.copytree(os.path.join(HERE, 'arkitect'), os.path.join(engine, 'arkitect'),
+        shutil.copytree(os.path.join(HERE, 'arkitect', 'lib'), os.path.join(engine, 'arkitect', 'lib'),
                         ignore=shutil.ignore_patterns('__pycache__'))
         with open(os.path.join(engine, 'arkitect', 'lib', 'export', 'dxf.py'), 'w') as fh:
             fh.write("raise SystemExit('exporter is broken')\n")

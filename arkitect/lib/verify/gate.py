@@ -187,15 +187,18 @@ def measure(tree, slug, out, dxf=True, text=True, claims=False, engine=None):
         trace += ['--text', f('text.json')]
     if dxf:
         trace += ['--dxf', f('floor.dxf')]
-    jobs = {'trace': trace}
+    # a build already recorded whole is served here, as that trace.py would serve it, without
+    # starting a process to copy files
+    jobs = {} if _serve_kept(tree, engine, build, out, text, dxf) else {'trace': trace}
     # A project with a feature list (arkitect/harness/progress.py) has every claim in it proved by
     # its build. Run as a command, so arkitect/lib/ never imports arkitect/harness/.
     has_list = os.path.exists(os.path.join(tree, 'projects', slug, 'progress.json'))
     if claims and has_list:
         jobs['progress'] = [PY, '-m', 'arkitect.harness.progress', 'verify', slug, '--json']
-    with cf.ThreadPoolExecutor(len(jobs)) as pool:
+    with cf.ThreadPoolExecutor(max(1, len(jobs))) as pool:
         done = {k: pool.submit(_run, cmd, tree, engine) for k, cmd in jobs.items()}
         runs = {k: fut.result() for k, fut in done.items()}
+    runs.setdefault('trace', (True, 0, '', ''))           # served
 
     res = {}
     ran, code, _o, err = runs['trace']
@@ -237,6 +240,31 @@ def measure(tree, slug, out, dxf=True, text=True, claims=False, engine=None):
         except ValueError:
             res['progress'] = {'ran': False, 'ok': False, 'stderr': _tail(err)}
     return res
+
+
+def _serve_kept(tree, engine, build, out, text, dxf):
+    """Copy this build's kept recording (arkitect/lib/verify/buildcache.py) into `out` as the
+       trace.py measure() would start serves it, and say whether it did. The key is the one that
+       trace.py computes: its engine, its workspace (`tree`, where it starts), its PYTHONPATH."""
+    try:
+        from arkitect.lib.verify import buildcache
+    except ImportError:
+        return False
+    if not buildcache.usable(build, tree):
+        return False
+    k = buildcache.key(build, engine, tree,
+                       pythonpath=workspace.env(tree, engine, _ENV).get('PYTHONPATH', ''))
+    hit = k and buildcache.found(k)
+    parts = (['trace.txt', 'stdout.txt', 'sheets.txt', 'pdf'] + (['text.json'] if text else []) +
+             (['floor.dxf'] if dxf else []))
+    if not hit or not all(os.path.exists(os.path.join(hit, p)) for p in parts):
+        return False
+    for p in parts:
+        if p == 'pdf':
+            shutil.copytree(os.path.join(hit, p), os.path.join(out, p), dirs_exist_ok=True)
+        else:
+            shutil.copyfile(os.path.join(hit, p), os.path.join(out, p))
+    return True
 
 
 def by_sheet(path):
