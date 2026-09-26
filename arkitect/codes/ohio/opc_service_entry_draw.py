@@ -61,10 +61,12 @@ def service_entry_section(top, left, right, e, wall_t, ftg_proj, insul_t, edge_i
                           slab_t, bar_cover, bar_dia, bar, gravel_t, slab_top, grade,
                           water_sheets, sheet, max_h, *, line, wall_says=('NO PIPE', 'PASSES THROUGH IT'),
                           footing_says=('BEARS AT THE FROST LINE, S-101,', 'SO THE PIPE RUNS BELOW IT. NOTE SE1.'),
-                          sleeve_inside=False):
+                          sleeve_inside=False, numbers=(1, 2)):
     """Detail 1: the section across the wall, cut along the service. `sleeve_inside` carries the
        sleeve on past the footing's inside face with the pipe, up its rise and along the aggregate
-       to the riser, for a set that sleeves its supply the whole length under the slab."""
+       to the riser, for a set that sleeves its supply the whole length under the slab. `numbers`
+       is (this detail's number, the elevation's), for a sheet that draws the elevation to the
+       left of the section and numbers them left to right."""
     pipe = e.pipe_od
     ctr = (e.pipe_top+e.pipe_bot)/2.0
     rise = wall_t+ftg_proj+e.past+IN(2)                 # the elbow, clear of the sleeve's end
@@ -120,7 +122,7 @@ def service_entry_section(top, left, right, e, wall_t, ftg_proj, insul_t, edge_i
     d.lab(-ftg_proj, e.deep_bot, 'L',
           ('FOOTING THICKENED TO %s HERE,' % inches(e.thick),
            'BOTTOM %s DOWN, ON UNDISTURBED' % inches(-e.deep_bot),
-           'SOIL — DETAIL 2'))
+           'SOIL — DETAIL %d' % numbers[1]))
     d.lab(wall_t/2.0, (e.ftg_top+slab_top)/2.0, 'R',
           ('%s FOUNDATION WALL, BOTTOM %s' % (inches(wall_t), inches(-e.ftg_top)),
            'BELOW FINISHED GRADE: %s' % wall_says[0],
@@ -140,13 +142,13 @@ def service_entry_section(top, left, right, e, wall_t, ftg_proj, insul_t, edge_i
            'INTO THE %s AGGREGATE AND RUNS' % inches(gravel_t),
            'TO ITS RISER, %s' % water_sheets))
     lo = d.flush('detail 1')
-    _title(left, lo-0.26*inch, 1, 'WATER %s THROUGH THE THICKENED FOOTING' % _WORDS[line]['noun'], _name)
+    _title(left, lo-0.26*inch, numbers[0], 'WATER %s THROUGH THE THICKENED FOOTING' % _WORDS[line]['noun'], _name)
     return lo-0.58*inch
 
 
-def service_entry_elevation(top, left, right, e, ftg_w, bar, sheet, *, line):
+def service_entry_elevation(top, left, right, e, ftg_w, bar, sheet, *, line, numbers=(1, 2)):
     """Detail 2: the same footing seen along the wall — what carries the building over
-       the crossing."""
+       the crossing. `numbers` is (the section's number, this detail's), as the section takes it."""
     pipe = e.pipe_od
     ctr = (e.pipe_top+e.pipe_bot)/2.0
     half, xw = ftg_w/2.0, ftg_w/2.0+e.run+0.6
@@ -164,15 +166,15 @@ def service_entry_elevation(top, left, right, e, ftg_w, bar, sheet, *, line):
         d.line(-xw, z, xw, z, lw=0.4)
     d.circle(0.0, ctr, e.sleeve_od/2.0)
     d.circle(0.0, ctr, pipe/2.0)
-    d.lab(-xw, e.ftg_top+stub/2.0, 'L', ('THE FOUNDATION WALL', 'OVER — DETAIL 1'))
+    d.lab(-xw, e.ftg_top+stub/2.0, 'L', ('THE FOUNDATION WALL', 'OVER — DETAIL %d' % numbers[0]))
     d.lab(-half-e.run/2.0, (e.ftg_bot+e.deep_bot)/2.0, 'L',
           ('THE BOTTOM RETURNS AT', '1 IN 10, RCO 403.1.5:', '%s EACH SIDE' % fmt(e.run)))
     d.lab(-half, e.deep_bot, 'L', ('%s LOWER, %s THICK' % (inches(e.drop), inches(e.thick)),))
     d.lab(xw-0.4, e.ftg_bot, 'R', ('TYPICAL FOOTING BOTTOM,', '%s BELOW FINISHED GRADE' % inches(-e.ftg_bot)))
-    d.lab(0.0, ctr, 'R', ('THE SLEEVE AND THE', '%s — DETAIL 1' % _WORDS[line]['noun']))
+    d.lab(0.0, ctr, 'R', ('THE SLEEVE AND THE', '%s — DETAIL %d' % (_WORDS[line]['noun'], numbers[0])))
     d.lab(half+e.run/2.0, e.bar_bot, 'R', ('2-%s CONT., STRAIGHT' % bar, 'THROUGH — NOTE SE4'))
     lo = d.flush('detail 2')
-    _title(left, lo-0.26*inch, 2, 'THE THICKENED FOOTING ALONG THE WALL', scale_name)
+    _title(left, lo-0.26*inch, numbers[1], 'THE THICKENED FOOTING ALONG THE WALL', scale_name)
     return lo-0.58*inch
 
 
