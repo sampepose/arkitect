@@ -9,4 +9,4 @@
 # upgrade is proposed against (arkitect/lib/verify/gate.py). Raise
 # the minor number for anything that can move a sheet, the patch number for anything that
 # cannot, and tag the commit vX.Y.Z.
-__version__ = '0.6.2'
+__version__ = '0.6.3'

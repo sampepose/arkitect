@@ -349,7 +349,7 @@ def draw_level(c,lv,ox,oy,sc=Q):
     # Some chains dimension nominal-size objects rather than mapped wall faces. Their
     # starts follow the stud grid, but a 3'-0" door or window remains exactly 3'-0";
     # add those already-gridded chains here so their far edges are not stretched again.
-    g = g.replace(openareas=net_areas(g.openareas),
+    g = g.replace(openareas=net_areas(g.openareas,lv.net_wording),
                   chains=list(g.chains)+list(lv.fixed_chains))
     rooms,openareas,openings,furn,doors = g.rooms,g.openareas,g.openings,g.furn,g.doors
     chains,dims = g.chains,g.dims

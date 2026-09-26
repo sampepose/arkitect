@@ -73,6 +73,9 @@ class PlanLevel:
         closet_dims     with full_dims: the closet depth strings. False leaves each
                         closet's size to its room tag, where the string would print
                         on another line (a soffit's edge).
+        net_wording     room name -> what its net area label says was deducted
+                        (net_areas()), for a room whose notch is not a closet alone.
+                        None: every net figure says NET OF CLOSET.
 
         stair_side      how far to shift the REAR context label clear of an exterior
                         stair that runs past the rear wall, in plan feet. 0 if nothing
@@ -86,7 +89,8 @@ class PlanLevel:
                  pos=None, full_dims=True, wall_finish=0.0,
                  over_plan=None, over_dims=None, over_all=None, stair_side=0.0,
                  overlay=None, captions=None, sep_rows=None, labels_last=False,
-                 marks_last=False, closet_dims=True, room_dim_skip=()):
+                 marks_last=False, closet_dims=True, room_dim_skip=(),
+                 net_wording=None):
         s.plan, s.W, s.D = plan, W, D
         s.rooms, s.openareas = rooms, openareas
         s.doors, s.wins, s.openings, s.furn = doors, wins, openings, furn
@@ -104,6 +108,7 @@ class PlanLevel:
         s.marks_last = marks_last
         s.closet_dims = closet_dims
         s.room_dim_skip = tuple(room_dim_skip)
+        s.net_wording = dict(net_wording or {})
 
 
 # ---------------- the geometry, and which coordinate space it is in ----------------

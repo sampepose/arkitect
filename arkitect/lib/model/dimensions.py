@@ -529,7 +529,7 @@ def _poly_holds(pts,x,y,w,h):
     return x0-1e-6<=x and x+w<=x1+1e-6 and y0-1e-6<=y and y+h<=y1+1e-6
 
 
-def net_areas(polys):
+def net_areas(polys, wording=None):
     """Put the TRUE area on any open-area label that is alone on its polygon.
 
     A bedroom with a recessed reach-in is drawn as the room MINUS the closet and its
@@ -540,7 +540,12 @@ def net_areas(polys):
     carries more than one label the split between them is a design statement rather
     than a measurement, so those are left exactly as written. A None dimension label
     requests overall dimensions from the same regridded polygon as the area.
+
+    `wording` maps a label's name to what its net figure says was deducted, for a room
+    whose notch is not (only) a closet -- {"BEDROOM 2": "NET OF HALL"}; a name it does not
+    carry says NET OF CLOSET, as before.
     """
+    wording=wording or {}
     out=[]
     for (pts,labs) in polys:
         if len(labs)==1 and len(labs[0])>4 and str(labs[0][4]).endswith("SF"):
@@ -551,7 +556,7 @@ def net_areas(polys):
             bb=width*depth
             l=labs[0]
             dimensions="%s x %s"%(fmt(width),fmt(depth)) if l[3] is None else l[3]
-            labs=[tuple(l[:3])+(dimensions,"%d SF%s"%(round(a)," NET OF CLOSET" if bb-a>1.0 else ""))
+            labs=[tuple(l[:3])+(dimensions,"%d SF%s"%(round(a)," "+wording.get(l[2],"NET OF CLOSET") if bb-a>1.0 else ""))
                   +tuple(l[5:])]
         out.append((pts,labs))
     return out
