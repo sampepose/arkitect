@@ -194,8 +194,11 @@ def _bracket(x, y0, y1, label, tick=0.05):
 
 
 def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False, increaser_below_ceiling=False,
-          vent_label_clear=False, floor_label_clear=False):
+          vent_label_clear=False, floor_label_clear=False, increaser_label_clear=False):
     """One riser cell, drawn from its bottom-left corner. Returns the top of its title.
+       `increaser_label_clear` sets the 903.2 increaser's label, in a stack that ends at its
+       floor branch, right of the last dry vent rising beside the head vent instead of just
+       right of the head vent, where that vent's dashed riser ran up through it.
        `floor_label_clear` sets a floor branch's label, in a stack that ends at that branch,
        right of the head vent it names instead of across the cell, where the head vent's dashed
        riser ran up through it; its bottom line stays where it was and extra lines stand above.
@@ -259,11 +262,15 @@ def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False, incre
     c.line(xv-3.0, y_top, xv+4.0, y_top+5.0)                    # the roof
     c.setFillColor(black); c.setFont("Helvetica", SUB)
     c.drawString(xv+6.0, y_top+3.0, cell.vtr)
+    beside = []                                  # the dry vents rising right of the head vent
     def _increaser(iy):
         c.setLineWidth(0.9); c.setStrokeColor(black)
         c.line(xv-0.07*inch, iy, xv+0.07*inch, iy)
         if increaser_below_ceiling:              # on white, over the dry vents that tie in below the attic
-            later.append(partial(_ground, xv+0.10*inch, iy-2.0, cell.increaser, "Helvetica", SUB))
+            lx = xv+0.10*inch
+            if increaser_label_clear and beside:  # past every dry vent rising beside it, off their dashes
+                lx = max(lx, max(beside)+VENT_LABEL_GAP)
+            later.append(partial(_ground, lx, iy-2.0, cell.increaser, "Helvetica", SUB))
             return
         c.setFillColor(black); c.setFont("Helvetica", SUB)
         c.drawString(xv+0.10*inch, iy-2.0, cell.increaser)
@@ -395,6 +402,7 @@ def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False, incre
         if not risers:
             c.line(head, top, xs, top)
         _dash(False)
+        beside.extend(rx for rx, _v in risers if rx > xv)
         if not cell.ends:
             _dot(xs, top)
         for i, (rx, _v) in enumerate(risers):
