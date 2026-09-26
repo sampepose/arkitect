@@ -69,6 +69,7 @@ FLOOR_PITCH = 0.25                 # one fixture on it to the next
 TRAP_OVER = 0.17                   # a trap that STANDS ON that floor, over its line
 VENT_STAGGER = 0.19                # one floor vent's reconnection to the next, so the marks clear
 ENDS_SHIFT = 0.08                  # where the stack ends at its branch: its fixtures right, clear of a slab vent's riser
+VENT_LABEL_GAP = 4.0              # a slab vent's label clear of its takeoff, pt (riser(vent_label_clear=))
 ENDS_JOIN = 0.80                   # ... and the joins into the head vent this far under the roof
 
 W, H = 3.20, 4.55                  # the cell, inches
@@ -142,6 +143,23 @@ def _ground(x, y, label, font, size, align="l", text=True):
         knockout(x, y, label, font, size, align=align)
 
 
+def _wrap(text, w, size=None, gap=0.10, font="Helvetica-Bold"):
+    """The lines `_cell_label` breaks `text` into at a width of `w` inches."""
+    size = SUB if size is None else size
+    room = (w-gap)*inch
+    lines, cur = [], ''
+    for word in text.split(' '):
+        trial = (cur+' '+word).strip()
+        if cur and pdfmetrics.stringWidth(trial, font, size) > room:
+            lines.append(cur)
+            cur = word
+        else:
+            cur = trial
+    if cur:
+        lines.append(cur)
+    return lines
+
+
 def _cell_label(ox, y, text, w, size=None, lead=0.115, gap=0.10, font="Helvetica-Bold"):
     """A label over a riser, wrapped to the CELL so it cannot run into the next one.
 
@@ -152,16 +170,7 @@ def _cell_label(ox, y, text, w, size=None, lead=0.115, gap=0.10, font="Helvetica
        neighbouring riser, so the width is now enforced rather than hoped for."""
     size = SUB if size is None else size
     room = (w-gap)*inch
-    words, lines, cur = text.split(' '), [], ''
-    for word in words:
-        trial = (cur+' '+word).strip()
-        if cur and pdfmetrics.stringWidth(trial, font, size) > room:
-            lines.append(cur)
-            cur = word
-        else:
-            cur = trial
-    if cur:
-        lines.append(cur)
+    lines = _wrap(text, w, size, gap, font)
     for i, ln in enumerate(lines):
         assert pdfmetrics.stringWidth(ln, font, size) <= room+0.5, \
             'a riser label does not fit its cell at %.1f pt: %r' % (size, ln[:48])
@@ -184,8 +193,12 @@ def _bracket(x, y0, y1, label, tick=0.05):
     knockout(x-2.0, (y0+y1)/2.0-1.5, label, "Helvetica-Bold", SUB, align="r")
 
 
-def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False, increaser_below_ceiling=False):
+def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False, increaser_below_ceiling=False,
+          vent_label_clear=False):
     """One riser cell, drawn from its bottom-left corner. Returns the top of its title.
+       `vent_label_clear` sets a slab vent's label, in a stack that ends at its branch, right
+       of that vent's own dashed takeoff instead of at the cell's edge, where the takeoff ran
+       up through it; the label's top line stays where it was and extra lines fall below it.
        `increaser_below_ceiling` draws the 903.2 increaser under the attic's floor, where it
        stands inside the thermal envelope: under the ceiling line a stack that ends at its
        branch already draws, or under one drawn for it where the stack runs on to the roof.
@@ -317,7 +330,13 @@ def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False, incre
             c.line(head, top, xv, top)
             _dash(False); _dot(xv, top)
             joins.append(top)
-            if cell.ends:                        # between the levels, left of the stack, where nothing runs
+            if cell.ends and vent_label_clear:   # right of its own takeoff, its top line where it was
+                lx = head+VENT_LABEL_GAP
+                lw = (xs-lx)/inch-0.05
+                text = '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie)
+                wide = len(_wrap(text, lw)) - len(_wrap(text, (xs-ox)/inch-0.05))
+                later.append(partial(_cell_label, lx, y_lv[1]+0.60*inch-wide*0.115*inch, text, lw))
+            elif cell.ends:                      # between the levels, left of the stack, where nothing runs
                 later.append(partial(_cell_label, ox, y_lv[1]+0.60*inch, '%s  %s  %s — %s' % (sl.mark, sl.size, sl.method, sl.tie),
                                      (xs-ox)/inch-0.05))
             elif tie_label_close:
