@@ -189,6 +189,9 @@ PDF_DIR = _flag('--pdf-dir')
 # FILE.err, and exit status 3: the trace is good and a part of the run is not.
 TEXT_TO = _flag('--text')
 DXF_TO = _flag('--dxf')
+# --pages FILE   every string each sheet draws, with its box, as sheet_text.read() returns them
+#                (JSON: [[sheet, [[x0, y0, x1, y1, text, size, black, level], ...]], ...])
+PAGES_TO = _flag('--pages')
 PART_FAILED = 3
 
 # The project to trace, always named: python3 arkitect/lib/verify/trace.py out.txt <build.py>
@@ -199,18 +202,77 @@ dest = sys.argv[1]
 # Before anything can fail. A stale trace from the last good run is worse than no trace:
 # it compares equal and reports success for a build that did not happen. The sidecars
 # likewise.
-for _stale in (dest, STDOUT_TO, BY_SHEET_TO, TEXT_TO, DXF_TO,
-               TEXT_TO and TEXT_TO + '.err', DXF_TO and DXF_TO + '.err'):
+for _stale in (dest, STDOUT_TO, BY_SHEET_TO, TEXT_TO, DXF_TO, PAGES_TO,
+               TEXT_TO and TEXT_TO + '.err', DXF_TO and DXF_TO + '.err',
+               PAGES_TO and PAGES_TO + '.err'):
     if _stale and os.path.exists(_stale):
         os.remove(_stale)
+
+# ONE RECORDING, KEPT (arkitect/lib/verify/buildcache.py). A project's build is recorded whole
+# -- every part below -- once per key, which is everything the build can read; the next request
+# for any part of the same build is served from that recording. Under a lock, so two requests
+# at once make one build and the second waits for it. What is asked for is written to where it
+# was asked for, exactly as a build would have written it; a build or a part that fails is
+# never kept, and fails here as it always did.
+import shutil
+from arkitect.lib import workspace as _ws
+from arkitect.lib.verify import buildcache
+_ASKED = {'trace.txt': dest, 'stdout.txt': STDOUT_TO, 'sheets.txt': BY_SHEET_TO,
+          'text.json': TEXT_TO, 'floor.dxf': DXF_TO, 'pages.json': PAGES_TO, 'pdf': PDF_DIR}
+_KEY = buildcache.usable(BUILD, HERE, _ws.WORKSPACE) and buildcache.key(BUILD, HERE, _ws.WORKSPACE)
+
+
+def _serve(src):
+    """Every part asked for, from the directory `src` holds them in; each appears whole."""
+    for part, to in _ASKED.items():
+        if not to or not os.path.exists(os.path.join(src, part)):
+            continue
+        if part == 'pdf':
+            os.makedirs(to, exist_ok=True)
+            for f in sorted(os.listdir(os.path.join(src, part))):
+                shutil.copyfile(os.path.join(src, part, f), os.path.join(to, f))
+            continue
+        fd, tmp = tempfile.mkstemp(dir=os.path.dirname(os.path.abspath(to)), suffix='.partial')
+        os.close(fd)
+        shutil.copyfile(os.path.join(src, part), tmp)
+        os.replace(tmp, to)
+
+
+_LOCK = None
+if _KEY:
+    _LOCK = buildcache.locked(_KEY, _ws.WORKSPACE)
+    _LOCK.__enter__()
+    _HIT = buildcache.found(_KEY, _ws.WORKSPACE)
+    if _HIT:
+        _serve(_HIT)
+        with open(os.path.join(_HIT, 'summary.txt')) as _fh:
+            print('%s: %s' % (dest, _fh.read()))
+        _LOCK.__exit__(None, None, None)
+        sys.exit(0)
+    # A recording outlives this process, so it must be of the source as it is NOW: a
+    # timestamp .pyc from an earlier run of a file since edited to the same size within the
+    # same second would run the old code under the new key. Hash-checked bytecode, as the gate
+    # gives every process it starts (arkitect/lib/bytecode.py); nothing is imported yet but
+    # the tools.
+    from arkitect.lib import bytecode
+    bytecode.hash_pycs(HERE, _ws.WORKSPACE)
+    # record every part, into a directory of its own until it is whole
+    _STAGED = tempfile.mkdtemp(prefix=_KEY + '.', dir=buildcache.directory(_ws.WORKSPACE))
+    _DEST, _STDOUT, _BY_SHEET, _TEXT, _DXF, _PAGES, _PDF = (
+        os.path.join(_STAGED, p) for p in ('trace.txt', 'stdout.txt', 'sheets.txt', 'text.json',
+                                           'floor.dxf', 'pages.json', 'pdf'))
+else:
+    _STAGED = None
+    _DEST, _STDOUT, _BY_SHEET, _TEXT, _DXF, _PAGES, _PDF = (
+        dest, STDOUT_TO, BY_SHEET_TO, TEXT_TO, DXF_TO, PAGES_TO, PDF_DIR)
 
 import traceback
 _FAILED = {}                      # a part's file -> why it could not be written
 _RECS = []                        # sheet_text Recorders, one per document
 _dxf = None
-if TEXT_TO:
+if _TEXT or _PAGES:
     from arkitect.lib.verify import sheet_text
-if DXF_TO:
+if _DXF:
     # the exporter failing to import is the exporter's failure, not the build's: record it
     # and build on without it, as a separate `dxf.py` run would have failed alone
     #
@@ -226,7 +288,7 @@ if DXF_TO:
         _spec.loader.exec_module(_dxf)
     except BaseException:
         _dxf = None
-        _FAILED[DXF_TO] = traceback.format_exc()
+        _FAILED[_DXF] = traceback.format_exc()
 
 
 def _canvas(*a, **k):
@@ -234,7 +296,7 @@ def _canvas(*a, **k):
     c = _rl.Canvas(*a, **k)
     if _dxf is not None:
         c = _dxf.Proxy(c)
-    if TEXT_TO:
+    if _TEXT or _PAGES:
         c = sheet_text.Recorder(c)
         _RECS.append(c)
     return _Rec(c, a, k)
@@ -245,20 +307,22 @@ def _canvas(*a, **k):
 import io
 _out = sys.stdout
 _printed = io.StringIO()
-sys.stdout = _printed if STDOUT_TO else open(os.devnull, 'w')
+sys.stdout = _printed if _STDOUT else open(os.devnull, 'w')
 try:
     _mod = buildscript.load(BUILD)
     with tempfile.TemporaryDirectory() as _tmp:
-        if PDF_DIR:
-            os.makedirs(PDF_DIR, exist_ok=True)
+        if _PDF:
+            os.makedirs(_PDF, exist_ok=True)
         for _i, _doc in enumerate(buildscript.documents(_mod)):
-            _doc(os.path.join(PDF_DIR or _tmp, '%02d-%s.pdf' % (_i, _doc.__name__)),
+            _doc(os.path.join(_PDF or _tmp, '%02d-%s.pdf' % (_i, _doc.__name__)),
                  make_canvas=_canvas)
 except BaseException:
     # What the build printed before it failed is the diagnosis -- a model check prints
     # its table and then asserts -- so a captured run hands it to stderr, never drops it.
     if STDOUT_TO:
         sys.stderr.write(_printed.getvalue())
+    if _STAGED:
+        shutil.rmtree(_STAGED, True)
     raise
 finally:
     sys.stdout = _out
@@ -301,14 +365,15 @@ def _by_sheet(f):
         f.write("%s\t%d\t%s\n" % (key, end - start, h.hexdigest()))
 
 
-_whole(dest, _trace)
-if STDOUT_TO:
-    _whole(STDOUT_TO, lambda f: f.write(_printed.getvalue()))
-if BY_SHEET_TO:
-    _whole(BY_SHEET_TO, _by_sheet)
-print("%s: %d drawing calls; %s"
-      % (dest, len(CALLS),
-         "; ".join("%d pages bound %s" % (len(d), " ".join(d)) for d in BOUND) or "no document saved"))
+_whole(_DEST, _trace)
+if _STDOUT:
+    _whole(_STDOUT, lambda f: f.write(_printed.getvalue()))
+if _BY_SHEET:
+    _whole(_BY_SHEET, _by_sheet)
+_SUMMARY = ("%d drawing calls; %s"
+            % (len(CALLS), "; ".join("%d pages bound %s" % (len(d), " ".join(d)) for d in BOUND)
+               or "no document saved"))
+print("%s: %s" % (dest, _SUMMARY))
 
 
 def _text(f):
@@ -322,20 +387,53 @@ def _text(f):
                'text': {str(no): sheet_text._flat(items) for no, items in pages.items()}}, f)
 
 
-if TEXT_TO:
-    try:
-        _whole(TEXT_TO, _text)
-    except BaseException:
-        _FAILED[TEXT_TO] = traceback.format_exc()
-if DXF_TO and _dxf is not None:
-    _part = DXF_TO + '.partial'
+def _pages(f):
+    """sheet_text.read()'s answer, as JSON a reader turns back into it (sheet_text.recorded)."""
+    import json
+    pages = {}
+    for r in _RECS:
+        for no, items in r.pages.items():
+            pages.setdefault(no, []).extend(items)
+    json.dump([[no, [list(t) for t in items]] for no, items in pages.items()], f)
+
+
+for _to, _write in ((_TEXT, _text), (_PAGES, _pages)):
+    if _to:
+        try:
+            _whole(_to, _write)
+        except BaseException:
+            _FAILED[_to] = traceback.format_exc()
+if _DXF and _dxf is not None:
+    _part = _DXF + '.partial'
     try:
         _dxf.write(_part)                  # ezdxf writes in place: only a whole file is renamed
-        os.replace(_part, DXF_TO)
+        os.replace(_part, _DXF)
+        if _STAGED:                        # what dxf.py prints of it, for a dxf.py it serves
+            _whole(os.path.join(_STAGED, 'dxf-summary.txt'), lambda f: f.write(
+                "recorded %d entities in %d plan frames: %s"
+                % (len(_dxf.ENT), len(_dxf.FRAMES), [fr[0] for fr in _dxf.FRAMES])))
     except BaseException:
-        _FAILED[DXF_TO] = traceback.format_exc()
+        _FAILED[_DXF] = traceback.format_exc()
         if os.path.exists(_part):
             os.remove(_part)
+
+if _STAGED:
+    if not _FAILED:
+        _whole(os.path.join(_STAGED, 'summary.txt'), lambda f: f.write(_SUMMARY))
+        buildcache.keep(_KEY, _ws.WORKSPACE, _STAGED)
+        _serve(buildcache.found(_KEY, _ws.WORKSPACE))
+        _LOCK.__exit__(None, None, None)
+        sys.exit(0)
+    # a part failed: serve what was asked for and did not fail, keep nothing
+    _serve(_STAGED)
+    _asked_failed = {}
+    for _part_name, _to in _ASKED.items():
+        _staged_path = os.path.join(_STAGED, _part_name)
+        if _to and _staged_path in _FAILED:
+            _asked_failed[_to] = _FAILED[_staged_path]
+    shutil.rmtree(_STAGED, True)
+    _LOCK.__exit__(None, None, None)
+    _FAILED = _asked_failed
 for _path, _why in sorted(_FAILED.items()):
     _whole(_path + '.err', lambda f, why=_why: f.write(why))
     sys.stderr.write(_why)

@@ -23,7 +23,7 @@ KNOWN = set()
 
 def setUpModule():
     from arkitect.lib.verify import sheet_text as st
-    PAGES.update(st.read(BUILD))
+    PAGES.update(st.recorded(BUILD))
 
 
 class SheetTextTests(unittest.TestCase):

@@ -16,7 +16,7 @@ TIGHT = {('A-202', 'CONCRETE STOOP'), ('A-202', 'ONE 7-3/4" STEP DOWN')}
 def setUpModule():
     enter()
     from arkitect.lib.verify import sheet_text as st
-    PAGES.update(st.read(BUILD))
+    PAGES.update(st.recorded(BUILD))
 
 
 def tearDownModule():

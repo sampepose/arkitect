@@ -246,6 +246,22 @@ def main(argv):
                 "  - define DXF_OUT in the build script, e.g.:\n"
                 "      DXF_OUT = os.path.join(HERE, '<project>-floor-plans.dxf')\n"
                 % (BUILD, BUILD))
+    # The same build already recorded whole (arkitect/lib/verify/buildcache.py) is served from
+    # its recording: what the build printed, the DXF it wrote, and the line this prints of it.
+    from arkitect.lib import workspace as _ws
+    from arkitect.lib.verify import buildcache
+    if buildcache.usable(BUILD, HERE, _ws.WORKSPACE):
+        hit = buildcache.found(buildcache.key(BUILD, HERE, _ws.WORKSPACE), _ws.WORKSPACE)
+        kept = ('stdout.txt', 'floor.dxf', 'dxf-summary.txt')
+        if hit and all(os.path.exists(os.path.join(hit, p)) for p in kept):
+            import shutil
+            with open(os.path.join(hit, 'stdout.txt')) as fh:
+                sys.stdout.write(fh.read())
+            with open(os.path.join(hit, 'dxf-summary.txt')) as fh:
+                print(fh.read())
+            shutil.copyfile(os.path.join(hit, 'floor.dxf'), OUT)
+            print("saved",OUT, "%.1f KB"%(os.path.getsize(OUT)/1024))
+            return
     with tempfile.TemporaryDirectory() as _tmp:
         for _doc in buildscript.documents(_mod):
             _doc(os.path.join(_tmp, _doc.__name__+'.pdf'),

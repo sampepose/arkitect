@@ -70,7 +70,7 @@ STRINGS = {}
 
 def setUpModule():
     from arkitect.lib.verify import sheet_text as st
-    for no, items in st.read(BUILD).items():
+    for no, items in st.recorded(BUILD).items():
         STRINGS[no] = [t.text for t in items]
 
 

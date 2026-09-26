@@ -68,7 +68,7 @@ class ProjectTests:
     def setUpClass(cls):
         cls.ENTER()
         from arkitect.lib.verify import sheet_text
-        cls.PAGES = sheet_text.read(os.path.join(cls.PROJ, 'build.py'))
+        cls.PAGES = sheet_text.recorded(os.path.join(cls.PROJ, 'build.py'))
 
     @classmethod
     def tearDownClass(cls):

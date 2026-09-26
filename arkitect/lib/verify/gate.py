@@ -81,9 +81,10 @@ _PART_FAILED = 3        # trace.py: the trace is written, and --text or --dxf is
 # The files that MEASURE, copied over the base's own before it is built: the recorder and
 # sheet_text, which it drives in the same build (trace.py --text), the build loader they all
 # call (buildscript.build_arg is newer than some bases), the workspace, and the gate itself,
-# which runs nothing in the base tree now but keeps the cache keyed to how it reads.
+# which runs nothing in the base tree now but keeps the cache keyed to how it reads, and
+# buildcache and bytecode, with which trace.py keeps its recordings.
 TOOLS = ('arkitect/lib/verify/gate.py', 'arkitect/lib/verify/trace.py', 'arkitect/lib/verify/sheet_text.py', 'arkitect/lib/buildscript.py',
-         'arkitect/lib/workspace.py')
+         'arkitect/lib/workspace.py', 'arkitect/lib/verify/buildcache.py', 'arkitect/lib/bytecode.py')
 
 # What a sheet states that a trim must not lose without meaning to: a code citation, or a
 # dimension a trade builds to. CLAUDE.md "Drawing notes" calls this the VOCABULARY diff.
