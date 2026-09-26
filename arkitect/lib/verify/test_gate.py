@@ -168,6 +168,55 @@ class GateTests(GateTestCase):
         self.run_gate('accept')
         self.assertEqual(self.report()[0], 0)
 
+    def builds_logged_by(self, untracked=None):
+        """How many times the demo build ran during one gate run: it appends to a log
+           outside the checkout, so the log leaves the tree clean."""
+        log = os.path.join(os.path.dirname(self.root), 'builds.log')
+        self.write_build(before='open(%r, "a").write("x")' % log)
+        self.accept_quietly()
+        self.commit('logs its builds')
+        if untracked:
+            open(os.path.join(self.root, untracked), 'w').close()
+        shutil.rmtree(os.path.join(self.root, '.verify-cache'), ignore_errors=True)
+        open(log, 'w').close()
+        code, r = self.report()
+        self.assertEqual(code, 0, r['failures'] + r['errors'])
+        return len(gate._read(log)), r
+
+    def test_a_clean_checkout_is_its_own_base(self):
+        # trace, sheet_text and the DXF exporter build it once each; the base is not built
+        n, r = self.builds_logged_by()
+        self.assertEqual(n, 3)
+        self.assertEqual(r['projects']['demo']['sheets_moved'], [])
+        # and what it filed is the base the next, dirty, run is measured against
+        self.write_build(two='TWO, CHANGED', before='pass')
+        code, r = self.report()
+        self.assertEqual(code, 1)
+        self.assertEqual([m['sheet'] for m in r['projects']['demo']['sheets_moved']], ['X-002'])
+
+    def test_a_dirty_checkout_builds_its_base(self):
+        n, _r = self.builds_logged_by(untracked='untracked.txt')
+        self.assertEqual(n, 5)
+
+    def test_an_export_attribute_builds_the_base(self):
+        # export-ignore makes `git archive` differ from the checkout: no project at the base
+        with open(os.path.join(self.root, '.gitattributes'), 'w') as fh:
+            fh.write('projects/demo/build.py export-ignore\n')
+        n, r = self.builds_logged_by()
+        self.assertEqual(n, 3)
+        self.assertTrue(r['projects']['demo']['new_at_base'])
+
+    def test_an_edit_of_the_same_size_and_mtime_is_measured(self):
+        # the gate's bytecode cache outlives a run; a timestamp pyc would run the old build
+        build = os.path.join(self.root, 'projects', 'demo', 'build.py')
+        self.assertEqual(self.report()[0], 0)
+        st = os.stat(build)
+        self.write_build(two='TWX')
+        os.utime(build, ns=(st.st_atime_ns, st.st_mtime_ns))
+        code, r = self.report()
+        self.assertEqual(code, 1)
+        self.assertEqual([m['sheet'] for m in r['projects']['demo']['sheets_moved']], ['X-002'])
+
     def test_an_unknown_base_is_an_error_not_a_pass(self):
         code, r = self.report('--base', 'no-such-ref')
         self.assertEqual(code, 2)

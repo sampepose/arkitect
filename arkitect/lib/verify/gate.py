@@ -46,11 +46,11 @@ the same way, its base being two exports: the projects at --base and the engine 
 
 Either way the base must be measured exactly the way the working tree is, or a tool change
 reads as a drawing change. The cache is keyed by the base commit AND the tools, so the second run
-against the same base costs nothing. Nothing is written inside the checkout but that
+against the same base costs nothing, and a checkout that is clean at the base IS the base: the
+gate files its own measurement as the base's instead of exporting and building it twice. Nothing is written inside the checkout but that
 ignored directory, and the deliverables are never touched.
 """
 import argparse
-import atexit
 import concurrent.futures as cf
 import difflib
 import hashlib
@@ -131,9 +131,55 @@ def projects(root=WORKSPACE):
 # rewritten within a second by an edit of the same length -- one constant for another -- ran
 # as its OLD code, and the gate measured a build that no longer existed. A test that swapped
 # 'PER D-912' for 'DOOR D-4A' found it (arkitect/lib/verify/test_gate.py).
-_PYCACHE = tempfile.mkdtemp(prefix='gate-pycache-')
-atexit.register(shutil.rmtree, _PYCACHE, True)
+#
+# So every process the gate starts compiles into ONE cache of its own, kept across runs, and
+# before it starts any, _hash_pycs() makes the bytecode of every source the engine and the
+# workspace hold a CHECKED-HASH pyc: trusted only while it matches the source's bytes, and
+# rewritten by the importer as another checked-hash pyc when it does not. The libraries they
+# import keep ordinary pycs there, which is what a fresh cache per run spent a second of every
+# run recompiling.
+_PYCACHE = os.path.join(CACHE, 'pycache')
 _ENV = dict(os.environ, PYTHONPYCACHEPREFIX=_PYCACHE)
+_SOURCES_SKIP = {'.git', '.verify-cache', 'worktrees', '__pycache__'}
+
+
+def _pyc(src):
+    """Where a process run with _ENV keeps `src`'s bytecode (importlib.util.cache_from_source
+       under PYTHONPYCACHEPREFIX)."""
+    head, tail = os.path.split(os.path.abspath(src))
+    return os.path.join(_PYCACHE, head.lstrip(os.sep),
+                        '%s.%s.pyc' % (tail[:-3], sys.implementation.cache_tag))
+
+
+def _hash_pycs(roots=None):
+    """Give every .py under the engine and the workspace a checked-hash pyc in _PYCACHE,
+       compiling only those that have none or have a timestamp pyc; the importer checks the
+       rest against their source. A file that does not compile is left to the build to report."""
+    import importlib.util, py_compile
+    for root in roots or sorted({ROOT, WORKSPACE}):
+        for d, dirs, files in os.walk(root):
+            dirs[:] = [x for x in dirs if x not in _SOURCES_SKIP]
+            for f in files:
+                if not f.endswith('.py'):
+                    continue
+                src, pyc = os.path.join(d, f), _pyc(os.path.join(d, f))
+                try:
+                    with open(pyc, 'rb') as fh:
+                        head = fh.read(8)
+                    if head[:4] == importlib.util.MAGIC_NUMBER and head[4] & 0b11 == 0b11:
+                        continue
+                except OSError:
+                    pass
+                try:
+                    py_compile.compile(src, pyc, doraise=True,
+                                       invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH)
+                except (py_compile.PyCompileError, OSError, ValueError):
+                    pass
+
+
+def _forget_pycs(path):
+    """Drop the bytecode kept for a tree that is gone: a base's export, built once."""
+    shutil.rmtree(os.path.join(_PYCACHE, os.path.abspath(path).lstrip(os.sep)), True)
 
 
 def _run(cmd, cwd=WORKSPACE, engine=ROOT):
@@ -309,7 +355,52 @@ def _no_absolute_links(member, path):
     return tarfile.data_filter(member, path)
 
 
-def baseline(ref, slugs, engine_ref=None):
+def _clean_at(sha):
+    """True when the workspace IS what `git archive` would export at `sha`: checked out
+       there, nothing modified, nothing untracked, and no export-ignore / export-subst
+       attribute to make the export differ. Ignored files do not count; a build reads none."""
+    if _git('rev-parse', 'HEAD') != sha or _git('status', '--porcelain', '--untracked-files=all'):
+        return False
+    ran, code, out, _err = _run(['git', 'grep', '-l', 'export-', sha, '--', '.gitattributes',
+                                 '**/.gitattributes'])
+    local = os.path.join(_git('rev-parse', '--absolute-git-dir'), 'info', 'attributes')
+    return ran and code == 1 and not (os.path.exists(local) and 'export-' in _read(local))
+
+
+# What measure() leaves that a base keeps: gate() compares the first three, render --moved
+# draws from the last two.
+_BASE_FILES = ('sheets.txt', 'stdout.txt', 'text.json', 'trace.txt', 'pdf')
+
+
+def _adopt(measured, s, dest):
+    """Copy a current measurement of `s` into `dest` as the base's, or False when it cannot
+       stand for one (its build failed, or sheet_text did not run)."""
+    res, src = measured.get(s, (None, None))
+    if not res or not res['trace']['ok'] or not res.get('sheet_text', {}).get('ran'):
+        return False
+    os.makedirs(dest, exist_ok=True)
+    for name in _BASE_FILES:
+        p = os.path.join(src, name)
+        if os.path.isdir(p):
+            shutil.copytree(p, os.path.join(dest, name))
+        elif os.path.exists(p):
+            shutil.copyfile(p, os.path.join(dest, name))
+    return True
+
+
+def _land(work, final, slugs):
+    """Move each finished slug from `work` into the cache entry `final`."""
+    os.makedirs(final, exist_ok=True)
+    for s in slugs:
+        dest = os.path.join(final, s)
+        if not os.path.exists(dest):
+            try:
+                os.rename(os.path.join(work, s), dest)
+            except OSError:
+                pass                     # another gate run landed it first
+
+
+def baseline(ref, slugs, engine_ref=None, current=None):
     """(sha, {slug: dir}) for the base commit, built once per (commit, tools) and cached.
        A slug the base does not have maps to None. Raises RuntimeError if the base cannot
        be exported or built.
@@ -317,7 +408,13 @@ def baseline(ref, slugs, engine_ref=None):
        With the projects in a repository of their own (arkitect/lib/workspace.py), the base is TWO
        exports: the workspace at `ref`, and the engine at `engine_ref` -- or the live
        engine, when that is None, which is how a project's change is measured. An engine
-       change is measured against its old self with `engine_ref` and `ref` HEAD."""
+       change is measured against its old self with `engine_ref` and `ref` HEAD.
+
+       `current`, a callable returning {slug: (result, dir)} from measure() on the workspace
+       with the live engine, lets a CLEAN workspace stand for its own base: an export of the
+       commit it is checked out at, measured by the same engine, is the same tree measured
+       twice. That is the state after every commit, when the Stop hook runs the gate, so the
+       base costs nothing there and is cached for the edits that follow."""
     sha = _git('rev-parse', '--verify', ref + '^{commit}')
     key = '%s-%s' % (sha[:12], _tools_key())
     if SEPARATE:
@@ -329,6 +426,22 @@ def baseline(ref, slugs, engine_ref=None):
                            'commit holds both, so --base is the base')
     final = os.path.join(CACHE, key)
     want = [s for s in slugs if not os.path.exists(os.path.join(final, s, 'DONE'))]
+    if want and current and not engine_ref and _clean_at(sha):
+        measured = current()
+        # only a project the commit tracks: one the workspace ignores is absent at the base
+        tracked = set(_git('ls-files', '--', *('projects/%s/build.py' % s for s in want)).split())
+        os.makedirs(CACHE, exist_ok=True)
+        work = tempfile.mkdtemp(prefix=key + '.', dir=CACHE)
+        try:
+            adopted = [s for s in want if 'projects/%s/build.py' % s in tracked and
+                       _adopt(measured, s, os.path.join(work, s))]
+            for s in adopted:
+                with open(os.path.join(work, s, 'DONE'), 'w') as fh:
+                    fh.write('ok')
+            _land(work, final, adopted)
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+        want = [s for s in want if s not in adopted]        # the rest are built as ever
     if want:
         os.makedirs(CACHE, exist_ok=True)
         work = tempfile.mkdtemp(prefix=key + '.', dir=CACHE)
@@ -364,16 +477,10 @@ def baseline(ref, slugs, engine_ref=None):
                 with open(os.path.join(d, 'DONE'), 'w') as fh:
                     fh.write(status)
             shutil.rmtree(tree)
-            os.makedirs(final, exist_ok=True)
-            for s in want:
-                dest = os.path.join(final, s)
-                if not os.path.exists(dest):
-                    try:
-                        os.rename(os.path.join(work, s), dest)
-                    except OSError:
-                        pass                     # another gate run landed it first
+            _land(work, final, want)
         finally:
             shutil.rmtree(work, ignore_errors=True)
+            _forget_pycs(work)
     out = {}
     for s in slugs:
         d = os.path.join(final, s)
@@ -467,6 +574,7 @@ def gate(base='HEAD', only=None, full=False, expect_unchanged=False, engine_base
     if only and set(only) - set(slugs):
         report['errors'].append('no such project: %s' % ', '.join(sorted(set(only) - set(slugs))))
 
+    _hash_pycs()
     scratch = tempfile.mkdtemp(prefix='gate-')
     try:
         with cf.ThreadPoolExecutor(4) as pool:
@@ -475,7 +583,8 @@ def gate(base='HEAD', only=None, full=False, expect_unchanged=False, engine_base
             flakes_f = pool.submit(_pyflakes)
             tests_f = pool.submit(_tests) if full else None
             try:
-                sha, bases = baseline(base, slugs, engine_base)
+                sha, bases = baseline(base, slugs, engine_base, current=lambda: {
+                    s: (f.result(), os.path.join(scratch, s)) for s, f in cur_f.items()})
                 report['base'] = '%s %s' % (base, sha[:12]) + (
                     ', engine %s' % engine_base if engine_base else '')
             except Exception as exc:
@@ -663,6 +772,7 @@ def accept(base='HEAD', only=None):
        .claude/hooks refuses an edit or a shell redirect onto it, because a digest updated
        to make a test pass is a test that no longer tests anything. Returns (lines, ok)."""
     slugs = [s for s in projects() if not only or s in only]
+    _hash_pycs()
     scratch = tempfile.mkdtemp(prefix='gate-accept-')
     lines, moved_names, ok = [], [], True
     try:
@@ -758,6 +868,7 @@ def render(only=None, sheets=None, moved_only=False, base='HEAD', dpi=None, clip
     dpi = dpi or (200 if clip else 100)
     slugs = [s for s in projects() if not only or s in only]
     out = _out_dir(out)
+    _hash_pycs()
     scratch = tempfile.mkdtemp(prefix='gate-render-')
     written = []
     try:
