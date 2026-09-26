@@ -61,7 +61,7 @@ class ToolTests(unittest.TestCase):
     def test_every_kind_is_documented(self):
         with open(os.path.join(HERE, 'docs', 'interface.md')) as fh:
             doc = fh.read()
-        for kind in ('gate', 'progress', 'decisions', 'review'):
+        for kind in ('gate', 'progress', 'decisions', 'review', 'autoreview'):
             self.assertRegex(doc, r'## `%s`' % re.escape(kind))
 
 

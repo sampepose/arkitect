@@ -9,6 +9,7 @@ a build writes and the merger regenerates; a render to look at goes outside the 
 (`gate.py render`).
 """
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -22,6 +23,10 @@ PROGRESS = ("progress.json is written by `arkitect progress set / add / drop` an
 
 REVIEW = ("review.json is written by `arkitect review ingest / set` and nothing else: "
           "`set ... fixed` refuses unless the finding's sheet has changed since it was found.")
+
+
+LOGS = ("rounds.tsv and attempts.tsv are written by `arkitect autoreview ingest / record` and "
+        "nothing else: they are the loop's record of what each round found and each attempt did.")
 
 
 def check(path, root):
@@ -39,6 +44,8 @@ def check(path, root):
         return PROGRESS
     if inside and os.path.basename(path) == 'review.json':
         return REVIEW
+    if inside and re.search(r'/projects/[^/]+/autoreview/(rounds|attempts)\.tsv$', path):
+        return LOGS
     if inside and path.lower().endswith(('.pdf', '.dxf')):
         return ("the PDFs and DXFs in the checkout are deliverables a build writes; they are "
                 "never edited by hand. To look at a sheet, render it outside the checkout: "

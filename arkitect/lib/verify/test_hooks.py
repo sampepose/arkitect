@@ -141,6 +141,11 @@ class GuardWriteTests(unittest.TestCase):
         self.assertIsNotNone(self.g.check(MAIN + '/projects/oak_42/progress.json', MAIN))
         self.assertIsNone(self.g.check('/tmp/progress.json', MAIN))           # not a project's
 
+    def test_the_autoreview_logs_inside_the_checkout(self):
+        for name in ('rounds.tsv', 'attempts.tsv'):
+            self.assertIsNotNone(self.g.check(MAIN + '/projects/oak_42/autoreview/' + name, MAIN))
+        self.assertIsNone(self.g.check(MAIN + '/projects/oak_42/autoreview.md', MAIN))  # the designer's
+
     def test_everything_else(self):
         self.assertIsNone(self.g.check(MAIN + '/projects/oak_42/src/stairs.py', MAIN))
         self.assertIsNone(self.g.check('/tmp/render/A-101.pdf', MAIN))          # outside

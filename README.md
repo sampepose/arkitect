@@ -144,7 +144,9 @@ hand, it is:
     arkitect progress next <slug>                   # the next sheet, and where it is drawn
 
 The `next-feature` skill draws one feature a session; the `review-sheets` skill puts the
-sheets in front of a reviewer that sees only the images. Both run in Claude Code.
+sheets in front of a reviewer that sees only the images; the `autoreview` skill runs review and
+fix rounds on their own until a stop rule holds ([docs/autoreview.md](docs/autoreview.md)). All
+three run in Claude Code.
 
 ## The guard rails, if you want them
 

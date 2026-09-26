@@ -112,6 +112,8 @@ TOOL_WRITTEN = {
                       "and nothing else: `set` refuses a claim the build does not prove."),
     'review.json': ("review.json is written by `arkitect review ingest / set` and nothing "
                     "else: `set ... fixed` refuses unless the finding's sheet has changed."),
+    'rounds.tsv': ("rounds.tsv is written by `arkitect autoreview ingest` and nothing else."),
+    'attempts.tsv': ("attempts.tsv is written by `arkitect autoreview record` and nothing else."),
 }
 
 

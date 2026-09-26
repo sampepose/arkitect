@@ -22,7 +22,7 @@ class SkillTests(unittest.TestCase):
 
     def test_the_skills_exist_and_name_themselves(self):
         found = dict(skills())
-        self.assertEqual(sorted(found), ['new-address', 'next-feature', 'review-sheets'])
+        self.assertEqual(sorted(found), ['autoreview', 'new-address', 'next-feature', 'review-sheets'])
         for name, text in found.items():
             head = text.split('---')[1]
             self.assertIn('name: %s' % name, head)
@@ -47,13 +47,25 @@ class SkillTests(unittest.TestCase):
             src = fh.read()
         agents = os.path.join(ROOT, '.claude', 'agents')
         for name, text in skills():
-            for sub in set(re.findall(r'harness\.review (\w+)', text)):
+            for sub in set(re.findall(r'(?:harness\.review|arkitect review) (\w+)', text)):
                 self.assertIn("'%s'" % sub, src, '%s names review %s' % (name, sub))
-            for agent in set(re.findall(r'`(plan-reviewer|finding-verifier)`', text)):
+            for agent in set(re.findall(r'`(plan-reviewer|finding-verifier|close-checker)`', text)):
                 self.assertTrue(os.path.exists(os.path.join(agents, agent + '.md')), agent)
 
+    def test_every_autoreview_subcommand_named_exists(self):
+        from arkitect.harness import autoreview
+        with open(os.path.join(ROOT, 'arkitect', 'harness', 'autoreview.py')) as fh:
+            src = fh.read()
+        named = set()
+        for name, text in skills():
+            for sub in re.findall(r'arkitect autoreview (\w+)', text):
+                named.add(sub)
+                self.assertIn("'%s'" % sub, src, '%s names autoreview %s' % (name, sub))
+        self.assertIn('land', named)
+        self.assertTrue(autoreview.KEYS)
+
     def test_the_review_agents_cannot_read_the_code_or_change_anything(self):
-        for agent in ('plan-reviewer', 'finding-verifier'):
+        for agent in ('plan-reviewer', 'finding-verifier', 'close-checker'):
             with open(os.path.join(ROOT, '.claude', 'agents', agent + '.md')) as fh:
                 head = fh.read().split('---')[1]
             self.assertIn('name: %s' % agent, head)

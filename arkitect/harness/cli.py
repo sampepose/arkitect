@@ -8,6 +8,7 @@
     arkitect sheet-text BUILD           strings printed over one another, citations not printed
     arkitect twins [--why]              definitions two projects carry word for word
     arkitect intake | scaffold | progress | review | decisions | config | hooks | hook | engine
+    arkitect autoreview <cmd> <slug>    review, fix, repeat until a stop rule holds (docs/autoreview.md)
     arkitect jurisdiction list | check <state>/<city> | new <state>/<city>   the cities encoded, and adding one
     arkitect release check              in your workspace: is the engine fit to publish?
     arkitect web [--port 8765]          the local web UI over this workspace (docs/web-ui.md)
@@ -33,6 +34,7 @@ TOOLS = {
     'scaffold': 'arkitect.harness.scaffold',
     'progress': 'arkitect.harness.progress',
     'review': 'arkitect.harness.review',
+    'autoreview': 'arkitect.harness.autoreview',
     'decisions': 'arkitect.harness.decisions',
     'config': 'arkitect.harness.config',
     'hooks': 'arkitect.harness.hooks',

@@ -11,7 +11,7 @@ Every JSON output is one object whose first four keys are always:
 | key         | meaning                                                                 |
 |-------------|-------------------------------------------------------------------------|
 | `schema`    | the interface's number, now **1**                                       |
-| `kind`      | `gate`, `progress`, `decisions` or `review`                             |
+| `kind`      | `gate`, `progress`, `decisions`, `review` or one of `autoreview`'s      |
 | `engine`    | the engine version that produced it (`arkitect --version`)              |
 | `workspace` | the workspace it describes: the directory holding `projects/`            |
 
@@ -71,3 +71,23 @@ record carries.
 
 `findings` is a list of `{id, sheet, where, category, severity, finding, evidence, suggest,
 status, ...}`; `project` is the slug.
+
+## `autoreview`
+
+    arkitect autoreview status SLUG --json       # kind `autoreview`
+    arkitect autoreview round SLUG --json        # kind `autoreview-round`
+    arkitect autoreview next SLUG --json         # kind `autoreview-attempt`
+
+`autoreview`: `project`; `run` (`branch`, `worktree`, `started`, `first_round`, `stopped`);
+`stage`, a sentence; `round`, the newest round frozen; `claims` (`{attempt: [finding ids]}`);
+`queue`, the findings an attempt may take; `open` and `waiting` (`{severity: count}`);
+`rounds` and `attempts`, the rows of projects/SLUG/autoreview/rounds.tsv and attempts.tsv as
+objects of strings; `stop`, a list of `{rule, holds, detail}`.
+
+`autoreview-round`: `round`, `frozen`, `commit`, `dir`, `render` (the review directory),
+`models` (`reviewer`, `verifier`, `fixer`), `reopened` (finding ids), `tasks` (per group:
+`group`, `sheets`, `raw` and `verified` -- the paths its replies go to -- and `reviewer` and
+`verifier`, the prompts), `ingested` (null until it is).
+
+`autoreview-attempt`: `project`; `attempt`, null when the queue is empty, else `name`,
+`round`, `findings`, `branch`, `base`, `tree`, `brief`, `since`, `fixer`.
