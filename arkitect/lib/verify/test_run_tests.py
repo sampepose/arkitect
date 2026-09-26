@@ -29,6 +29,57 @@ FAILS = "import unittest\nclass T(unittest.TestCase):\n    def test_no(self): as
 BROKEN = "import a_module_that_does_not_exist_xyz\n"
 
 
+class ParallelTests(unittest.TestCase):
+    """_run() on a pool: the same verdict the serial run gives, and never a hang."""
+
+    def run_pool(self, bodies, lost=0):
+        """_run() with two workers over throwaway modules; (exit status, its last line, stream)."""
+        import contextlib, shutil, uuid
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d, True)
+        names = []
+        for body in bodies:
+            name = 'ptest_%s' % uuid.uuid4().hex[:12]
+            _write(d, name + '.py', body)
+            names.append(name)
+        sys.path.insert(0, d)
+        try:
+            suite = unittest.TestLoader().loadTestsFromNames(names)
+        finally:
+            sys.path.remove(d)
+            for name in names:
+                sys.modules.pop(name, None)
+        stream, out = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = run_tests._run(suite, suite.countTestCases() + lost, ['-j2'], stream,
+                                  [d] + sys.path, keep_times=False)
+        return code, out.getvalue().strip().splitlines()[-1], stream.getvalue()
+
+    def test_a_pool_that_passes_says_so_with_the_count(self):
+        code, last, _s = self.run_pool([PASSES, PASSES, PASSES])
+        self.assertEqual((code, last), (0, 'PASSED: 3 test(s), 0 failure(s), 0 error(s)'))
+
+    def test_a_failing_test_on_the_pool_is_a_failure(self):
+        code, last, stream = self.run_pool([PASSES, FAILS])
+        self.assertEqual((code, last), (1, 'FAILED: 2 test(s), 1 failure(s), 0 error(s)'))
+        self.assertIn('test_no', stream)
+
+    def test_a_test_lost_between_collection_and_the_pool_is_a_failure(self):
+        code, last, stream = self.run_pool([PASSES], lost=1)
+        self.assertEqual(code, 1)
+        self.assertTrue(last.startswith('FAILED:'), last)
+        self.assertIn('2 tests were collected and 1 ran', stream)
+
+    def test_a_module_a_worker_cannot_import_is_an_error_not_a_hang(self):
+        # an initializer that raised once made multiprocessing.Pool start workers forever
+        import concurrent.futures as cf, multiprocessing
+        with cf.ProcessPoolExecutor(1, multiprocessing.get_context('spawn'), run_tests._worker_init,
+                                    (list(sys.path), ['no_such_module_xyz'])) as pool:
+            got = pool.submit(run_tests._worker, ['x.T.test_ok']).result(timeout=60)
+        self.assertEqual(got['run'], 0)
+        self.assertIn('no_such_module_xyz', got['errors'][0][1])
+
+
 class RunnerTests(unittest.TestCase):
     _n = 0
 

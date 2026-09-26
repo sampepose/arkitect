@@ -93,7 +93,7 @@ _DIM = re.compile(r"\d+'-\d+(?:-\d+/\d+)?\"|\b\d+(?:-\d+/\d+)?\"")
 def engine_version(root=ROOT):
     """The running engine's version, read from arkitect/__init__.py as TEXT -- not imported: a
        .pyc is trusted on size and mtime to the second, so '1.0.0' rewritten as '1.1.0' within a
-       second would import as the old one (see _PYCACHE). None for an engine older than versions."""
+       second would import as the old one (see arkitect/lib/bytecode.py). None for an engine older than versions."""
     p = os.path.join(root, 'arkitect', '__init__.py')
     m = re.search(r"^__version__ = ['\"]([^'\"]+)['\"]", _read(p), re.M) if os.path.exists(p) else None
     return m.group(1) if m else None
@@ -126,60 +126,14 @@ def projects(root=WORKSPACE):
                   if os.path.isfile(os.path.join(base, d, 'build.py')))
 
 
-# Every process the gate starts compiles into a bytecode cache of its own, made fresh for this
-# run. Python trusts a .pyc whose source has the same size and mtime (to the second), so a file
-# rewritten within a second by an edit of the same length -- one constant for another -- ran
-# as its OLD code, and the gate measured a build that no longer existed. A test that swapped
-# 'PER D-912' for 'DOOR D-4A' found it (arkitect/lib/verify/test_gate.py).
-#
-# So every process the gate starts compiles into ONE cache of its own, kept across runs, and
-# before it starts any, _hash_pycs() makes the bytecode of every source the engine and the
-# workspace hold a CHECKED-HASH pyc: trusted only while it matches the source's bytes, and
-# rewritten by the importer as another checked-hash pyc when it does not. The libraries they
-# import keep ordinary pycs there, which is what a fresh cache per run spent a second of every
-# run recompiling.
-_PYCACHE = os.path.join(CACHE, 'pycache')
-_ENV = dict(os.environ, PYTHONPYCACHEPREFIX=_PYCACHE)
-_SOURCES_SKIP = {'.git', '.verify-cache', 'worktrees', '__pycache__'}
+# Every process the gate starts must run the source as it is NOW, which a timestamp pyc does not
+# promise (arkitect/lib/bytecode.py says why and how). gate(), accept() and render() give the
+# engine's and the workspace's sources checked-hash pycs before they start one, and every
+# process runs with this environment, which sends it to those pycs. They import
+# arkitect.lib.bytecode where they call it, never at the top: this file is copied into older
+# engines to measure a base, and those have no arkitect/lib/bytecode.py (they only run _text).
+_ENV = {k: v for k, v in os.environ.items() if k != 'PYTHONPYCACHEPREFIX'}
 
-
-def _pyc(src):
-    """Where a process run with _ENV keeps `src`'s bytecode (importlib.util.cache_from_source
-       under PYTHONPYCACHEPREFIX)."""
-    head, tail = os.path.split(os.path.abspath(src))
-    return os.path.join(_PYCACHE, head.lstrip(os.sep),
-                        '%s.%s.pyc' % (tail[:-3], sys.implementation.cache_tag))
-
-
-def _hash_pycs(roots=None):
-    """Give every .py under the engine and the workspace a checked-hash pyc in _PYCACHE,
-       compiling only those that have none or have a timestamp pyc; the importer checks the
-       rest against their source. A file that does not compile is left to the build to report."""
-    import importlib.util, py_compile
-    for root in roots or sorted({ROOT, WORKSPACE}):
-        for d, dirs, files in os.walk(root):
-            dirs[:] = [x for x in dirs if x not in _SOURCES_SKIP]
-            for f in files:
-                if not f.endswith('.py'):
-                    continue
-                src, pyc = os.path.join(d, f), _pyc(os.path.join(d, f))
-                try:
-                    with open(pyc, 'rb') as fh:
-                        head = fh.read(8)
-                    if head[:4] == importlib.util.MAGIC_NUMBER and head[4] & 0b11 == 0b11:
-                        continue
-                except OSError:
-                    pass
-                try:
-                    py_compile.compile(src, pyc, doraise=True,
-                                       invalidation_mode=py_compile.PycInvalidationMode.CHECKED_HASH)
-                except (py_compile.PyCompileError, OSError, ValueError):
-                    pass
-
-
-def _forget_pycs(path):
-    """Drop the bytecode kept for a tree that is gone: a base's export, built once."""
-    shutil.rmtree(os.path.join(_PYCACHE, os.path.abspath(path).lstrip(os.sep)), True)
 
 
 def _run(cmd, cwd=WORKSPACE, engine=ROOT):
@@ -480,7 +434,6 @@ def baseline(ref, slugs, engine_ref=None, current=None):
             _land(work, final, want)
         finally:
             shutil.rmtree(work, ignore_errors=True)
-            _forget_pycs(work)
     out = {}
     for s in slugs:
         d = os.path.join(final, s)
@@ -574,7 +527,8 @@ def gate(base='HEAD', only=None, full=False, expect_unchanged=False, engine_base
     if only and set(only) - set(slugs):
         report['errors'].append('no such project: %s' % ', '.join(sorted(set(only) - set(slugs))))
 
-    _hash_pycs()
+    from arkitect.lib import bytecode
+    bytecode.hash_pycs(ROOT, WORKSPACE)
     scratch = tempfile.mkdtemp(prefix='gate-')
     try:
         with cf.ThreadPoolExecutor(4) as pool:
@@ -772,7 +726,8 @@ def accept(base='HEAD', only=None):
        .claude/hooks refuses an edit or a shell redirect onto it, because a digest updated
        to make a test pass is a test that no longer tests anything. Returns (lines, ok)."""
     slugs = [s for s in projects() if not only or s in only]
-    _hash_pycs()
+    from arkitect.lib import bytecode
+    bytecode.hash_pycs(ROOT, WORKSPACE)
     scratch = tempfile.mkdtemp(prefix='gate-accept-')
     lines, moved_names, ok = [], [], True
     try:
@@ -868,7 +823,8 @@ def render(only=None, sheets=None, moved_only=False, base='HEAD', dpi=None, clip
     dpi = dpi or (200 if clip else 100)
     slugs = [s for s in projects() if not only or s in only]
     out = _out_dir(out)
-    _hash_pycs()
+    from arkitect.lib import bytecode
+    bytecode.hash_pycs(ROOT, WORKSPACE)
     scratch = tempfile.mkdtemp(prefix='gate-render-')
     written = []
     try:

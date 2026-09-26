@@ -42,7 +42,7 @@ from arkitect.lib import workspace                                   # noqa: E40
 
 
 ROOTS = {
-    os.path.join('arkitect', 'lib'): 147,
+    os.path.join('arkitect', 'lib'): 155,
     os.path.join('arkitect', 'codes'): 163,
     os.path.join('arkitect', 'harness'): 79,
     os.path.join('arkitect', 'web'): 10,
@@ -224,12 +224,193 @@ def _separate(argv, stream):
             return 1
     first()
     print("collected %d tests from %s and %s" % (n, ROOT, ws), flush=True)
-    result = unittest.TextTestRunner(stream=stream,
-                                     verbosity=2 if "-v" in argv else 1).run(suite)
-    ok = result.wasSuccessful()
+    return _run(suite, n, argv, stream, list(sys.path))
+
+
+# ---------------------------------------------------------------- running, on every core
+#
+# The suite is a hundred seconds of CPU, most of it a few modules that start processes of
+# their own (test_gate builds a scratch repository per test), and one process ran it all on
+# one core. _run() hands it to a pool: every test on its own, except a class with a
+# setUpClass or a module with a setUpModule, which go whole so the fixture is built once --
+# longest first, by the durations the last run kept. The count still rules: a parallel run
+# whose tests do not add up to the number collected is a failure, whatever they reported.
+
+TIMES = 'test-times.json'
+
+
+def _jobs(argv):
+    """-j N from argv; -v (one line per test, in order) and -j 1 run in this process."""
+    if "-v" in argv:
+        return 1
+    for i, a in enumerate(argv):
+        if a == "-j" and i + 1 < len(argv):
+            return max(1, int(argv[i + 1]))
+        if a.startswith("-j") and a[2:].isdigit():
+            return max(1, int(a[2:]))
+    return os.cpu_count() or 1
+
+
+def _fixture(cls, *names):
+    """True if cls, or a base of it short of unittest.TestCase, defines one of `names`."""
+    return any(name in vars(b) for b in cls.__mro__
+               if b not in (unittest.TestCase, object) for name in names)
+
+
+def _units(suite):
+    """[[test id, ...], ...]: what one worker runs in one go."""
+    units, whole = [], {}
+    for t in _tests(suite):
+        cls = type(t)
+        mod = sys.modules.get(cls.__module__)
+        if mod is not None and (hasattr(mod, 'setUpModule') or hasattr(mod, 'tearDownModule')):
+            key = cls.__module__
+        elif _fixture(cls, 'setUpClass', 'tearDownClass'):
+            key = (cls.__module__, cls.__qualname__)
+        else:
+            units.append([t.id()])
+            continue
+        if key not in whole:
+            whole[key] = []
+            units.append(whole[key])
+        whole[key].append(t.id())
+    return units
+
+
+def _times_path():
+    return os.path.join(workspace.WORKSPACE, '.verify-cache', TIMES)
+
+
+def _read_times():
+    import json
+    try:
+        with open(_times_path()) as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return {}
+
+
+def _write_times(times):
+    import json, tempfile
+    try:
+        d = os.path.dirname(_times_path())
+        os.makedirs(d, exist_ok=True)
+        fd, tmp = tempfile.mkstemp(dir=d, prefix=TIMES)
+        with os.fdopen(fd, 'w') as fh:
+            json.dump(times, fh)
+        os.replace(tmp, _times_path())
+    except OSError:
+        pass                                  # an order for next time, never a result
+
+
+_WORKER = {}
+
+
+def _worker_init(path, modules):
+    """Only keeps its arguments: an initializer that raises makes the pool start another
+       process in its place, forever, and the run hangs instead of failing."""
+    _WORKER.update(path=path, modules=modules)
+    os.environ.pop(workspace.ENV, None)       # as main() does, now the import has read it
+
+
+def _prepare():
+    """Stand a pool process where the serial run stands when its first test starts: every
+       test module imported, each with the collection's sys.path in front. Test modules move
+       sys.path as they import (test_gate.py puts the engine first) and the collection put it
+       back before each root; a module imported after the engine went first would find the
+       engine's example `projects` package instead of the workspace's. Returns the traceback
+       of a module that will not import, every time it is asked."""
+    if 'error' not in _WORKER:
+        import importlib, traceback
+        _WORKER['error'] = None
+        try:
+            for name in _WORKER['modules']:
+                sys.path[:] = _WORKER['path']
+                importlib.import_module(name)
+        except Exception:
+            _WORKER['error'] = traceback.format_exc()
+    sys.path[:] = _WORKER['path']
+    return _WORKER['error']
+
+
+def _worker(ids):
+    """Run one unit in a pool process: its counts, its failures as text, its duration."""
+    import io, time, traceback
+    t0 = time.time()
+    result = unittest.TextTestResult(unittest.runner._WritelnDecorator(io.StringIO()), True, 0)
+    broken = _prepare()
+    if broken:
+        return {'ids': ids, 'run': 0, 'failures': [], 'unexpected': 0,
+                'errors': [('importing the test modules for %s' % ', '.join(ids), broken)],
+                'seconds': time.time() - t0}
+    try:
+        suite = unittest.TestLoader().loadTestsFromNames(ids)
+    except Exception:
+        return {'ids': ids, 'run': 0, 'failures': [], 'unexpected': 0,
+                'errors': [('loading %s' % ', '.join(ids), traceback.format_exc())],
+                'seconds': time.time() - t0}
+    suite.run(result)
+    fmt = lambda pairs: [(str(t), text) for t, text in pairs]
+    return {'ids': ids, 'run': result.testsRun, 'failures': fmt(result.failures),
+            'errors': fmt(result.errors), 'unexpected': len(result.unexpectedSuccesses),
+            'seconds': time.time() - t0}
+
+
+def _run(suite, n, argv, stream, path, keep_times=True):
+    """Run the collected suite, in this process or on a pool; print THE LAST LINE; exit status.
+       keep_times=False leaves the order the next run takes alone (the runner's own tests)."""
+    jobs = _jobs(argv)
+    if jobs == 1:
+        result = unittest.TextTestRunner(stream=stream,
+                                         verbosity=2 if "-v" in argv else 1).run(suite)
+        ok = result.wasSuccessful()
+        # THE LAST LINE, on stdout, flushed: see main()
+        print("%s: %d test(s), %d failure(s), %d error(s)"
+              % ("PASSED" if ok else "FAILED", result.testsRun,
+                 len(result.failures), len(result.errors)), flush=True)
+        return 0 if ok else 1
+
+    import concurrent.futures as cf, multiprocessing, time
+    stream = stream or sys.stderr
+    times = _read_times()
+    units = sorted(_units(suite), key=lambda u: -sum(times.get(i, 0.0) for i in u))
+    procs = min(jobs, len(units))
+    t0 = time.time()
+    sys.stdout.flush()
+    # a worker must find the workspace this process found; _worker_init clears it after
+    had = os.environ.get(workspace.ENV)
+    os.environ[workspace.ENV] = workspace.WORKSPACE
+    try:
+        modules = list(dict.fromkeys(type(t).__module__ for t in _tests(suite)))
+        # not multiprocessing.Pool: its workers are daemons, which may start no process of their
+        # own (a test that runs this runner could not), and it replaces a worker that dies
+        # instead of saying so. An executor's worker that dies breaks the run, loudly.
+        with cf.ProcessPoolExecutor(procs, multiprocessing.get_context('spawn'), _worker_init,
+                                    (path, modules)) as pool:
+            done = list(pool.map(_worker, units))
+    finally:
+        if had is None:
+            os.environ.pop(workspace.ENV, None)
+        else:
+            os.environ[workspace.ENV] = had
+    run = sum(d['run'] for d in done)
+    failures = [f for d in done for f in d['failures']]
+    errors = [e for d in done for e in d['errors']]
+    unexpected = sum(d['unexpected'] for d in done)
+    if run != n:
+        errors.append(('the count', '%d tests were collected and %d ran: a test was lost '
+                                    'between them.' % (n, run)))
+    for label, items in (('FAIL', failures), ('ERROR', errors)):
+        for name, text in items:
+            stream.write('=' * 70 + '\n%s: %s\n' % (label, name) + '-' * 70 + '\n' + text + '\n')
+    stream.write('Ran %d tests in %.3fs on %d processes\n' % (run, time.time() - t0, procs))
+    stream.flush()
+    ok = not failures and not errors and not unexpected
+    if ok and keep_times:
+        _write_times({i: d['seconds'] / len(d['ids']) for d in done for i in d['ids']})
+    # THE LAST LINE, on stdout, flushed: see main()
     print("%s: %d test(s), %d failure(s), %d error(s)"
-          % ("PASSED" if ok else "FAILED", result.testsRun,
-             len(result.failures), len(result.errors)), flush=True)
+          % ("PASSED" if ok else "FAILED", run, len(failures), len(errors)), flush=True)
     return 0 if ok else 1
 
 
@@ -293,6 +474,8 @@ def main(argv=(), root=None, pattern=None, stream=None):
     # flushed, because the runner below writes to stderr: unflushed stdout would put
     # this line AFTER the results, which is the one place it is no use
     print("collected %d tests from %s" % (n, root), flush=True)
+    if root == ROOT and pattern == PATTERN:
+        return _run(suite, n, argv, stream, list(sys.path))
     result = unittest.TextTestRunner(stream=stream,
                                      verbosity=2 if "-v" in argv else 1).run(suite)
     ok = result.wasSuccessful()

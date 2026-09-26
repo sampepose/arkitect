@@ -32,7 +32,7 @@ import subprocess
 import sys
 import tempfile
 
-from arkitect.lib import interface, workspace
+from arkitect.lib import bytecode, interface, workspace
 
 ENGINE = workspace.ENGINE              # the shared rules a guard names live here
 ROOT = workspace.WORKSPACE             # the projects and their feature lists live here
@@ -85,17 +85,44 @@ def _probe_here(build, dest):
             f = frame.f_code.co_filename
             if f.startswith(WATCHED) and frame.f_code.co_name != '<module>':
                 called.add(f)
+
+    # sys.monitoring (3.12) asks once per code object: the first start of each function is
+    # recorded and that function is never reported again, where sys.setprofile ran a Python
+    # callback on every one of a build's fourteen million calls. The set is the same: every
+    # file under WATCHED one of whose functions started.
+    mon = getattr(sys, 'monitoring', None)
+
+    def start(code, _offset):
+        if code.co_filename.startswith(WATCHED) and code.co_name != '<module>':
+            called.add(code.co_filename)
+        return mon.DISABLE
+
+    def watch():
+        if mon is None:
+            sys.setprofile(prof)
+            return
+        mon.use_tool_id(mon.PROFILER_ID, 'arkitect-probe')
+        mon.register_callback(mon.PROFILER_ID, mon.events.PY_START, start)
+        mon.set_events(mon.PROFILER_ID, mon.events.PY_START)
+
+    def unwatch():
+        if mon is None:
+            sys.setprofile(None)
+            return
+        mon.set_events(mon.PROFILER_ID, 0)
+        mon.register_callback(mon.PROFILER_ID, mon.events.PY_START, None)
+        mon.free_tool_id(mon.PROFILER_ID)
     keep = sys.stdout
     sys.stdout = open(os.devnull, 'w')
     try:
         mod = buildscript.load(build)
         with tempfile.TemporaryDirectory() as t:
-            sys.setprofile(prof)
+            watch()
             try:
                 for i, doc in enumerate(buildscript.documents(mod)):
                     doc(os.path.join(t, '%02d.pdf' % i))
             finally:
-                sys.setprofile(None)
+                unwatch()
     finally:
         sys.stdout.close()
         sys.stdout = keep
@@ -109,9 +136,10 @@ def probe(slug, root=ROOT):
     build = os.path.join(root, 'projects', slug, 'build.py')
     with tempfile.TemporaryDirectory() as t:
         out = os.path.join(t, 'probe.json')
-        # a fresh bytecode cache: a .pyc is trusted on size and mtime to the second, so a
-        # same-length edit made within a second would otherwise be probed as its old code
-        env = workspace.env(root, base=dict(os.environ, PYTHONPYCACHEPREFIX=os.path.join(t, 'pycache')))
+        # checked-hash bytecode: a timestamp .pyc is trusted on size and mtime to the second,
+        # so a same-length edit made within a second would be probed as its old code
+        bytecode.hash_pycs(ENGINE, root)
+        env = workspace.env(root, base=bytecode.env(os.environ))
         r = subprocess.run([sys.executable, '-m', 'arkitect.harness.progress', '_probe', build, out],
                            cwd=root, capture_output=True, text=True, timeout=900, env=env)
         if r.returncode != 0 or not os.path.exists(out):

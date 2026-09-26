@@ -40,9 +40,13 @@ class DxfExportTests(unittest.TestCase):
 
     def test_every_project_here_exports_its_dxf(self):
         self.assertTrue(PROJECTS, 'no project to export')
+        # each export is its own process: run them at once, then read every one
+        import concurrent.futures as cf
+        with cf.ThreadPoolExecutor(len(PROJECTS)) as pool:
+            runs = dict(zip(PROJECTS, pool.map(self._export, PROJECTS)))
         for p in PROJECTS:
             with self.subTest(p):
-                self.assertGreater(self._export(p), 0)
+                self.assertGreater(runs[p], 0)
 
     def test_every_layer_a_symbol_uses_has_a_colour(self):
         """The assert above only fires for a layer some project actually DRAWS. A symbol
