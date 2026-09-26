@@ -10,41 +10,55 @@ for key(), and serves the next request for any of it from there.
 
 THE KEY is everything a build can read, so a changed input is a new key and never a stale hit:
 
-    every file of the engine and of the workspace, by content (sha256), except the
-        repository's own machinery (.git), caches (.verify-cache, __pycache__), .claude, and
-        the outputs a build writes and never reads (*.pdf, *.dxf)
+    every file of the workspace and of the engine, by content (sha256), and of every
+        directory on PYTHONPATH besides them -- except the repository's own machinery (.git),
+        caches (.verify-cache, __pycache__), .claude, and the outputs a build writes and never
+        reads (*.pdf, *.dxf)
     the user's ~/.config/arkitect/config.toml, which arkitect/harness/config.py merges in
     the build's path within the workspace
     Python's version and -O, and the installed reportlab, rl_accel, ezdxf, numpy and pillow
 
-It is content, not mtime: an edit of the same size within the same second is a new key (the
-failure arkitect/lib/bytecode.py exists for). Only a project's own build.py, under the
-workspace's projects/, with nothing on PYTHONPATH outside the engine and the workspace, is
-kept at all; anything else -- a scratch build in a temporary directory, say -- is built as it
-always was. A build that fails, or a part of one that fails, is never kept.
-ARKITECT_BUILD_CACHE=off turns it off.
+It is content, not mtime -- an edit of the same size within the same second is a new key --
+and it is not the tree's location: a copy of a tree is the same build, which is what lets the
+quickstart's and the scaffold tests' fresh copies share one recording. So recordings live in
+the user's cache, and trace.py never keeps one that prints the path of the tree it was built
+in. Only a project's own build.py under a workspace's projects/ is kept at all; a build that
+fails, or a part of one that fails, never is. ARKITECT_BUILD_CACHE=off turns it off.
 """
 import contextlib
 import hashlib
 import os
 import shutil
 import sys
+import time
 
 SKIP_DIRS = {'.git', '.verify-cache', '__pycache__', '.claude', 'node_modules'}
 SKIP_SUFFIX = ('.pdf', '.dxf', '.pyc', '.DS_Store')
 PACKAGES = ('reportlab', 'rl_accel', 'ezdxf', 'numpy', 'pillow')
-KEEP = 24                     # recordings kept per workspace, newest first
+MOST_FILES = 5000             # a PYTHONPATH directory bigger than this is not hashed: not kept
+LIMIT = 400 * 1024 * 1024     # bytes of recordings kept, oldest-used dropped first
+IN_USE = 600                  # seconds: a recording used this recently is never dropped
 # what a recording holds, as trace.py writes it
 PARTS = ('trace.txt', 'stdout.txt', 'sheets.txt', 'text.json', 'pages.json', 'floor.dxf', 'pdf',
          'summary.txt', 'dxf-summary.txt')
+TEXT_PARTS = ('trace.txt', 'stdout.txt', 'sheets.txt', 'text.json', 'pages.json', 'summary.txt',
+              'dxf-summary.txt')
 
 
-def _tree(h, root):
+class _TooBig(Exception):
+    pass
+
+
+def _tree(h, root, most=None):
+    n = 0
     for d, dirs, files in os.walk(root):
         dirs[:] = sorted(x for x in dirs if x not in SKIP_DIRS)
         for f in sorted(files):
             if f.endswith(SKIP_SUFFIX):
                 continue
+            n += 1
+            if most and n > most:
+                raise _TooBig(root)
             p = os.path.join(d, f)
             try:
                 with open(p, 'rb') as fh:
@@ -66,25 +80,17 @@ def _versions():
     return out
 
 
-def usable(build, engine, workspace):
-    """True when this build's recording may be kept: a project's build.py under the
-       workspace, and nothing on PYTHONPATH that the key does not cover."""
+def usable(build, workspace):
+    """True when this build's recording may be kept: a project's build.py under the workspace."""
     if os.environ.get('ARKITECT_BUILD_CACHE', '').lower() in ('off', '0', 'no'):
         return False
-    real = os.path.realpath(build)
-    ws, en = os.path.realpath(workspace), os.path.realpath(engine)
-    rel = os.path.relpath(real, ws).split(os.sep)
-    if len(rel) != 3 or rel[0] != 'projects' or rel[2] != 'build.py':
-        return False
-    for p in filter(None, os.environ.get('PYTHONPATH', '').split(os.pathsep)):
-        rp = os.path.realpath(p)
-        if not any(rp == t or rp.startswith(t + os.sep) for t in (ws, en)):
-            return False
-    return True
+    rel = os.path.relpath(os.path.realpath(build), os.path.realpath(workspace)).split(os.sep)
+    return len(rel) == 3 and rel[0] == 'projects' and rel[2] == 'build.py'
 
 
 def key(build, engine, workspace, home=None):
-    """The recording's name: a digest of everything the build can read (module docstring)."""
+    """The recording's name: a digest of everything the build can read (module docstring), or
+       None where that cannot be hashed (a PYTHONPATH directory past MOST_FILES)."""
     h = hashlib.sha256()
     h.update(('\n'.join([sys.version, 'O=%d' % sys.flags.optimize] + _versions())).encode())
     ws, en = os.path.realpath(workspace), os.path.realpath(engine)
@@ -94,6 +100,17 @@ def key(build, engine, workspace, home=None):
     if en != ws:
         h.update(b'\nENGINE\n')
         _tree(h, en)
+    covered = [ws, en]
+    for p in filter(None, os.environ.get('PYTHONPATH', '').split(os.pathsep)):
+        rp = os.path.realpath(p)
+        if not os.path.isdir(rp) or any(rp == t or rp.startswith(t + os.sep) for t in covered):
+            continue
+        h.update(b'\nPYTHONPATH ' + str(len(covered)).encode() + b'\n')
+        try:
+            _tree(h, rp, MOST_FILES)
+        except _TooBig:
+            return None
+        covered.append(rp)
     cfg = os.path.join(home or os.path.expanduser('~'), '.config', 'arkitect', 'config.toml')
     if os.path.exists(cfg):
         with open(cfg, 'rb') as fh:
@@ -101,22 +118,44 @@ def key(build, engine, workspace, home=None):
     return h.hexdigest()[:32]
 
 
-def directory(workspace):
-    return os.path.join(workspace, '.verify-cache', 'builds')
+def directory():
+    base = os.environ.get('XDG_CACHE_HOME') or os.path.join(os.path.expanduser('~'), '.cache')
+    return os.path.join(base, 'arkitect', 'builds')
 
 
-def found(k, workspace):
-    """The recording's directory if it is whole, else None."""
-    d = os.path.join(directory(workspace), k)
-    return d if os.path.exists(os.path.join(d, 'DONE')) else None
+def found(k):
+    """The recording's directory if it is whole, else None. Finding it marks it used."""
+    d = os.path.join(directory(), k)
+    done = os.path.join(d, 'DONE')
+    if not os.path.exists(done):
+        return None
+    try:
+        os.utime(done)
+    except OSError:
+        return None
+    return d
+
+
+def names_its_tree(staged, *trees):
+    """True if any text part of the recording in `staged` prints one of `trees` by path: such
+       a recording is of that location, not of the content every copy shares."""
+    paths = {p for t in trees for p in (t, os.path.realpath(t))}
+    for part in TEXT_PARTS:
+        f = os.path.join(staged, part)
+        if os.path.exists(f):
+            with open(f, errors='replace') as fh:
+                text = fh.read()
+            if any(p in text for p in paths):
+                return True
+    return False
 
 
 @contextlib.contextmanager
-def locked(k, workspace):
+def locked(k):
     """One process records a key at a time; the rest wait, then find it."""
     import fcntl
-    os.makedirs(directory(workspace), exist_ok=True)
-    with open(os.path.join(directory(workspace), k + '.lock'), 'w') as fh:
+    os.makedirs(directory(), exist_ok=True)
+    with open(os.path.join(directory(), k + '.lock'), 'w') as fh:
         fcntl.flock(fh, fcntl.LOCK_EX)
         try:
             yield
@@ -124,9 +163,14 @@ def locked(k, workspace):
             fcntl.flock(fh, fcntl.LOCK_UN)
 
 
-def keep(k, workspace, staged):
-    """Move a whole recording in `staged` into place under `k`, and drop the oldest."""
-    base = directory(workspace)
+def _size(d):
+    return sum(os.path.getsize(os.path.join(r, f)) for r, _ds, fs in os.walk(d) for f in fs)
+
+
+def keep(k, staged):
+    """Move a whole recording in `staged` into place under `k`, then drop the least recently
+       used past LIMIT, never one used in the last IN_USE seconds."""
+    base = directory()
     with open(os.path.join(staged, 'DONE'), 'w') as fh:
         fh.write(k)
     dest = os.path.join(base, k)
@@ -134,11 +178,18 @@ def keep(k, workspace, staged):
         shutil.rmtree(staged, True)
     else:
         os.rename(staged, dest)
-    entries = sorted((d for d in os.listdir(base) if os.path.exists(os.path.join(base, d, 'DONE'))),
-                     key=lambda d: os.path.getmtime(os.path.join(base, d, 'DONE')), reverse=True)
-    for old in entries[KEEP:]:
-        shutil.rmtree(os.path.join(base, old), True)
-        try:
-            os.remove(os.path.join(base, old + '.lock'))
-        except OSError:
-            pass
+    used = []
+    for d in os.listdir(base):
+        done = os.path.join(base, d, 'DONE')
+        if os.path.exists(done):
+            used.append((os.path.getmtime(done), d))
+    used.sort(reverse=True)
+    total, now = 0, time.time()
+    for when, d in used:
+        total += _size(os.path.join(base, d))
+        if total > LIMIT and now - when > IN_USE:
+            shutil.rmtree(os.path.join(base, d), True)
+            try:
+                os.remove(os.path.join(base, d + '.lock'))
+            except OSError:
+                pass

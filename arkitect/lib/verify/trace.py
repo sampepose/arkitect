@@ -219,7 +219,7 @@ from arkitect.lib import workspace as _ws
 from arkitect.lib.verify import buildcache
 _ASKED = {'trace.txt': dest, 'stdout.txt': STDOUT_TO, 'sheets.txt': BY_SHEET_TO,
           'text.json': TEXT_TO, 'floor.dxf': DXF_TO, 'pages.json': PAGES_TO, 'pdf': PDF_DIR}
-_KEY = buildcache.usable(BUILD, HERE, _ws.WORKSPACE) and buildcache.key(BUILD, HERE, _ws.WORKSPACE)
+_KEY = buildcache.usable(BUILD, _ws.WORKSPACE) and buildcache.key(BUILD, HERE, _ws.WORKSPACE)
 
 
 def _serve(src):
@@ -240,9 +240,9 @@ def _serve(src):
 
 _LOCK = None
 if _KEY:
-    _LOCK = buildcache.locked(_KEY, _ws.WORKSPACE)
+    _LOCK = buildcache.locked(_KEY)
     _LOCK.__enter__()
-    _HIT = buildcache.found(_KEY, _ws.WORKSPACE)
+    _HIT = buildcache.found(_KEY)
     if _HIT:
         _serve(_HIT)
         with open(os.path.join(_HIT, 'summary.txt')) as _fh:
@@ -257,7 +257,7 @@ if _KEY:
     from arkitect.lib import bytecode
     bytecode.hash_pycs(HERE, _ws.WORKSPACE)
     # record every part, into a directory of its own until it is whole
-    _STAGED = tempfile.mkdtemp(prefix=_KEY + '.', dir=buildcache.directory(_ws.WORKSPACE))
+    _STAGED = tempfile.mkdtemp(prefix=_KEY + '.', dir=buildcache.directory())
     _DEST, _STDOUT, _BY_SHEET, _TEXT, _DXF, _PAGES, _PDF = (
         os.path.join(_STAGED, p) for p in ('trace.txt', 'stdout.txt', 'sheets.txt', 'text.json',
                                            'floor.dxf', 'pages.json', 'pdf'))
@@ -418,13 +418,18 @@ if _DXF and _dxf is not None:
             os.remove(_part)
 
 if _STAGED:
-    if not _FAILED:
-        _whole(os.path.join(_STAGED, 'summary.txt'), lambda f: f.write(_SUMMARY))
-        buildcache.keep(_KEY, _ws.WORKSPACE, _STAGED)
-        _serve(buildcache.found(_KEY, _ws.WORKSPACE))
+    _whole(os.path.join(_STAGED, 'summary.txt'), lambda f: f.write(_SUMMARY))
+    # a recording that prints where its tree is would be wrong served to a copy elsewhere
+    # (by every name it goes by: /var is /private/var here, and a build knows the one it was
+    # given)
+    _AS_GIVEN = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(BUILD))))
+    if not _FAILED and not buildcache.names_its_tree(_STAGED, HERE, _ws.WORKSPACE, _AS_GIVEN):
+        buildcache.keep(_KEY, _STAGED)
+        _serve(buildcache.found(_KEY))
         _LOCK.__exit__(None, None, None)
         sys.exit(0)
-    # a part failed: serve what was asked for and did not fail, keep nothing
+    # a part failed, or the recording names its tree: serve what was asked for and did not
+    # fail, keep nothing
     _serve(_STAGED)
     _asked_failed = {}
     for _part_name, _to in _ASKED.items():

@@ -225,7 +225,13 @@ class GateTests(GateTestCase):
 
     def builds_logged_by(self, untracked=None):
         """How many times the demo build ran during one gate run: it appends to a log
-           outside the checkout, so the log leaves the tree clean."""
+           outside the checkout, so the log leaves the tree clean. With no kept recordings
+           (arkitect/lib/verify/buildcache.py), since what these count is how the gate
+           schedules builds, and a recording would serve the accept's build to the gate."""
+        from unittest import mock
+        off = mock.patch.dict(os.environ, {'ARKITECT_BUILD_CACHE': 'off'})
+        off.start()
+        self.addCleanup(off.stop)
         log = os.path.join(os.path.dirname(self.root), 'builds.log')
         self.write_build(before='open(%r, "a").write("x")' % log)
         self.accept_quietly()

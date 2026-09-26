@@ -250,9 +250,9 @@ def main(argv):
     # its recording: what the build printed, the DXF it wrote, and the line this prints of it.
     from arkitect.lib import workspace as _ws
     from arkitect.lib.verify import buildcache
-    if buildcache.usable(BUILD, HERE, _ws.WORKSPACE):
-        k = buildcache.key(BUILD, HERE, _ws.WORKSPACE)
-        hit = buildcache.found(k, _ws.WORKSPACE)
+    k = buildcache.usable(BUILD, _ws.WORKSPACE) and buildcache.key(BUILD, HERE, _ws.WORKSPACE)
+    if k:
+        hit = buildcache.found(k)
         if not hit:
             # record it whole, once, as trace.py does for every tool; a recording that fails
             # leaves nothing kept, and this builds it itself below and fails its own way
@@ -260,7 +260,7 @@ def main(argv):
             with tempfile.TemporaryDirectory() as _t:
                 subprocess.run([sys.executable, os.path.join(HERE, 'arkitect', 'lib', 'verify', 'trace.py'),
                                 os.path.join(_t, 'trace.txt'), BUILD], capture_output=True)
-            hit = buildcache.found(k, _ws.WORKSPACE)
+            hit = buildcache.found(k)
         kept = ('stdout.txt', 'floor.dxf', 'dxf-summary.txt')
         if hit and all(os.path.exists(os.path.join(hit, p)) for p in kept):
             import shutil
