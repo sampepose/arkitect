@@ -19,7 +19,9 @@ arkitect review prepare <slug> --sheets A-101,A-102      # or --moved, or every 
 
 It renders each sheet whole and in overlapping tiles at 200 dpi, writes `brief.md` (with the
 house style read live from `style/house-style.md`, config `[style] house`) and `index.json` (every image, and each sheet's
-fingerprint as rendered), and prints the directory.
+fingerprint as rendered), and prints the directory. With `--known` the brief also lists what earlier reviews raised
+and the designer settled (`arkitect review known <slug>`), so the reviewer spends its time on
+what nobody has found yet.
 
 ## 2. Review — adversarially, in parallel
 
@@ -37,7 +39,9 @@ whose prompt is `.claude/agents/plan-reviewer.md`'s body, and tell it to use onl
 Concatenate the arrays and give them, with the review directory, to a `finding-verifier`
 agent (or a general-purpose agent carrying `.claude/agents/finding-verifier.md`'s body). It
 returns every finding with a verdict: CONFIRMED, PLAUSIBLE or REJECTED. Save that array to a
-file OUTSIDE the checkout (the job tmp directory).
+file OUTSIDE the checkout (the job tmp directory). An agent's reply is not always clean JSON (a quoted 3'-0" breaks
+it): `arkitect review parse <reply-or-transcript> --out <file>` pulls the array out and repairs
+it.
 
 ## 4. File the findings
 
@@ -64,4 +68,5 @@ arkitect review set <slug> R-nnn wontfix --note "why"   # the designer's call, n
 ```
 
 A finding that turns on a choice the designer has not made is a decision: record it with
-`arkitect decisions new` and mark the finding `wontfix` citing the id until they answer.
+`arkitect decisions new` and mark the finding `waiting` citing the id
+(`arkitect review set <slug> R-nnn waiting --note "D-nnn"`) until they answer.

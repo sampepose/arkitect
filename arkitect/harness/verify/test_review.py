@@ -107,6 +107,81 @@ class FindingTests(unittest.TestCase):
             self.ingest(dict(GOOD, sheet='Z-999'))
 
 
+class WaitingAndKnownTests(unittest.TestCase):
+
+    def setUp(self):
+        t = tempfile.TemporaryDirectory()
+        self.addCleanup(t.cleanup)
+        self.root = t.name
+        os.makedirs(os.path.join(self.root, 'projects', 'demo'))
+        os.makedirs(os.path.join(self.root, 'decisions'))
+        self.index = {'commit': 'abc1234', 'sheets': {'A-101': {'md5': 'm1'}, 'C-101': {'md5': 'm2'}}}
+
+    def decision(self, did, title, status='confirmed', **more):
+        from arkitect.harness import decisions
+        fields = dict(id=did, title=title, status=status, by='designer', date='2026-09-01',
+                      projects=['demo'], decision='The lot keeps its width.', **more)
+        decisions.save(did, fields, 'account', root=self.root)
+
+    def test_waiting_needs_a_note_and_is_not_open(self):
+        R.ingest('demo', [GOOD], self.index, self.root)
+        with self.assertRaises(ValueError):
+            R.set_status('demo', 'R-001', 'waiting', root=self.root)
+        R.set_status('demo', 'R-001', 'waiting', note='D-901', root=self.root)
+        self.assertEqual(R.load('demo', self.root)['findings'][0]['status'], 'waiting')
+
+    def test_the_known_list_folds_one_decision_raised_twice_and_prints_no_id(self):
+        self.decision('D-901', 'The lot width needs no variance')
+        self.decision('D-902', 'Grading waits on the survey', status='waiting', waiting_on='the surveyor')
+        two = [dict(GOOD, sheet='C-101', finding='The lot width row gives no minimum.'),
+               dict(GOOD, sheet='A-101', finding='A 30 ft lot is under the district minimum width.')]
+        R.ingest('demo', two + [dict(GOOD, finding='The stair well is short of the flight.')],
+                 self.index, self.root)
+        R.set_status('demo', 'R-001', 'wontfix', note='the designer settled it (D-901)', root=self.root)
+        R.set_status('demo', 'R-002', 'wontfix', note='D-901, see R-001', root=self.root)
+        R.set_status('demo', 'R-003', 'wontfix', note='False finding: the plans agree.', root=self.root)
+        text = R.known('demo', self.root)
+        self.assertEqual(text.count('The lot width needs no variance'), 1)
+        self.assertIn('on A-101, C-101', text)
+        self.assertIn('The lot keeps its width.', text)
+        self.assertIn('False finding: the plans agree.', text)
+        self.assertIn('Waits on the surveyor', text)
+        self.assertNotRegex(text, r'\b[DR]-\d{3}\b')
+
+    def test_a_minor_is_left_off_unless_asked(self):
+        R.ingest('demo', [dict(GOOD, severity='minor')], self.index, self.root)
+        R.set_status('demo', 'R-001', 'wontfix', note='taste', root=self.root)
+        self.assertIn('(nothing yet)', R.known('demo', self.root))
+        self.assertIn('taste', R.known('demo', self.root, severities=R.SEVERITIES))
+
+    def test_the_brief_carries_the_known_list_before_the_house_style(self):
+        index = {'sheets': {'A-101': {'whole': 'w.png', 'tiles': ['t.png'], 'md5': 'x'}}}
+        text = R.brief('example_100', index, workspace.ENGINE, known_list='## Already raised\n\n- x\n')
+        self.assertLess(text.index('## Already raised'), text.index('## House style'))
+
+
+class ParseTests(unittest.TestCase):
+
+    def test_an_unescaped_inch_mark_is_repaired(self):
+        text = 'Here you go:\n[{"sheet": "A-101", "evidence": "the 3\'-0" string"}]'
+        self.assertEqual(R.parse(text)[0]['evidence'], 'the 3\'-0" string')
+
+    def test_the_last_json_fence_wins(self):
+        text = '```json\n[{"sheet": "A"}]\n```\nrevised:\n```json\n[{"sheet": "B"}]\n```'
+        self.assertEqual(R.parse(text), [{'sheet': 'B'}])
+
+    def test_a_transcript_gives_its_last_assistant_array(self):
+        lines = [{'message': {'role': 'user', 'content': 'review [these]'}},
+                 {'message': {'role': 'assistant', 'content': [{'type': 'text', 'text': '[{"sheet": "A"}]'}]}},
+                 {'message': {'role': 'assistant', 'content': [{'type': 'text', 'text': '[{"sheet": "C"}]'}]}}]
+        self.assertEqual(R.parse('\n'.join(json.dumps(l) for l in lines)), [{'sheet': 'C'}])
+
+    def test_no_array_is_an_error(self):
+        for text in ('I found nothing.', '{"sheet": "A"}'):
+            with self.assertRaises(ValueError):
+                R.parse(text)
+
+
 class PrepareTests(unittest.TestCase):
 
     def test_prepare_renders_one_real_sheet_whole_and_tiled(self):

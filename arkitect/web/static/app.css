@@ -138,7 +138,7 @@ a.more { padding: 14px 18px; border-top: 1px solid var(--ink); font-weight: 600;
 .sev { font-size: 11px; padding: 2px 6px; border-radius: 3px; font-weight: 600; background: var(--well); }
 .sev.major { background: var(--rust); color: #fff; }
 .st { font-size: 11px; font-weight: 600; }
-.st-open { color: var(--rust); } .st-fixed { color: var(--green); } .st-rejected { color: var(--muted); } .st-wontfix { color: var(--amber); }
+.st-open { color: var(--rust); } .st-fixed { color: var(--green); } .st-rejected { color: var(--muted); } .st-wontfix { color: var(--amber); } .st-waiting { color: var(--amber); }
 button.frow { display: grid; grid-template-columns: 52px minmax(0, 1fr) 64px; gap: 8px; width: 100%; padding: 8px 18px; border: 0; border-bottom: 1px solid var(--hair); background: transparent; text-align: left; font-size: 12px; align-items: baseline; }
 button.frow.on { background: var(--rust-bg); }
 button.frow span:nth-child(2) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

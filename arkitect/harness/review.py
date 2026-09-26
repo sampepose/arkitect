@@ -1,11 +1,13 @@
 """The evaluator, apart from the generator: a reviewer that sees only the rendered sheets and
 the house style, and whose findings come back as tasks the build must answer.
 
-    arkitect review prepare <slug> [--sheets A-101,P-601 | --moved] [--out DIR]
+    arkitect review prepare <slug> [--sheets A-101,P-601 | --moved] [--out DIR] [--known]
     arkitect review ingest  <slug> <findings.json>
     arkitect review list    <slug> [--status open]
     arkitect review next    <slug>
-    arkitect review set     <slug> R-007 fixed|wontfix|rejected|open [--note "..."]
+    arkitect review set     <slug> R-007 fixed|wontfix|rejected|waiting|open [--note "..."]
+    arkitect review known   <slug> [--all] [--out FILE]     what earlier reviews raised and was settled
+    arkitect review parse   <reply-or-transcript> [--out FILE]   the findings JSON in an agent's reply
 
 WHY APART. Every oracle this repository has measures a RULE: the trace, the model checks,
 sheet_text, the fit checks. One project's worst faults -- headers deeper than the wall over their
@@ -25,6 +27,20 @@ fingerprint (arkitect/lib/verify/trace.py --by-sheet) when the finding is made, 
 refuses unless that sheet has changed since. `wontfix` and `rejected` need a note. The
 findings file, projects/<slug>/review.json, is written by this module alone; the hooks
 refuse any other write, as they do progress.json.
+
+WAITING IS NOT WONTFIX. A finding that turns on a call only the designer (or a third party)
+can make is `waiting`, and its note names what it waits on -- a decision's id, most often.
+`wontfix` is a finding judged and declined. The two used to share `wontfix`, so nothing could
+tell a settled finding from one that should come back when its question is answered;
+arkitect/harness/autoreview.py reopens a waiting finding once every decision its note names is
+settled.
+
+THE KNOWN LIST. A reviewer that has never seen the set raises the same settled items every
+round. `known` writes what earlier rounds raised and the designer settled -- every `wontfix`
+and `waiting` finding, with the title of each decision its note names in place of the id,
+and the decisions still waiting on someone else -- so a brief can tell the reviewer what not
+to spend its time on. It carries no id: a reviewer would only report it as internal
+vocabulary.
 """
 import datetime
 import difflib
@@ -43,7 +59,7 @@ CATEGORIES = ('fit', 'legibility', 'consistency', 'missing', 'code', 'spelling',
               'one-home', 'arguing', 'revision-history', 'internal-vocabulary', 'other')
 SEVERITIES = ('blocker', 'major', 'minor')
 VERDICTS = ('CONFIRMED', 'PLAUSIBLE', 'REJECTED')
-STATUSES = ('open', 'fixed', 'wontfix', 'rejected')
+STATUSES = ('open', 'fixed', 'wontfix', 'rejected', 'waiting')
 FIELDS = ('sheet', 'where', 'category', 'severity', 'finding', 'evidence', 'suggest')
 
 # Whole sheet at a size to see its layout; tiles at a size to read 5 pt type.
@@ -168,9 +184,11 @@ def fingerprints(slug, root=ROOT):
         shutil.rmtree(scratch, ignore_errors=True)
 
 
-def prepare(slug, sheets=None, moved=False, out=None, root=ROOT):
+def prepare(slug, sheets=None, moved=False, out=None, root=ROOT, known_list=None, base='HEAD'):
     """Render the sheets for review and write the brief. Returns the review directory; its
-       index.json lists every image and the fingerprint of each sheet as rendered."""
+       index.json lists every image and the fingerprint of each sheet as rendered. With
+       `known_list` (known()'s text) the brief tells the reviewer what is already settled;
+       `moved` names the sheets that differ from `base`."""
     import pymupdf
     from arkitect.lib.verify import gate
     out = gate._out_dir(out)
@@ -178,7 +196,7 @@ def prepare(slug, sheets=None, moved=False, out=None, root=ROOT):
     try:
         pages, prints = _measure(slug, scratch, root)
         if moved:
-            _sha, bases = gate.baseline('HEAD', [slug])
+            _sha, bases = gate.baseline(base, [slug])
             names = [m['sheet'] for m in gate.moved(gate._base_sheets(bases[slug]), prints)
                      if m['sheet'] in pages]
         else:
@@ -203,7 +221,7 @@ def prepare(slug, sheets=None, moved=False, out=None, root=ROOT):
         with open(os.path.join(out, 'index.json'), 'w') as fh:
             json.dump(index, fh, indent=1)
         with open(os.path.join(out, 'brief.md'), 'w') as fh:
-            fh.write(brief(slug, index, root))
+            fh.write(brief(slug, index, root, known_list))
         return out
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
@@ -226,7 +244,7 @@ def jurisdiction_of(slug, root=ROOT):
     return None
 
 
-def brief(slug, index, root=ROOT):
+def brief(slug, index, root=ROOT, known_list=None):
     address = slug
     for rel in ('intake.json',):
         p = os.path.join(root, 'projects', slug, rel)
@@ -250,10 +268,13 @@ def brief(slug, index, root=ROOT):
     for no, s in index['sheets'].items():
         lines.append('- **%s**: whole `%s`; tiles %s' % (
             no, s['whole'], ', '.join('`%s`' % t for t in s['tiles'])))
-    return BRIEF.format(address=address, place=place, reviewer=reviewer,
+    text = BRIEF.format(address=address, place=place, reviewer=reviewer,
                         sheets='\n'.join(lines), cols=TILE_GRID[0],
                         rows=TILE_GRID[1], tile_dpi=TILE_DPI, style=house_style(root),
                         categories=' | '.join('"%s"' % c for c in CATEGORIES))
+    if known_list:
+        text = text.replace('## House style', known_list.rstrip('\n') + '\n\n## House style', 1)
+    return text
 
 
 def _head(root):
@@ -360,11 +381,139 @@ def set_status(slug, rid, status, note=None, root=ROOT):
                              'have been fixed' % (rec['sheet'], rid))
     if status in ('wontfix', 'rejected') and not note:
         raise ValueError('%s needs --note saying why' % status)
+    if status == 'waiting' and not note:
+        raise ValueError('waiting needs --note naming what it waits on (a decision id, or who)')
     rec['status'] = status
     if note:
         rec['notes'] = note
     save(slug, data, root)
     return rec
+
+
+# ---------------------------------------------------------------- the known list
+
+KNOWN = """## Already raised and settled -- do not report these again
+
+Earlier reviews raised each item below, and the designer settled it on purpose or it waits
+on someone outside the set. Do not report one again unless a sheet now CONTRADICTS what the
+item says (a different figure, a note it says is printed and is not). Spend your time on what
+nobody has found yet: fit, constructability, figures that disagree between sheets, code
+sections misapplied, and anything a builder could not build from the sheets as drawn.
+
+"""
+
+_DID = re.compile(r'\bD-\d{3}\b')
+_RID = re.compile(r'\bR-\d{3,}\b')
+
+
+def _clip(text, n):
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text if len(text) <= n else text[:n-3].rstrip() + '...'
+
+
+def known(slug, root=ROOT, severities=('blocker', 'major')):
+    """The known list, as Markdown. A wontfix or waiting finding of `severities` whose note
+       names decisions is folded into ONE line per set of decisions -- their titles and what
+       they chose, and the sheets it was raised on -- because a settled question is raised
+       again in new words every round; a finding whose note names none is listed with its
+       note, once however often it recurred. Then the decisions about the project still
+       waiting on someone. No id of any kind is printed."""
+    from arkitect.harness import decisions
+    recs = {f['id']: f for f, _b in decisions.all_decisions(root)}
+    order = {s: i for i, s in enumerate(SEVERITIES)}
+    rows = sorted((r for r in load(slug, root)['findings']
+                   if r['status'] in ('wontfix', 'waiting') and r['severity'] in severities),
+                  key=lambda r: (order[r['severity']], r['sheet'], r['id']))
+    by_decision, loose = {}, []
+    for r in rows:
+        ids = tuple(sorted(set(d for d in _DID.findall(r.get('notes') or '') if d in recs)))
+        if ids:
+            by_decision.setdefault(ids, []).append(r)
+        else:
+            loose.append(r)
+    lines = []
+    for ids, rs in by_decision.items():
+        sheets = sorted(set(r['sheet'] for r in rs))
+        what = ' '.join(recs[d].get('decision') or recs[d]['title'] for d in ids)
+        head = '; '.join(recs[d]['title'] for d in ids)
+        lines.append('- **%s** (%s, on %s): %s' % (
+            _clip(head, 200), 'waits' if all(r['status'] == 'waiting' for r in rs) else 'settled',
+            ', '.join(sheets), _clip(_scrub(what), 320)))
+    seen = []
+    for r in loose:
+        key = _norm(r.get('notes') or r['finding'])
+        if any(difflib.SequenceMatcher(None, key, k).ratio() > 0.6 for k in seen):
+            continue
+        seen.append(key)
+        why = _scrub(r.get('notes') or '')
+        lines.append('- **%s** (%s): %s%s' % (
+            r['sheet'], 'waits' if r['status'] == 'waiting' else 'settled',
+            _clip(r['finding'], 240), (' -- ' + _clip(why, 200)) if why else ''))
+    for f in recs.values():
+        if f['status'] == 'waiting' and (slug in f.get('projects', []) or 'all' in f.get('projects', [])):
+            lines.append('- **Waits on %s**: %s' % (f.get('waiting_on') or 'a third party',
+                                                    _clip(_scrub(f['title']), 220)))
+    return KNOWN + ('\n'.join(lines) if lines else '(nothing yet)') + '\n'
+
+
+def _scrub(text):
+    """`text` with every decision and finding id taken out."""
+    text = _RID.sub('', _DID.sub('', text or ''))
+    text = re.sub(r'\(\s*[/,;]*\s*\)', '', text)
+    return re.sub(r'\s+([,.;:])', r'\1', text).strip(' -;,:')
+
+
+# ---------------------------------------------------------------- an agent's reply
+
+def _reply_text(text):
+    """The text that holds the findings: `text` itself, or -- for a Claude Code transcript
+       (.jsonl) -- the last assistant message, or tool input, that carries a JSON array."""
+    lines = text.splitlines()
+    try:
+        recs = [json.loads(l) for l in lines if l.strip()]
+    except json.JSONDecodeError:
+        return text
+    if not recs or not all(isinstance(r, dict) for r in recs):
+        return text
+    for r in reversed(recs):
+        m = r.get('message') or {}
+        if m.get('role') != 'assistant' or not isinstance(m.get('content'), list):
+            continue
+        for c in m['content']:
+            if c.get('type') == 'text' and '[' in c.get('text', ''):
+                return c['text']
+            if c.get('type') == 'tool_use':
+                for v in (c.get('input') or {}).values():
+                    if isinstance(v, str) and '"sheet"' in v and '[' in v:
+                        return v
+    raise ValueError('no assistant message in the transcript carries a JSON array')
+
+
+def parse(text):
+    """The findings array in an agent's reply, a file of JSON, or a transcript. A reply's last
+       ```json fence wins; else the first `[` to the last `]`. An unescaped double quote inside
+       a string -- the one mistake reviewers make in quoting a sheet's 3'-0" -- is escaped
+       where the decoder stops on it."""
+    body = _reply_text(text)
+    fences = re.findall(r'```(?:json)?\s*\n(.*?)```', body, re.S)
+    body = next((f for f in reversed(fences) if f.strip().startswith('[')), body)
+    if '[' not in body or ']' not in body:
+        raise ValueError('no JSON array in the reply')
+    a = body[body.index('['):body.rindex(']')+1]
+    for _ in range(500):
+        try:
+            out = json.loads(a)
+            break
+        except json.JSONDecodeError as exc:
+            q = a.rfind('"', 0, exc.pos)
+            if q <= 0 or a[q-1] == '\\':
+                raise ValueError('the array does not parse: %s' % exc)
+            a = a[:q] + '\\"' + a[q+1:]
+    else:
+        raise ValueError('the array does not parse after 500 repairs')
+    if not isinstance(out, list) or not all(isinstance(f, dict) for f in out):
+        raise ValueError('the reply is JSON but not an array of findings')
+    return out
 
 
 def _line(r):
@@ -373,7 +522,7 @@ def _line(r):
 
 
 def main(argv):
-    if len(argv) < 2 or argv[0] not in ('prepare', 'ingest', 'list', 'next', 'set'):
+    if len(argv) < 2 or argv[0] not in ('prepare', 'ingest', 'list', 'next', 'set', 'known', 'parse'):
         print(__doc__)
         return 1
     cmd, slug = argv[0], argv[1]
@@ -390,9 +539,28 @@ def main(argv):
         interface.emit('review', {'project': slug, 'findings': rows})
         return 0
     try:
-        if cmd == 'prepare':
+        if cmd == 'parse':
+            with open(slug) as fh:                 # `parse` takes a file, not a slug
+                found = parse(fh.read())
+            text = json.dumps(found, indent=1)
+            if opt('--out'):
+                with open(opt('--out'), 'w') as fh:
+                    fh.write(text + '\n')
+                print('%d findings -> %s' % (len(found), opt('--out')))
+            else:
+                print(text)
+        elif cmd == 'known':
+            text = known(slug, severities=SEVERITIES if '--all' in argv else ('blocker', 'major'))
+            if opt('--out'):
+                with open(opt('--out'), 'w') as fh:
+                    fh.write(text)
+                print('known list -> %s' % opt('--out'))
+            else:
+                print(text, end='')
+        elif cmd == 'prepare':
             sh = opt('--sheets')
-            out = prepare(slug, sh.split(',') if sh else None, '--moved' in argv, opt('--out'))
+            out = prepare(slug, sh.split(',') if sh else None, '--moved' in argv, opt('--out'),
+                          known_list=known(slug) if '--known' in argv else None)
             print('review ready: %s\nthe brief: %s' % (out, os.path.join(out, 'brief.md')))
         elif cmd == 'ingest':
             with open(argv[2]) as fh:
