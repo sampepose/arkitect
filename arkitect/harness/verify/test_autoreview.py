@@ -4,6 +4,7 @@ finding was about, and the stop rules read the log -- all in a scratch repositor
 scratch cache, the renderer and the gate stood in for."""
 import json
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -36,17 +37,34 @@ def fake_prepare(slug, sheets=None, moved=False, out=None, root=None, known_list
     return out
 
 
+_TEMPLATE = []
+
+
 class Base(unittest.TestCase):
+    """Each test gets its own copy, .git and all, of one repository holding the program
+       committed: the first test in a process makes it (five git processes), the rest copy it.
+       init writes nothing outside the repository here (no review.json to backfill)."""
 
     def setUp(self):
         t = tempfile.TemporaryDirectory()
         self.addCleanup(t.cleanup)
         self.root = os.path.join(t.name, 'ws')
-        os.makedirs(os.path.join(self.root, 'projects', 'demo'))
-        os.makedirs(os.path.join(self.root, 'decisions'))
         env = mock.patch.dict(os.environ, {'XDG_CACHE_HOME': os.path.join(t.name, 'cache')})
         env.start()
         self.addCleanup(env.stop)
+        if not _TEMPLATE:
+            import atexit
+            keep = tempfile.mkdtemp(prefix='autoreview-template-')
+            atexit.register(shutil.rmtree, keep, True)
+            mine, self.root = self.root, os.path.join(keep, 'ws')
+            self.make()
+            _TEMPLATE.append(self.root)
+            self.root = mine
+        shutil.copytree(_TEMPLATE[0], self.root, symlinks=True)
+
+    def make(self):
+        os.makedirs(os.path.join(self.root, 'projects', 'demo'))
+        os.makedirs(os.path.join(self.root, 'decisions'))
         self.git('init', '-q', '-b', 'main')
         self.git('config', 'user.email', 't@example.com')
         self.git('config', 'user.name', 'T')

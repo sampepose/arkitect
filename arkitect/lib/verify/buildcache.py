@@ -88,9 +88,10 @@ def usable(build, workspace):
     return len(rel) == 3 and rel[0] == 'projects' and rel[2] == 'build.py'
 
 
-def key(build, engine, workspace, home=None):
+def key(build, engine, workspace, home=None, pythonpath=None):
     """The recording's name: a digest of everything the build can read (module docstring), or
-       None where that cannot be hashed (a PYTHONPATH directory past MOST_FILES)."""
+       None where that cannot be hashed (a PYTHONPATH directory past MOST_FILES). `pythonpath`
+       is the PYTHONPATH of the process that builds, when that is not this one."""
     h = hashlib.sha256()
     h.update(('\n'.join([sys.version, 'O=%d' % sys.flags.optimize] + _versions())).encode())
     ws, en = os.path.realpath(workspace), os.path.realpath(engine)
@@ -101,7 +102,9 @@ def key(build, engine, workspace, home=None):
         h.update(b'\nENGINE\n')
         _tree(h, en)
     covered = [ws, en]
-    for p in filter(None, os.environ.get('PYTHONPATH', '').split(os.pathsep)):
+    if pythonpath is None:
+        pythonpath = os.environ.get('PYTHONPATH', '')
+    for p in filter(None, pythonpath.split(os.pathsep)):
         rp = os.path.realpath(p)
         if not os.path.isdir(rp) or any(rp == t or rp.startswith(t + os.sep) for t in covered):
             continue
