@@ -31,6 +31,7 @@ the bars are taken off arkitect/lib/model/pipe.py's OUTSIDE diameters, because a
 1.900 in across. Every figure a project prints comes back from entry(); the project
 supplies its own foundation, its own frost depth and its own service size.
 """
+import math
 from collections import namedtuple
 from arkitect.lib.units import IN
 from arkitect.lib.model.pipe import od
@@ -84,7 +85,7 @@ def sleeve_size(service, steps=SLEEVE_STEPS, ladder=NOMINAL):
 
 def entry(service, bury, frost_depth, ftg_t, bar_dia, bar_cover, cover, slab_top, water_bed,
           ftg_bot=None, past=SLEEVE_PAST, slope=BOTTOM_SLOPE, steps=SLEEVE_STEPS,
-          series='CTS', sleeve_series='IPS'):
+          series='CTS', sleeve_series='IPS', drop_grid=None):
     """The service entry, as the section draws it.
 
        `cover` is the concrete the project wants under the sleeve, `bar_cover` the cover
@@ -92,7 +93,12 @@ def entry(service, bury, frost_depth, ftg_t, bar_dia, bar_cover, cover, slab_top
        aggregate the service rises into reaches. `ftg_bot` is the footing's typical
        bottom, which RCO 403.1.4.1 puts at the frost depth and which a project founding
        deeper than frost states for itself -- a footing deep enough to reach below the
-       service is a different detail, and entry_violations() says so."""
+       service is a different detail, and entry_violations() says so.
+
+       `drop_grid`, where given, is the grid the deepening is laid out on: the footing goes
+       deeper until its drop is a whole number of it, never shallower, so the drop, the
+       thickness and the 1-in-10 return a sheet prints from it add up. None leaves the drop
+       exactly what the sleeve and its cover make it."""
     sleeve = sleeve_size(service, steps)
     pipe = od(service, series)                    # what it MEASURES, not what it is called
     sleeve_od = od(sleeve, sleeve_series)
@@ -108,6 +114,9 @@ def entry(service, bury, frost_depth, ftg_t, bar_dia, bar_cover, cover, slab_top
     bar_top = bar_bot+bar_dia
     deep_bot = sleeve_bot-cover
     drop = ftg_bot-deep_bot
+    if drop_grid:
+        drop = math.ceil(drop/drop_grid-1e-6)*drop_grid   # deeper, never shallower: more cover
+        deep_bot = ftg_bot-drop
     return Entry(service=service, sleeve=sleeve, pipe_top=pipe_top, pipe_bot=pipe_bot,
                  sleeve_top=sleeve_top, sleeve_bot=sleeve_bot, bar_top=bar_top, bar_bot=bar_bot,
                  ftg_top=ftg_top, ftg_bot=ftg_bot, deep_bot=deep_bot, drop=drop,
@@ -160,7 +169,8 @@ def entry_for(b, g):
        bars take: both are cast against earth."""
     return entry(service=g.service_size(b), bury=g.bury, frost_depth=g.frost_depth, ftg_t=g.ftg_t,
                  bar_dia=g.bar_dia, bar_cover=g.bar_cover, cover=g.bar_cover,
-                 slab_top=g.slab_top, water_bed=g.water_bed, series=g.service_series)
+                 slab_top=g.slab_top, water_bed=g.water_bed, series=g.service_series,
+                 drop_grid=g.drop_grid)
 
 
 def entries_violations(buildings, g):

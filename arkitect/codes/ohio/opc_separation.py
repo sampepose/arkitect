@@ -37,8 +37,13 @@ VERT_CLEAR = IN(12)        # the water's bottom over the drain's top
 # slab_top     the slab's top over finished grade
 # These last four are read only by arkitect/codes/ohio/opc_service_entry.py, which needs the
 # same ground a project already states here rather than a second record of it.
+# drop_grid    optional: the grid, in feet, a footing deepened under the service is laid out
+#              on. The drop rounds UP to it, so the printed drop, thickness and 1-in-10 return
+#              add up (10-1/2" at 1 in 10 is 8'-9", not 8'-9-1/8"). None, the default, leaves
+#              the drop exactly what the sleeve and its cover make it.
 Ground = namedtuple('Ground', 'cover wall_t water_bed frost_depth water_below water_lines strips sewers '
-                              'service_size ftg_t bar_dia bar_cover slab_top bury service_series')
+                              'service_size ftg_t bar_dia bar_cover slab_top bury service_series drop_grid',
+                    defaults=(None,))
 
 
 def crossings(b, g):
