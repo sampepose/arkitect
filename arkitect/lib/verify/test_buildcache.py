@@ -6,6 +6,7 @@ projects/, the switch that turns it off. The demo build appends to a log outside
 so a test counts the builds that actually ran.
 """
 import os, shutil, subprocess, sys, tempfile, unittest
+from unittest import mock
 
 HERE = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.insert(0, HERE)
@@ -45,13 +46,17 @@ class RecordingTests(unittest.TestCase):
         os.makedirs(os.path.join(self.ws, 'projects', 'demo'))
         self.build = os.path.join(self.ws, 'projects', 'demo', 'build.py')
         self.write(one='ONE')
+        # recordings of its own, so every count here is this test's
+        env = mock.patch.dict(os.environ, {'XDG_CACHE_HOME': os.path.join(t.name, 'cache')})
+        env.start()
+        self.addCleanup(env.stop)
 
     def write(self, **kw):
         with open(self.build, 'w') as fh:
             fh.write(BUILD % dict(dict(log=self.log, before='pass', one='ONE'), **kw))
 
     def env(self, **extra):
-        env = dict(os.environ, PYTHONPATH=HERE, **extra)
+        env = dict(os.environ, PYTHONPATH=HERE)
         env.pop('ARKITECT_WORKSPACE', None)
         env.pop('ARKITECT_BUILD_CACHE', None)
         env.update(extra)
@@ -154,6 +159,39 @@ class RecordingTests(unittest.TestCase):
         want = sheet_text.read(self.build)
         self.assertEqual(sheet_text.recorded(self.build), want)
         self.assertEqual(sheet_text.recorded(self.build), want)      # served, the same
+
+    def test_a_copy_of_the_tree_elsewhere_is_served_its_recording(self):
+        _r, a = self.trace()
+        copy = os.path.join(self.tmp, 'elsewhere', 'ws')
+        shutil.copytree(self.ws, copy)
+        out = os.path.join(self.tmp, 'copy.txt')
+        r = subprocess.run([sys.executable, TRACE, out, os.path.join(copy, 'projects', 'demo', 'build.py')],
+                           cwd=copy, capture_output=True, text=True, env=self.env())
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.builds(), 1)
+        with open(out) as fh:
+            self.assertEqual(fh.read(), a)
+
+    def test_a_build_that_prints_where_it_is_is_never_kept(self):
+        self.write(before='print(__file__)')
+        for _ in range(2):
+            r, _t = self.trace()
+            self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.builds(), 2)
+
+    def test_what_pythonpath_adds_is_in_the_key(self):
+        extra = os.path.join(self.tmp, 'extra')
+        os.makedirs(extra)
+        with open(os.path.join(extra, 'helper.py'), 'w') as fh:
+            fh.write('WORD = 1\n')
+        path = os.pathsep.join([HERE, extra])
+        self.trace(PYTHONPATH=path)
+        self.trace(PYTHONPATH=path)
+        self.assertEqual(self.builds(), 1)
+        with open(os.path.join(extra, 'helper.py'), 'w') as fh:
+            fh.write('WORD = 2\n')
+        self.trace(PYTHONPATH=path)
+        self.assertEqual(self.builds(), 2)
 
     def test_the_key_is_content(self):
         k = buildcache.key(self.build, HERE, self.ws)
