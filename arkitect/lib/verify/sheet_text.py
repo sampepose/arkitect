@@ -113,6 +113,29 @@ def read(build_path):
     return out
 
 
+def recorded(build_path):
+    """read()'s answer from the build's recording: arkitect/lib/verify/trace.py --pages, in a
+       process of its own, which serves a project's build from the recording the gate or
+       another test already made of it (arkitect/lib/verify/buildcache.py) and records it
+       otherwise. The same Text tuples read() returns, and more hermetic than a build in this
+       process, which sees whatever another test left patched in it."""
+    import json, subprocess
+    from arkitect.lib import workspace
+    build = os.path.abspath(build_path)
+    parts = build.split(os.sep)
+    # started in the build's workspace, as the gate starts a tool there
+    ws = os.sep.join(parts[:-3]) if len(parts) > 3 and parts[-3] == 'projects' else os.getcwd()
+    with tempfile.TemporaryDirectory() as tmp:
+        out = os.path.join(tmp, 'pages.json')
+        r = subprocess.run([sys.executable, os.path.join(HERE, 'arkitect', 'lib', 'verify', 'trace.py'),
+                            os.path.join(tmp, 'trace.txt'), build, '--pages', out],
+                           cwd=ws, capture_output=True, text=True, env=workspace.env(ws, HERE))
+        if r.returncode != 0 or not os.path.exists(out):
+            raise RuntimeError('the build did not record: %s\n%s' % (build_path, r.stderr[-3000:]))
+        with open(out) as fh:
+            return {no: [Text(*t) for t in items] for no, items in json.load(fh)}
+
+
 def overlaps(items, share=0.25, least=6.0, shortest=3):
     """[(area, text, text)] for black, level strings of `shortest` characters or more whose
        boxes share over `share` of the smaller one and over `least` square points."""

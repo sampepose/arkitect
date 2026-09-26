@@ -42,7 +42,7 @@ from arkitect.lib import workspace                                   # noqa: E40
 
 
 ROOTS = {
-    os.path.join('arkitect', 'lib'): 155,
+    os.path.join('arkitect', 'lib'): 165,
     os.path.join('arkitect', 'codes'): 163,
     os.path.join('arkitect', 'harness'): 79,
     os.path.join('arkitect', 'web'): 10,
