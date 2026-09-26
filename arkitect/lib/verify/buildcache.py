@@ -120,7 +120,8 @@ def key(build, engine, workspace, home=None):
 
 def directory():
     base = os.environ.get('XDG_CACHE_HOME') or os.path.join(os.path.expanduser('~'), '.cache')
-    return os.path.join(base, 'arkitect', 'builds')
+    # .noindex: Spotlight leaves it alone, which it does not a directory rewritten this often
+    return os.path.join(base, 'arkitect', 'builds.noindex')
 
 
 def found(k):

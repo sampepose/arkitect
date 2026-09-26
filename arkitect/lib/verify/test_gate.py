@@ -41,7 +41,7 @@ class GateTestCase(unittest.TestCase):
     """Each test gets its own copy of one committed repository: arkitect/lib/, the demo
        project, its accepted trace.md5, and the base the gate filed for that commit. The
        first test in a process builds it (an accept and a gate run are a second of
-       processes); the rest copy it, .git and all, without its bytecode. The copy's base is
+       processes); the rest copy it, .git, bytecode and all. The copy's base is
        the template's own commit measured by the same tools, the cache's key, so a test
        that changes either gets a base of its own; one that needs none cached deletes it."""
 
@@ -57,8 +57,9 @@ class GateTestCase(unittest.TestCase):
             self.build_template()
             _TEMPLATE.append(self.root)
             self.root = built
-        shutil.copytree(_TEMPLATE[0], self.root, symlinks=True,
-                        ignore=shutil.ignore_patterns('__pycache__'))
+        # bytecode and all: the template's pycs are hash-checked against their source, and
+        # the importer names the copy's files in a traceback (importlib fixes co_filename)
+        shutil.copytree(_TEMPLATE[0], self.root, symlinks=True)
 
     def build_template(self):
         shutil.copytree(os.path.join(HERE, 'arkitect', 'lib'), os.path.join(self.root, 'arkitect', 'lib'),
