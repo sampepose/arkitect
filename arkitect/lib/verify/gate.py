@@ -495,11 +495,58 @@ def _pyflakes():
                 for t in ('arkitect', os.path.join('.claude', 'hooks'))]
     # a path pyflakes cannot find is its own error, not a finding
     targets = [t for t in targets if os.path.exists(os.path.join(WORKSPACE, t))]
+    clean, files, key = _pyflakes_clean(targets)
+    if clean is not None:
+        known = set(os.listdir(clean))
+        targets = [f for f in files if key(f) not in known]
+        if not targets:
+            return {'ran': True, 'ok': True, 'output': ''}
     ran, code, out, err = _run([PY, '-m', 'pyflakes'] + targets)
     if ran and 'No module named pyflakes' in err:
         ran = False
+    if clean is not None and ran and code in (0, 1):
+        flagged = {ln.split(':', 1)[0] for ln in (out + err).splitlines()}
+        for f in targets:
+            if f not in flagged:
+                try:
+                    open(os.path.join(clean, key(f)), 'w').close()
+                except OSError:
+                    pass
     return {'ran': ran, 'ok': ran and code == 0,
             'output': _tail(out + err) if (not ran or code) else ''}
+
+
+def _pyflakes_clean(targets):
+    """(directory of verdicts, files, key) for `targets` as pyflakes walks them, or
+       (None, None, None) where pyflakes cannot be imported here (its own run says so).
+
+       A verdict is an empty file named for what pyflakes' answer depends on: the file's
+       bytes, whether it is an __init__.py (the one name its checker treats apart), and the
+       versions of pyflakes and Python. Pyflakes reads each file alone, so bytes it passed
+       once pass again; a new, edited or flagged file goes to a real pyflakes run, which
+       prints and fails exactly as before. In the user's cache, so every workspace and
+       scratch repository shares it, and concurrent gates only ever add a file."""
+    try:
+        import pyflakes
+        from pyflakes.api import iterSourceCode
+        base = os.environ.get('XDG_CACHE_HOME') or os.path.join(os.path.expanduser('~'), '.cache')
+        clean = os.path.join(base, 'arkitect', 'pyflakes', 'pyflakes-%s-py%d.%d' % (
+            pyflakes.__version__, sys.version_info[0], sys.version_info[1]))
+        os.makedirs(clean, exist_ok=True)
+    except (ImportError, OSError):
+        return None, None, None
+    # named as the pyflakes process, started in the workspace, names them in what it prints
+    files = [f if os.path.isabs(t) else os.path.relpath(f, WORKSPACE)
+             for t in targets for f in iterSourceCode([os.path.join(WORKSPACE, t)])]
+    digests = {}
+
+    def key(f):
+        if f not in digests:
+            with open(os.path.join(WORKSPACE, f), 'rb') as fh:
+                digests[f] = hashlib.sha256(fh.read()).hexdigest() + (
+                    '-init' if os.path.basename(f) == '__init__.py' else '')
+        return digests[f]
+    return clean, files, key
 
 
 def _twins():

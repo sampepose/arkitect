@@ -71,14 +71,23 @@ def _git(*args, cwd=None, check=True):
     return r.stdout.strip()
 
 
+_COMMON = {}
+
+
 def common_dir(root=ROOT):
     """The repository's shared .git directory, the same from every worktree; the workspace
-       itself outside git."""
+       itself outside git. A directory's answer inside git is kept for the process: the loop
+       asks it hundreds of times a run, a git process each. Outside git it is asked again,
+       since `git init` changes it."""
+    key = os.path.realpath(root)
+    if key in _COMMON:
+        return _COMMON[key]
     r = subprocess.run(['git', 'rev-parse', '--git-common-dir'], cwd=root, capture_output=True,
                        text=True)
     if r.returncode:
         return os.path.realpath(root)
-    return os.path.realpath(os.path.join(root, r.stdout.strip()))
+    _COMMON[key] = os.path.realpath(os.path.join(root, r.stdout.strip()))
+    return _COMMON[key]
 
 
 def main_checkout(root=ROOT):
