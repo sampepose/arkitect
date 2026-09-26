@@ -53,7 +53,11 @@ class QuickstartTests(unittest.TestCase):
         shutil.copytree(HERE, engine, ignore=shutil.ignore_patterns(
             '.git', '__pycache__', '.verify-cache', '*.egg-info', 'build', '*.pdf', '*.dxf'))
         os.makedirs(os.path.join(t, 'home'))
+        # a new HOME, as a new user has; the caches stay this user's, since what they hold is
+        # keyed by content (the gate's pyflakes verdicts) and the copy's files are this tree's
         env = dict(os.environ, HOME=os.path.join(t, 'home'), PYTHONPATH=engine,
+                   XDG_CACHE_HOME=os.environ.get('XDG_CACHE_HOME') or
+                   os.path.join(os.path.expanduser('~'), '.cache'),
                    GIT_AUTHOR_NAME='q', GIT_AUTHOR_EMAIL='q@example.com',
                    GIT_COMMITTER_NAME='q', GIT_COMMITTER_EMAIL='q@example.com')
         env.pop('ARKITECT_WORKSPACE', None)

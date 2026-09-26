@@ -39,9 +39,11 @@ _TEMPLATE = []
 
 class GateTestCase(unittest.TestCase):
     """Each test gets its own copy of one committed repository: arkitect/lib/, the demo
-       project, and its accepted trace.md5. The first test in a process builds it (a gate
-       accept is half a second of processes); the rest copy it, .git and all, without its
-       bytecode or its base cache, so no test sees what another left."""
+       project, its accepted trace.md5, and the base the gate filed for that commit. The
+       first test in a process builds it (an accept and a gate run are a second of
+       processes); the rest copy it, .git and all, without its bytecode. The copy's base is
+       the template's own commit measured by the same tools, the cache's key, so a test
+       that changes either gets a base of its own; one that needs none cached deletes it."""
 
     def setUp(self):
         t = tempfile.TemporaryDirectory()
@@ -56,7 +58,7 @@ class GateTestCase(unittest.TestCase):
             _TEMPLATE.append(self.root)
             self.root = built
         shutil.copytree(_TEMPLATE[0], self.root, symlinks=True,
-                        ignore=shutil.ignore_patterns('__pycache__', '.verify-cache'))
+                        ignore=shutil.ignore_patterns('__pycache__'))
 
     def build_template(self):
         shutil.copytree(os.path.join(HERE, 'arkitect', 'lib'), os.path.join(self.root, 'arkitect', 'lib'),
@@ -68,6 +70,8 @@ class GateTestCase(unittest.TestCase):
         self.git('init', '-q')
         self.accept_quietly()
         self.commit('base')
+        code, r = self.report()                  # clean at its commit: files that base
+        self.assertEqual(code, 0, r['failures'] + r['errors'])
 
     def git(self, *args):
         r = subprocess.run(['git', '-c', 'user.email=t@t', '-c', 'user.name=t'] + list(args),
@@ -181,6 +185,20 @@ class GateTests(GateTestCase):
         self.assertIn('+MODEL CHECK: changed', r['projects']['demo']['stdout_diff'])
         code, r = self.report('--expect-unchanged')
         self.assertEqual(code, 1)
+
+    def test_pyflakes_finds_what_an_edit_adds_to_a_file_it_passed_before(self):
+        # the gate keeps pyflakes' clean verdicts by content: the same file edited is new bytes
+        code, r = self.report()
+        self.assertEqual(code, 0, r['failures'] + r['errors'])
+        self.assertTrue(r['pyflakes']['ok'])
+        self.write_build(before='import os')
+        code, r = self.report()
+        self.assertEqual(code, 1)
+        self.assertFalse(r['pyflakes']['ok'])
+        self.assertIn("'os' imported but unused", r['pyflakes']['output'])
+        self.assertIn('build.py', r['pyflakes']['output'])
+        # flagged once is never kept as clean: the same bytes are flagged again
+        self.assertIn("'os' imported but unused", self.report()[1]['pyflakes']['output'])
 
     def test_expect_unchanged_fails_on_a_moved_sheet_even_when_accepted(self):
         self.write_build(one='SEE RCO 311.3 NOW')
