@@ -213,9 +213,19 @@ if TEXT_TO:
 if DXF_TO:
     # the exporter failing to import is the exporter's failure, not the build's: record it
     # and build on without it, as a separate `dxf.py` run would have failed alone
+    #
+    # By PATH, the exporter beside this file, as `python3 <engine>/arkitect/lib/export/dxf.py`
+    # always meant: imported by name, a regular `arkitect` package earlier on sys.path wins
+    # over this engine's when this engine's is a namespace package (a scratch repository
+    # holding only arkitect/lib/, as test_gate makes), and a broken exporter went unseen.
     try:
-        from arkitect.lib.export import dxf as _dxf
+        import importlib.util
+        _spec = importlib.util.spec_from_file_location(
+            '_arkitect_dxf_beside_trace', os.path.join(HERE, 'arkitect', 'lib', 'export', 'dxf.py'))
+        _dxf = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_dxf)
     except BaseException:
+        _dxf = None
         _FAILED[DXF_TO] = traceback.format_exc()
 
 

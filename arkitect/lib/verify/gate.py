@@ -519,7 +519,10 @@ def _tests():
     ok = ran and code == 0 and last.startswith('PASSED:')
     res = {'ran': ran and bool(last), 'ok': ok, 'summary': last}
     if not ok:
-        res['output'] = _tail(err + out, 60)
+        # stderr last: the runner writes the failures there, at the end, and the model checks
+        # the tests print fill stdout -- a tail of stderr + stdout showed a drainage table
+        # and not the failure it was asked for
+        res['output'] = _tail(out + err, 80)
     return res
 
 
