@@ -184,8 +184,11 @@ def _bracket(x, y0, y1, label, tick=0.05):
     knockout(x-2.0, (y0+y1)/2.0-1.5, label, "Helvetica-Bold", SUB, align="r")
 
 
-def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False):
+def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False, increaser_below_ceiling=False):
     """One riser cell, drawn from its bottom-left corner. Returns the top of its title.
+       `increaser_below_ceiling` draws the 903.2 increaser under the attic's floor, where it
+       stands inside the thermal envelope: under the ceiling line a stack that ends at its
+       branch already draws, or under one drawn for it where the stack runs on to the roof.
        `tie_label_close` sets a slab vent's label just over its tie and left of the pipe it
        ties into, rather than across the cell, where its ground can cover another tie.
        `method_low` sets a level's method label under the foot's own label where no
@@ -240,12 +243,23 @@ def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False):
     c.line(xv-3.0, y_top, xv+4.0, y_top+5.0)                    # the roof
     c.setFillColor(black); c.setFont("Helvetica", SUB)
     c.drawString(xv+6.0, y_top+3.0, cell.vtr)
-    if cell.increaser:                           # 903.2, where the roof takes more than the pipe
-        iy = y_top-(0.22 if cell.ends else 0.30)*inch
+    def _increaser(iy):
         c.setLineWidth(0.9); c.setStrokeColor(black)
         c.line(xv-0.07*inch, iy, xv+0.07*inch, iy)
+        if increaser_below_ceiling:              # on white, over the dry vents that tie in below the attic
+            later.append(partial(_ground, xv+0.10*inch, iy-2.0, cell.increaser, "Helvetica", SUB))
+            return
         c.setFillColor(black); c.setFont("Helvetica", SUB)
         c.drawString(xv+0.10*inch, iy-2.0, cell.increaser)
+    if cell.increaser and not increaser_below_ceiling:   # 903.2, where the roof takes more than the pipe
+        _increaser(y_top-(0.22 if cell.ends else 0.30)*inch)
+    elif cell.increaser and not cell.ends:       # its own ceiling line over it, the increaser under it
+        y_ceil = y_top-0.16*inch
+        c.setStrokeColor(GREY); c.setLineWidth(0.7)
+        c.line(ox, y_ceil, ox+0.94*w*inch, y_ceil)
+        c.setStrokeColor(black)
+        later.append(partial(_ground, ox+0.94*w*inch, y_ceil+3.0, 'CEILING — ATTIC OVER', "Helvetica-Bold", SUB, align="r"))
+        _increaser(y_top-0.30*inch)
 
     # ---- the levels ----
     for lv, label in sorted(cell.levels.items()):
@@ -381,6 +395,8 @@ def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False):
         c.line(ox, y_c, ox+0.94*w*inch, y_c)
         c.setStrokeColor(black)
         later.append(partial(_ground, ox+0.94*w*inch, y_c+3.0, 'CEILING — ATTIC OVER', "Helvetica-Bold", SUB, align="r"))
+        if cell.increaser and increaser_below_ceiling:
+            _increaser(y_c-0.12*inch)
 
     # ---- the foot: the offset a waste stack makes to it is drawn, 913.2 ----
     if cell.foot:
@@ -419,16 +435,16 @@ def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False):
     return oy+h*inch
 
 
-def legend(x, y, width, lead=0.128):
-    """How to read it: the two line weights and the two marks."""
+def legend(x, y, width, lead=0.128, height_rule=("ITS HEIGHT PRINTS BESIDE IT.",)):
+    """How to read it: the two line weights and the two marks. `height_rule` is the line(s)
+       under a connection's mark saying where its height prints."""
     c.setFillColor(black); c.setFont("Helvetica-Bold", 7.2)
     c.drawString(x, y, "HOW TO READ THE RISER"); y -= 3
     c.setStrokeColor(black); c.setLineWidth(0.6); c.line(x, y, x+width, y); y -= 0.16*inch
     rows = [(1.9, False, ["SOLID: WASTE, BELOW THE STACK'S",
                           "HIGHEST FIXTURE CONNECTION."]),
             (1.9, True,  ["DASHED: VENT. NOTHING DRAINS IN."]),
-            (None, None, ["A CONNECTION, MADE WHERE DRAWN;",
-                          "ITS HEIGHT PRINTS BESIDE IT."]),
+            (None, None, ["A CONNECTION, MADE WHERE DRAWN;"]+list(height_rule)),
             ('trap', None, ["A TRAP, ON ITS FIXTURE'S ARM."])]
     indent = 0.30*inch
     for kind, dashed, lines in rows:
