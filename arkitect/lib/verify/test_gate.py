@@ -150,6 +150,24 @@ class GateTests(GateTestCase):
         self.assertFalse(r['projects']['demo']['dxf']['ok'])
         self.assertIn('exporter is broken', r['projects']['demo']['dxf']['stderr'])
 
+    def test_a_dxf_that_cannot_be_written_fails_alone(self):
+        # the exporter records the build and then refuses to write, as its layer-colour
+        # assert does: the one build still measured the trace, and only the DXF fails
+        with open(os.path.join(self.root, 'arkitect', 'lib', 'export', 'dxf.py'), 'w') as fh:
+            fh.write("class Proxy:\n"
+                     "    def __init__(s, real): s._r = real\n"
+                     "    def __getattr__(s, n): return getattr(s._r, n)\n"
+                     "def write(out):\n"
+                     "    raise AssertionError('a layer with no colour')\n")
+        code, r = self.report()
+        self.assertEqual(code, 1)
+        demo = r['projects']['demo']
+        self.assertTrue(demo['trace']['ok'])
+        self.assertEqual(demo['trace']['digest'], demo['trace']['committed'])
+        self.assertFalse(demo['dxf']['ok'])
+        self.assertIn('a layer with no colour', demo['dxf']['stderr'])
+        self.assertTrue(any('DXF exporter failed' in f for f in r['failures']), r['failures'])
+
     def test_a_citation_no_sheet_prints_any_more_is_listed(self):
         self.write_build(one='SEE X-002')
         _code, r = self.report()
@@ -203,9 +221,9 @@ class GateTests(GateTestCase):
         return len(gate._read(log)), r
 
     def test_a_clean_checkout_is_its_own_base(self):
-        # trace, sheet_text and the DXF exporter build it once each; the base is not built
+        # one build serves the trace, sheet_text and the DXF exporter; the base is not built
         n, r = self.builds_logged_by()
-        self.assertEqual(n, 3)
+        self.assertEqual(n, 1)
         self.assertEqual(r['projects']['demo']['sheets_moved'], [])
         # and what it filed is the base the next, dirty, run is measured against
         self.write_build(two='TWO, CHANGED', before='pass')
@@ -214,15 +232,16 @@ class GateTests(GateTestCase):
         self.assertEqual([m['sheet'] for m in r['projects']['demo']['sheets_moved']], ['X-002'])
 
     def test_a_dirty_checkout_builds_its_base(self):
+        # the current tree once, and the base once for its trace and sheet_text together
         n, _r = self.builds_logged_by(untracked='untracked.txt')
-        self.assertEqual(n, 5)
+        self.assertEqual(n, 2)
 
     def test_an_export_attribute_builds_the_base(self):
         # export-ignore makes `git archive` differ from the checkout: no project at the base
         with open(os.path.join(self.root, '.gitattributes'), 'w') as fh:
             fh.write('projects/demo/build.py export-ignore\n')
         n, r = self.builds_logged_by()
-        self.assertEqual(n, 3)
+        self.assertEqual(n, 1)
         self.assertTrue(r['projects']['demo']['new_at_base'])
 
     def test_an_edit_of_the_same_size_and_mtime_is_measured(self):

@@ -152,98 +152,108 @@ class _Watch:
 sheets.observe(_Watch())
 
 
-# The project to record, and where its DXF goes, always named, so the same exporter
-# serves any project: arkitect dxf <build.py> [<out.dxf>]
-BUILD = buildscript.build_arg(sys.argv[1] if len(sys.argv) > 1 else None, 'dxf.py',
-                              'python3 arkitect/lib/export/dxf.py <projects/<slug>/build.py> [<out.dxf>]')
-# Import the build and call what it writes, rather than exec'ing its __main__ block.
-# The PDFs go to a scratch directory: this tool exports a DXF and must not rewrite the
-# project's deliverables on the way past, which the __main__ block made it do.
-_mod = buildscript.load(BUILD)
-# Resolve the output path before doing any work. A build script that defines no
-# DXF_OUT and is given no explicit path used to fall back to deriving one from the
-# build script's own path (build.py -> build.dxf) -- exactly the shape *.dxf's
-# .gitignore rule swallows with no error, which is the trap DXF_OUT exists to close.
-# A project that forgets to define it must fail loudly, not write a file nothing
-# tracked will ever see.
-if len(sys.argv) > 2:
-    OUT = sys.argv[2]
-else:
-    OUT = getattr(_mod, 'DXF_OUT', None)
-    if OUT is None:
-        sys.exit(
-            "arkitect/lib/export/dxf.py: %s defines no DXF_OUT, and no output path was given.\n"
-            "Fix one of:\n"
-            "  - pass the output path as the second argument:\n"
-            "      python3 arkitect/lib/export/dxf.py %s <out.dxf>\n"
-            "  - define DXF_OUT in the build script, e.g.:\n"
-            "      DXF_OUT = os.path.join(HERE, '<project>-floor-plans.dxf')\n"
-            % (BUILD, BUILD))
-with tempfile.TemporaryDirectory() as _tmp:
-    for _doc in buildscript.documents(_mod):
-        _doc(os.path.join(_tmp, _doc.__name__+'.pdf'),
-             make_canvas=lambda *a,**k: Proxy(_rlcanvas.Canvas(*a,**k)))
-print("recorded %d entities in %d plan frames: %s"%(len(ENT),len(FRAMES),[f[0] for f in FRAMES]))
-
 # ---- write DXF ---------------------------------------------------------
-doc=ezdxf.new('R2010',setup=True)
-doc.header['$INSUNITS']=1          # inches
-doc.header['$MEASUREMENT']=0       # imperial
-# A colour per layer. This table used to cover the A, C and M layers only, and the
-# exporter writes whatever layer the drawing set -- so when the electrical, plumbing and
-# structural sheets gained their own layers, 2,966 entities were written to layer names
-# that appeared in no LAYER record. ezdxf's own auditor reports 0 errors for that: the
-# entities are valid and simply have no colour and nothing to freeze or plot them by,
-# which is the entire point of layering them. The assertion below is what keeps the two
-# lists together from now on.
-COLOR={'A-WALL':7,'A-DOOR':3,'A-GLAZ':4,'A-FLOR-STRS':6,'A-FURN':8,
-       'A-ANNO-IDEN':2,'A-ANNO-TEXT':2,'A-ANNO-DIMS':1,'A-ANNO':2,
-       'C-PVMT-PATT':8,             # concrete stipple on walks, PlanDraw.concrete()
-       'M-HVAC-EQPM':5,'M-EXHS-DUCT':30,'M-HVAC-DUCT':30,'M-HVAC-PIPE':4,'M-ANNO-TEXT':2,   # M-101 / M-102
-       # E-101 / E-102
-       'E-POWR':5,'E-LITE':6,'E-ALRM':1,'E-ANNO-TEXT':2,
-       # P-101 / P-102 / P-103 / P-601
-       'P-SANR-FIXT':4,'P-SANR-UNDR':4,'P-DOMW-COLD':5,'P-DOMW-HOTW':1,
-       'P-DOMW-UNDR':5,'P-EQPM':3,'P-ANNO-TEXT':2,'P-ANNO-DIMS':1,
-       # S-101 .. S-104
-       'S-FNDN':7,'S-FNDN-RADN':3,'S-FRAM':6,'S-ANNO-TEXT':2}
-drawn=sorted({lay for (_fi,lay,_kind,_pay) in ENT})
-missing=[n for n in drawn if n not in COLOR]
-assert not missing, (
-    "the DXF writes %d layer(s) with no colour and no LAYER record: %s. Add them to "
-    "COLOR -- an entity on an undeclared layer is valid DXF and invisible to the "
-    "auditor, so nothing else will tell you." % (len(missing), ", ".join(missing)))
-for n,col in COLOR.items():
-    if n not in doc.layers: doc.layers.add(n,color=col)
-msp=doc.modelspace()
+def write(out):
+    """Write what the recording holds (ENT, FRAMES) to `out`. arkitect/lib/verify/trace.py calls it
+       after a build it recorded through Proxy, so the gate builds a project once, not twice."""
+    doc=ezdxf.new('R2010',setup=True)
+    doc.header['$INSUNITS']=1          # inches
+    doc.header['$MEASUREMENT']=0       # imperial
+    # A colour per layer. This table used to cover the A, C and M layers only, and the
+    # exporter writes whatever layer the drawing set -- so when the electrical, plumbing and
+    # structural sheets gained their own layers, 2,966 entities were written to layer names
+    # that appeared in no LAYER record. ezdxf's own auditor reports 0 errors for that: the
+    # entities are valid and simply have no colour and nothing to freeze or plot them by,
+    # which is the entire point of layering them. The assertion below is what keeps the two
+    # lists together from now on.
+    COLOR={'A-WALL':7,'A-DOOR':3,'A-GLAZ':4,'A-FLOR-STRS':6,'A-FURN':8,
+           'A-ANNO-IDEN':2,'A-ANNO-TEXT':2,'A-ANNO-DIMS':1,'A-ANNO':2,
+           'C-PVMT-PATT':8,             # concrete stipple on walks, PlanDraw.concrete()
+           'M-HVAC-EQPM':5,'M-EXHS-DUCT':30,'M-HVAC-DUCT':30,'M-HVAC-PIPE':4,'M-ANNO-TEXT':2,   # M-101 / M-102
+           # E-101 / E-102
+           'E-POWR':5,'E-LITE':6,'E-ALRM':1,'E-ANNO-TEXT':2,
+           # P-101 / P-102 / P-103 / P-601
+           'P-SANR-FIXT':4,'P-SANR-UNDR':4,'P-DOMW-COLD':5,'P-DOMW-HOTW':1,
+           'P-DOMW-UNDR':5,'P-EQPM':3,'P-ANNO-TEXT':2,'P-ANNO-DIMS':1,
+           # S-101 .. S-104
+           'S-FNDN':7,'S-FNDN-RADN':3,'S-FRAM':6,'S-ANNO-TEXT':2}
+    drawn=sorted({lay for (_fi,lay,_kind,_pay) in ENT})
+    missing=[n for n in drawn if n not in COLOR]
+    assert not missing, (
+        "the DXF writes %d layer(s) with no colour and no LAYER record: %s. Add them to "
+        "COLOR -- an entity on an undeclared layer is valid DXF and invisible to the "
+        "auditor, so nothing else will tell you." % (len(missing), ", ".join(missing)))
+    for n,col in COLOR.items():
+        if n not in doc.layers: doc.layers.add(n,color=col)
+    msp=doc.modelspace()
 
-# lay every plan out in a row in model space, 20 ft apart
-OFF=[]; run=0.0
-for (sh,W,D) in FRAMES:
-    OFF.append(run); run += (W+20.0)*12.0
-JUST={0:'LEFT',1:'CENTER',2:'RIGHT'}
-for (fi,lay,kind,pay) in ENT:
-    dx=OFF[fi]
-    if kind=='L':
-        (a,b)=pay; msp.add_line((a[0]+dx,a[1]),(b[0]+dx,b[1]),dxfattribs={'layer':lay})
-    elif kind=='C':
-        (c0,r)=pay; msp.add_circle((c0[0]+dx,c0[1]),r,dxfattribs={'layer':lay})
-    elif kind=='E':
-        (c0,rx,ry)=pay
-        major=(rx,0) if rx>=ry else (0,ry)
-        ratio=(ry/rx) if rx>=ry else (rx/ry)
-        msp.add_ellipse((c0[0]+dx,c0[1]),major_axis=major,ratio=max(ratio,1e-3),
-                        dxfattribs={'layer':lay})
-    elif kind=='A':
-        (c0,r,a0,a1)=pay
-        msp.add_arc((c0[0]+dx,c0[1]),r,a0,a1,dxfattribs={'layer':lay})
-    elif kind=='T':
-        (a,t,h,just,bold,rot)=pay
-        e=msp.add_text(t,dxfattribs={'layer':lay,'height':h,'rotation':rot,
-                                     'style':'Standard'})
-        e.set_placement((a[0]+dx,a[1]), align=ezdxf.enums.TextEntityAlignment[JUST[just]])
-for i,(sh,W,D) in enumerate(FRAMES):
-    t=msp.add_text(sh,dxfattribs={'layer':'A-ANNO-TEXT','height':18.0})
-    t.set_placement((OFF[i],36.0),align=ezdxf.enums.TextEntityAlignment.LEFT)
-doc.saveas(OUT)
-print("saved",OUT, "%.1f KB"%(os.path.getsize(OUT)/1024))
+    # lay every plan out in a row in model space, 20 ft apart
+    OFF=[]; run=0.0
+    for (sh,W,D) in FRAMES:
+        OFF.append(run); run += (W+20.0)*12.0
+    JUST={0:'LEFT',1:'CENTER',2:'RIGHT'}
+    for (fi,lay,kind,pay) in ENT:
+        dx=OFF[fi]
+        if kind=='L':
+            (a,b)=pay; msp.add_line((a[0]+dx,a[1]),(b[0]+dx,b[1]),dxfattribs={'layer':lay})
+        elif kind=='C':
+            (c0,r)=pay; msp.add_circle((c0[0]+dx,c0[1]),r,dxfattribs={'layer':lay})
+        elif kind=='E':
+            (c0,rx,ry)=pay
+            major=(rx,0) if rx>=ry else (0,ry)
+            ratio=(ry/rx) if rx>=ry else (rx/ry)
+            msp.add_ellipse((c0[0]+dx,c0[1]),major_axis=major,ratio=max(ratio,1e-3),
+                            dxfattribs={'layer':lay})
+        elif kind=='A':
+            (c0,r,a0,a1)=pay
+            msp.add_arc((c0[0]+dx,c0[1]),r,a0,a1,dxfattribs={'layer':lay})
+        elif kind=='T':
+            (a,t,h,just,bold,rot)=pay
+            e=msp.add_text(t,dxfattribs={'layer':lay,'height':h,'rotation':rot,
+                                         'style':'Standard'})
+            e.set_placement((a[0]+dx,a[1]), align=ezdxf.enums.TextEntityAlignment[JUST[just]])
+    for i,(sh,W,D) in enumerate(FRAMES):
+        t=msp.add_text(sh,dxfattribs={'layer':'A-ANNO-TEXT','height':18.0})
+        t.set_placement((OFF[i],36.0),align=ezdxf.enums.TextEntityAlignment.LEFT)
+    doc.saveas(out)
+
+
+def main(argv):
+    # The project to record, and where its DXF goes, always named, so the same exporter
+    # serves any project: arkitect dxf <build.py> [<out.dxf>]
+    BUILD = buildscript.build_arg(argv[1] if len(argv) > 1 else None, 'dxf.py',
+                                  'python3 arkitect/lib/export/dxf.py <projects/<slug>/build.py> [<out.dxf>]')
+    # Import the build and call what it writes, rather than exec'ing its __main__ block.
+    # The PDFs go to a scratch directory: this tool exports a DXF and must not rewrite the
+    # project's deliverables on the way past, which the __main__ block made it do.
+    _mod = buildscript.load(BUILD)
+    # Resolve the output path before doing any work. A build script that defines no
+    # DXF_OUT and is given no explicit path used to fall back to deriving one from the
+    # build script's own path (build.py -> build.dxf) -- exactly the shape *.dxf's
+    # .gitignore rule swallows with no error, which is the trap DXF_OUT exists to close.
+    # A project that forgets to define it must fail loudly, not write a file nothing
+    # tracked will ever see.
+    if len(argv) > 2:
+        OUT = argv[2]
+    else:
+        OUT = getattr(_mod, 'DXF_OUT', None)
+        if OUT is None:
+            sys.exit(
+                "arkitect/lib/export/dxf.py: %s defines no DXF_OUT, and no output path was given.\n"
+                "Fix one of:\n"
+                "  - pass the output path as the second argument:\n"
+                "      python3 arkitect/lib/export/dxf.py %s <out.dxf>\n"
+                "  - define DXF_OUT in the build script, e.g.:\n"
+                "      DXF_OUT = os.path.join(HERE, '<project>-floor-plans.dxf')\n"
+                % (BUILD, BUILD))
+    with tempfile.TemporaryDirectory() as _tmp:
+        for _doc in buildscript.documents(_mod):
+            _doc(os.path.join(_tmp, _doc.__name__+'.pdf'),
+                 make_canvas=lambda *a,**k: Proxy(_rlcanvas.Canvas(*a,**k)))
+    print("recorded %d entities in %d plan frames: %s"%(len(ENT),len(FRAMES),[f[0] for f in FRAMES]))
+    write(OUT)
+    print("saved",OUT, "%.1f KB"%(os.path.getsize(OUT)/1024))
+
+
+if __name__ == '__main__':
+    main(sys.argv)

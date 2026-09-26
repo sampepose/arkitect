@@ -20,7 +20,8 @@ read as success. Eight separate commands are eight chances to run one wrong. Thi
 them the one way, reads every exit status and keeps every stderr, and says in one place
 what moved:
 
-    per project   the build and its trace (arkitect/lib/verify/trace.py), against trace.md5
+    per project   ONE build, recorded three ways at once (trace.py --text --dxf):
+                  its trace (arkitect/lib/verify/trace.py), against trace.md5
                   what the build PRINTS, against the base -- the model checks only print
                   which SHEETS moved, against the base (trace.py --by-sheet)
                   arkitect/lib/verify/sheet_text.py's findings
@@ -75,11 +76,12 @@ SEPARATE = workspace.separate(WORKSPACE)
 CACHE = os.path.join(WORKSPACE, '.verify-cache')
 PY = sys.executable
 TIMEOUT = 900
+_PART_FAILED = 3        # trace.py: the trace is written, and --text or --dxf is not (FILE.err)
 
-# The files that MEASURE, copied over the base's own before it is built: the gate itself
-# (its _text helper runs in the tree it measures), the recorder, sheet_text, the build
-# loader they all call (buildscript.build_arg is newer than some bases), and the workspace
-# the gate imports.
+# The files that MEASURE, copied over the base's own before it is built: the recorder and
+# sheet_text, which it drives in the same build (trace.py --text), the build loader they all
+# call (buildscript.build_arg is newer than some bases), the workspace, and the gate itself,
+# which runs nothing in the base tree now but keeps the cache keyed to how it reads.
 TOOLS = ('arkitect/lib/verify/gate.py', 'arkitect/lib/verify/trace.py', 'arkitect/lib/verify/sheet_text.py', 'arkitect/lib/buildscript.py',
          'arkitect/lib/workspace.py')
 
@@ -131,7 +133,7 @@ def projects(root=WORKSPACE):
 # engine's and the workspace's sources checked-hash pycs before they start one, and every
 # process runs with this environment, which sends it to those pycs. They import
 # arkitect.lib.bytecode where they call it, never at the top: this file is copied into older
-# engines to measure a base, and those have no arkitect/lib/bytecode.py (they only run _text).
+# engines to measure a base, and those have no arkitect/lib/bytecode.py.
 _ENV = {k: v for k, v in os.environ.items() if k != 'PYTHONPYCACHEPREFIX'}
 
 
@@ -175,16 +177,16 @@ def measure(tree, slug, out, dxf=True, text=True, claims=False, engine=None):
     os.makedirs(out, exist_ok=True)
     build = os.path.join(tree, 'projects', slug, 'build.py')
     f = lambda name: os.path.join(out, name)
-    jobs = {
-        'trace': [PY, os.path.join(engine, 'arkitect', 'lib', 'verify', 'trace.py'), f('trace.txt'), build,
-                  '--stdout', f('stdout.txt'), '--by-sheet', f('sheets.txt'),
-                  '--pdf-dir', f('pdf')],
-    }
+    # ONE build drives the trace, sheet_text and the DXF exporter (trace.py --text --dxf): the
+    # trace is written first, and a part that fails after it leaves FILE.err and exit status
+    # _PART_FAILED, so each oracle still passes or fails on its own
+    trace = [PY, os.path.join(engine, 'arkitect', 'lib', 'verify', 'trace.py'), f('trace.txt'), build,
+             '--stdout', f('stdout.txt'), '--by-sheet', f('sheets.txt'), '--pdf-dir', f('pdf')]
     if text:
-        jobs['sheet_text'] = [PY, os.path.join(engine, 'arkitect', 'lib', 'verify', 'gate.py'), '_text',
-                              build, f('text.json')]
+        trace += ['--text', f('text.json')]
     if dxf:
-        jobs['dxf'] = [PY, os.path.join(engine, 'arkitect', 'lib', 'export', 'dxf.py'), build, f('floor.dxf')]
+        trace += ['--dxf', f('floor.dxf')]
+    jobs = {'trace': trace}
     # A project with a feature list (arkitect/harness/progress.py) has every claim in it proved by
     # its build. Run as a command, so arkitect/lib/ never imports arkitect/harness/.
     has_list = os.path.exists(os.path.join(tree, 'projects', slug, 'progress.json'))
@@ -196,7 +198,7 @@ def measure(tree, slug, out, dxf=True, text=True, claims=False, engine=None):
 
     res = {}
     ran, code, _o, err = runs['trace']
-    ok = ran and code == 0 and os.path.exists(f('trace.txt'))
+    ok = ran and code in (0, _PART_FAILED) and os.path.exists(f('trace.txt'))
     res['trace'] = {'ran': ran, 'ok': ok}
     if ok:
         res['trace']['digest'] = _md5(f('trace.txt'))
@@ -205,23 +207,25 @@ def measure(tree, slug, out, dxf=True, text=True, claims=False, engine=None):
     else:
         res['trace']['stderr'] = _tail(err)
 
+    def why(path):
+        """A part's own traceback, or the run's stderr when it never got that far."""
+        return _tail(_read(path + '.err')) if os.path.exists(path + '.err') else _tail(err)
+
     if text:
-        ran, code, _o, err = runs['sheet_text']
-        st = {'ran': ran and code in (0, 1) and os.path.exists(f('text.json'))}
+        st = {'ran': ran and os.path.exists(f('text.json'))}
         if st['ran']:
             st['findings'] = json.loads(_read(f('text.json')))['findings']
             st['ok'] = not st['findings']
         else:
             st['ok'] = False
-            st['stderr'] = _tail(err)
+            st['stderr'] = why(f('text.json'))
         res['sheet_text'] = st
 
     if dxf:
-        ran, code, _o, err = runs['dxf']
-        ok = ran and code == 0 and os.path.exists(f('floor.dxf'))
+        ok = ran and os.path.exists(f('floor.dxf'))
         res['dxf'] = {'ran': ran, 'ok': ok}
         if not ok:
-            res['dxf']['stderr'] = _tail(err)
+            res['dxf']['stderr'] = why(f('floor.dxf'))
         if os.path.exists(f('floor.dxf')):
             os.remove(f('floor.dxf'))           # 4 MB nobody reads; its exit status was the point
     if 'progress' in runs:
@@ -876,23 +880,7 @@ def render(only=None, sheets=None, moved_only=False, base='HEAD', dpi=None, clip
     return out, written
 
 
-# ---------------------------------------------------------------- helpers run in a tree
-
-def _text(build, dest):
-    """Subcommand `_text`: sheet_text's findings and every sheet's flat text, as JSON.
-       Runs in the tree it measures, so the tree's own lib draws."""
-    from arkitect.lib.verify import sheet_text
-    pages = sheet_text.read(build)
-    data = {'findings': sheet_text.findings(pages),
-            'text': {str(no): sheet_text._flat(items) for no, items in pages.items()}}
-    with open(dest, 'w') as fh:
-        json.dump(data, fh)
-
-
 def main(argv):
-    if argv[:1] == ['_text']:
-        _text(*argv[1:3])
-        return 0
     if argv[:1] == ['render']:
         ap = argparse.ArgumentParser(prog='gate.py render')
         ap.add_argument('--project', action='append')

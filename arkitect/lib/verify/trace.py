@@ -179,6 +179,17 @@ BY_SHEET_TO = _flag('--by-sheet')
 # at the sheets it just traced without drawing them twice. The file name never reaches the
 # drawing (see _Rec.__init__), so this cannot change the trace.
 PDF_DIR = _flag('--pdf-dir')
+# Two more, so arkitect/lib/verify/gate.py builds a project ONCE for three oracles instead of once
+# for each: the same build also drives sheet_text.py's Recorder and dxf.py's Proxy, stacked
+# UNDER this file's recorder, which stays outermost and so sees exactly the calls the build
+# makes -- the trace cannot tell they are there.
+#   --text FILE   sheet_text's findings and every sheet's flat text, as JSON
+#   --dxf FILE    the floor plans DXF, as arkitect/lib/export/dxf.py writes it
+# Written after the trace and its sidecars. One that fails leaves no FILE, its traceback in
+# FILE.err, and exit status 3: the trace is good and a part of the run is not.
+TEXT_TO = _flag('--text')
+DXF_TO = _flag('--dxf')
+PART_FAILED = 3
 
 # The project to trace, always named: python3 arkitect/lib/verify/trace.py out.txt <build.py>
 BUILD = buildscript.build_arg(sys.argv[2] if len(sys.argv) > 2 else None, 'trace.py',
@@ -188,9 +199,35 @@ dest = sys.argv[1]
 # Before anything can fail. A stale trace from the last good run is worse than no trace:
 # it compares equal and reports success for a build that did not happen. The sidecars
 # likewise.
-for _stale in (dest, STDOUT_TO, BY_SHEET_TO):
+for _stale in (dest, STDOUT_TO, BY_SHEET_TO, TEXT_TO, DXF_TO,
+               TEXT_TO and TEXT_TO + '.err', DXF_TO and DXF_TO + '.err'):
     if _stale and os.path.exists(_stale):
         os.remove(_stale)
+
+import traceback
+_FAILED = {}                      # a part's file -> why it could not be written
+_RECS = []                        # sheet_text Recorders, one per document
+_dxf = None
+if TEXT_TO:
+    from arkitect.lib.verify import sheet_text
+if DXF_TO:
+    # the exporter failing to import is the exporter's failure, not the build's: record it
+    # and build on without it, as a separate `dxf.py` run would have failed alone
+    try:
+        from arkitect.lib.export import dxf as _dxf
+    except BaseException:
+        _FAILED[DXF_TO] = traceback.format_exc()
+
+
+def _canvas(*a, **k):
+    """The real canvas, under the DXF Proxy, under the text Recorder, under this recorder."""
+    c = _rl.Canvas(*a, **k)
+    if _dxf is not None:
+        c = _dxf.Proxy(c)
+    if TEXT_TO:
+        c = sheet_text.Recorder(c)
+        _RECS.append(c)
+    return _Rec(c, a, k)
 
 # Import the build and call what it writes, rather than exec'ing its __main__ block:
 # the tool decides where the files go and which canvas draws them. Importing must not
@@ -206,7 +243,7 @@ try:
             os.makedirs(PDF_DIR, exist_ok=True)
         for _i, _doc in enumerate(buildscript.documents(_mod)):
             _doc(os.path.join(PDF_DIR or _tmp, '%02d-%s.pdf' % (_i, _doc.__name__)),
-                 make_canvas=lambda *a, **k: _Rec(_rl.Canvas(*a, **k), a, k))
+                 make_canvas=_canvas)
 except BaseException:
     # What the build printed before it failed is the diagnosis -- a model check prints
     # its table and then asserts -- so a captured run hands it to stderr, never drops it.
@@ -262,3 +299,35 @@ if BY_SHEET_TO:
 print("%s: %d drawing calls; %s"
       % (dest, len(CALLS),
          "; ".join("%d pages bound %s" % (len(d), " ".join(d)) for d in BOUND) or "no document saved"))
+
+
+def _text(f):
+    """What sheet_text.read() collects, in its order, and what `gate.py _text` wrote from it."""
+    import json
+    pages = {}
+    for r in _RECS:
+        for no, items in r.pages.items():
+            pages.setdefault(no, []).extend(items)
+    json.dump({'findings': sheet_text.findings(pages),
+               'text': {str(no): sheet_text._flat(items) for no, items in pages.items()}}, f)
+
+
+if TEXT_TO:
+    try:
+        _whole(TEXT_TO, _text)
+    except BaseException:
+        _FAILED[TEXT_TO] = traceback.format_exc()
+if DXF_TO and _dxf is not None:
+    _part = DXF_TO + '.partial'
+    try:
+        _dxf.write(_part)                  # ezdxf writes in place: only a whole file is renamed
+        os.replace(_part, DXF_TO)
+    except BaseException:
+        _FAILED[DXF_TO] = traceback.format_exc()
+        if os.path.exists(_part):
+            os.remove(_part)
+for _path, _why in sorted(_FAILED.items()):
+    _whole(_path + '.err', lambda f, why=_why: f.write(why))
+    sys.stderr.write(_why)
+if _FAILED:
+    sys.exit(PART_FAILED)
