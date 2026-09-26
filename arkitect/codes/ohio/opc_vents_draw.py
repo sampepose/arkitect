@@ -69,7 +69,7 @@ FLOOR_PITCH = 0.25                 # one fixture on it to the next
 TRAP_OVER = 0.17                   # a trap that STANDS ON that floor, over its line
 VENT_STAGGER = 0.19                # one floor vent's reconnection to the next, so the marks clear
 ENDS_SHIFT = 0.08                  # where the stack ends at its branch: its fixtures right, clear of a slab vent's riser
-VENT_LABEL_GAP = 4.0              # a slab vent's label clear of its takeoff, pt (riser(vent_label_clear=))
+VENT_LABEL_GAP = 4.0              # a vent's label clear of its dashed riser, pt (riser(vent_label_clear=, floor_label_clear=))
 ENDS_JOIN = 0.80                   # ... and the joins into the head vent this far under the roof
 
 W, H = 3.20, 4.55                  # the cell, inches
@@ -194,8 +194,11 @@ def _bracket(x, y0, y1, label, tick=0.05):
 
 
 def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False, increaser_below_ceiling=False,
-          vent_label_clear=False):
+          vent_label_clear=False, floor_label_clear=False):
     """One riser cell, drawn from its bottom-left corner. Returns the top of its title.
+       `floor_label_clear` sets a floor branch's label, in a stack that ends at that branch,
+       right of the head vent it names instead of across the cell, where the head vent's dashed
+       riser ran up through it; its bottom line stays where it was and extra lines stand above.
        `vent_label_clear` sets a slab vent's label, in a stack that ends at its branch, right
        of that vent's own dashed takeoff instead of at the cell's edge, where the takeoff ran
        up through it; the label's top line stays where it was and extra lines fall below it.
@@ -405,7 +408,12 @@ def riser(ox, oy, cell, w=W, h=H, tie_label_close=False, method_low=False, incre
                 continue
             later.append(partial(_ground, rx+2.0, top-i*VENT_STAGGER*inch+2.2, '%s %s' % (mark, size),
                                  "Helvetica-Bold", SUB))
-        later.append(partial(_cell_label, ox, (y_top-0.60*inch) if cell.ends else top+0.17*inch, '%s — %s' % (fl.method, fl.tie), w))
+        if cell.ends and floor_label_clear:      # right of the head vent's riser, off its dashes
+            lx = xv+VENT_LABEL_GAP
+            later.append(partial(_cell_label, lx, y_top-0.60*inch, '%s — %s' % (fl.method, fl.tie),
+                                 (ox+w*inch-lx)/inch))
+        else:
+            later.append(partial(_cell_label, ox, (y_top-0.60*inch) if cell.ends else top+0.17*inch, '%s — %s' % (fl.method, fl.tie), w))
 
     # ---- where the dry vents join the head vent, the attic: its floor drawn under the joins ----
     if cell.ends and joins:
