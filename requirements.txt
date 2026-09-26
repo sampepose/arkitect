@@ -9,6 +9,13 @@
 # against the previous build before committing. Built and issued on Python 3.12.4.
 reportlab==4.4.9
 
+# reportlab's C accelerator: its float formatting, ASCII85 and string widths in C instead of
+# the pure-Python fallbacks reportlab uses without it -- a build about a quarter faster, and
+# every process the gate starts is one. Checked before it was added (2026-09-26): every
+# project's trace digest matched its trace.md5 with it loaded, and the PDFs were byte-identical
+# less their timestamps. It stays a deliberate bump like reportlab's: rebuild and diff.
+rl_accel==0.9.1
+
 # arkitect/lib/export/dxf.py only. Nothing in the issued set depends on it.
 ezdxf==1.4.4
 
