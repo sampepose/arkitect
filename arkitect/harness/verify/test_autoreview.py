@@ -373,11 +373,17 @@ class StopTests(Base):
             A.freeze('demo', self.root, prepare=fake_prepare)
         self.assertEqual(A.freeze('demo', self.root, force=True, prepare=fake_prepare)['round'], 1)
 
-    def test_the_chart_draws_both_lines(self):
+    def test_the_chart_is_two_charts_and_a_table_of_the_same_numbers(self):
         self.rows([5, 3, 1])
         html = A.chart('demo', self.root)
-        self.assertEqual(html.count('<polyline'), 2)
-        self.assertIn('prefers-color-scheme:dark', html)
+        self.assertIn(A.CHARTJS, html)
+        self.assertIn('@4.4.4/', A.CHARTJS)                       # pinned, never "latest"
+        self.assertEqual(html.count('<canvas'), 2)
+        data = json.loads(html.split('const DATA = ')[1].split(';\n')[0])
+        self.assertEqual(data, {'rounds': ['1', '2', '3'], 'majors': [5, 3, 1],
+                                'mean': [None, None, 3.0], 'minors': [5, 5, 5]})
+        self.assertIn('<tr><td>3</td>', html)
+        self.assertIn('prefers-color-scheme: dark', html)
 
     def test_status_reads_everything_without_a_build(self):
         self.rows([5])

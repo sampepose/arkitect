@@ -123,7 +123,10 @@ rejected duplicates majors`, where `majors` lists the new blocker and major ids.
 - **Questions queue.** A finding that needs the designer is set `waiting` with the decision
   that holds the question (`record --waiting ... --note D-nnn`). When the designer confirms
   that decision, the next `round` reopens the finding on its own.
-- **The trend is one page**: `arkitect autoreview chart <slug>` draws `rounds.tsv`.
+- **The trend is one page**: `arkitect autoreview chart <slug>` draws `rounds.tsv` with
+  Chart.js (pinned, from jsdelivr) -- new blockers and majors a round with the three-round
+  mean the stop rules read, and new minors a round, as two charts rather than two y axes --
+  and the same numbers as a table, which is what the page shows offline.
 
 ## Where things live
 

@@ -831,29 +831,98 @@ def status_text(st):
 
 # ---------------------------------------------------------------- the chart, landing
 
+CHARTJS = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js'   # pinned
+
+PAGE = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review Rounds</title>
+<style>
+:root { color-scheme: light dark; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e;
+        --rule: #e4e3df; }
+@media (prefers-color-scheme: dark) {
+  :root { --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --rule: #383835; }
+}
+body { margin: 0; padding: 16px; background: var(--surface); color: var(--ink);
+       font: 14px/1.4 system-ui, sans-serif; }
+main { max-width: 860px; margin: 0 auto; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+h2 { font-size: 15px; margin: 24px 0 4px; }
+p { color: var(--ink-2); margin: 0 0 8px; }
+.plot { position: relative; height: 260px; }
+table { border-collapse: collapse; width: 100%%; font-variant-numeric: tabular-nums; }
+th, td { padding: 4px 8px; border-bottom: 1px solid var(--rule); text-align: right; }
+th:first-child, td:first-child { text-align: left; }
+details { margin-top: 24px; }
+summary { cursor: pointer; color: var(--ink-2); }
+</style></head>
+<body><main>
+<h1>%(slug)s: plan review, round by round</h1>
+<p>New findings each round, confirmed or plausible; duplicates of earlier findings are left out.</p>
+<h2>New blockers and majors</h2>
+<p>What the stop rules read: two rounds at zero, or three rounds with no new low in the
+three-round mean.</p>
+<div class="plot"><canvas id="majors" role="img" aria-label="new blockers and majors a round"></canvas></div>
+<h2>New minors</h2>
+<div class="plot"><canvas id="minors" role="img" aria-label="new minors a round"></canvas></div>
+<details%(open)s><summary>The numbers</summary>
+<table><thead><tr><th>Round</th><th>Date</th><th>Blockers and majors</th><th>Three-round mean</th>
+<th>Minors</th><th>Rejected</th><th>Duplicates</th></tr></thead><tbody>
+%(rows)s
+</tbody></table></details>
+</main>
+<script src="%(lib)s"></script>
+<script>
+const DATA = %(data)s;
+if (window.Chart) {
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const C = dark ? {s1: '#3987e5', s2: '#d95926', ink: '#c3c2b7', rule: '#383835'}
+                 : {s1: '#2a78d6', s2: '#eb6834', ink: '#52514e', rule: '#e4e3df'};
+  Chart.defaults.color = C.ink;
+  Chart.defaults.font.family = 'system-ui, sans-serif';
+  const axes = (y) => ({
+    x: {title: {display: true, text: 'Round'}, grid: {display: false}, border: {color: C.ink}},
+    y: {title: {display: true, text: y}, beginAtZero: true, ticks: {precision: 0},
+        grid: {color: C.rule}, border: {display: false}},
+  });
+  const line = (label, data, colour, extra) => Object.assign({label, data, borderColor: colour,
+    backgroundColor: colour, borderWidth: 2, pointRadius: 4, pointHoverRadius: 6, tension: 0,
+    spanGaps: true}, extra || {});
+  const opts = (y, legend) => ({responsive: true, maintainAspectRatio: false,
+    interaction: {mode: 'index', intersect: false},
+    plugins: {legend: {display: legend, align: 'start', labels: {usePointStyle: true, boxHeight: 6}},
+              tooltip: {callbacks: {title: (it) => 'Round ' + it[0].label}}},
+    scales: axes(y)});
+  new Chart(document.getElementById('majors'), {type: 'line', data: {labels: DATA.rounds,
+    datasets: [line('New blockers and majors', DATA.majors, C.s1),
+               line('Three-round mean', DATA.mean, C.s2, {borderDash: [6, 4], pointRadius: 0})]},
+    options: opts('Findings', true)});
+  new Chart(document.getElementById('minors'), {type: 'line', data: {labels: DATA.rounds,
+    datasets: [line('New minors', DATA.minors, C.s1)]}, options: opts('Findings', false)});
+} else {
+  document.querySelectorAll('.plot').forEach((el) => el.remove());
+  document.querySelector('details').open = true;
+}
+</script></body></html>
+"""
+
+
 def chart(slug, root=ROOT):
-    """rounds.tsv as a self-contained HTML page: new majors and minors a round."""
+    """rounds.tsv as a page: new blockers and majors a round, with the three-round mean the
+       noise-floor rule reads, and new minors a round, as two Chart.js line charts -- two
+       charts, not two y axes, because minors outnumber majors tenfold -- and the numbers
+       as a table, which is all the page shows when the library cannot load."""
     rs = rounds(slug, root)
-    w, h, pad = 720, 300, 40
-    mx = max([int(r['new_major']) + int(r['new_blocker']) for r in rs] +
-             [int(r['new_minor']) for r in rs] + [1])
-    x = lambda i: pad + (w - 2*pad) * (i / max(len(rs) - 1, 1))
-    y = lambda v: h - pad - (h - 2*pad) * v / mx
-    def line(key, colour):
-        pts = ' '.join('%.1f,%.1f' % (x(i), y(v)) for i, v in enumerate(key(r) for r in rs))
-        return '<polyline fill="none" stroke="%s" stroke-width="2" points="%s"/>' % (colour, pts)
-    major = lambda r: int(r['new_major']) + int(r['new_blocker'])
-    minor = lambda r: int(r['new_minor'])
-    ticks = ''.join('<text x="%.1f" y="%d" font-size="11" text-anchor="middle">%s</text>' % (
-        x(i), h - pad + 16, r['round']) for i, r in enumerate(rs))
-    return ('<!doctype html><meta charset="utf-8"><title>Review Rounds</title>'
-            '<style>:root{color-scheme:light dark;--fg:#222;--bg:#fff}@media (prefers-color-scheme:dark)'
-            '{:root{--fg:#ddd;--bg:#161616}}body{font:14px system-ui;margin:16px;color:var(--fg);'
-            'background:var(--bg)}svg{max-width:100%%;height:auto}text{fill:var(--fg)}</style>'
-            '<h1>%s: new findings a round</h1><p>Blockers and majors (red), minors (grey), '
-            'confirmed or plausible, duplicates of earlier findings left out.</p>'
-            '<svg viewBox="0 0 %d %d">%s%s%s</svg>' % (slug, w, h, line(minor, '#999'),
-                                                      line(major, '#c0392b'), ticks))
+    majors = [int(r['new_major']) + int(r['new_blocker']) for r in rs]
+    mean = [None, None] + [round(sum(majors[i-2:i+1]) / 3, 1) for i in range(2, len(majors))]
+    mean = mean[:len(majors)]
+    data = {'rounds': [r['round'] for r in rs], 'majors': majors, 'mean': mean,
+            'minors': [int(r['new_minor']) for r in rs]}
+    rows = '\n'.join('<tr><td>%s</td><td>%s</td><td>%d</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
+        r['round'], r['date'][:10], m, '' if a is None else '%.1f' % a, r['new_minor'],
+        r['rejected'], r['duplicates']) for r, m, a in zip(rs, majors, mean))
+    return PAGE % {'slug': slug, 'lib': CHARTJS, 'rows': rows, 'open': '' if rs else ' open',
+                   'data': json.dumps(data).replace('</', '<\\/')}
 
 
 def land(slug, root=ROOT, push=True, run=None):
