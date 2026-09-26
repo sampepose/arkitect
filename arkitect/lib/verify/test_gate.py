@@ -34,12 +34,31 @@ DOCUMENTS = (build_set,)
 PLAIN = dict(printed='ok', before='pass', one='SEE RCO 311.3', two='TWO')
 
 
+_TEMPLATE = []
+
+
 class GateTestCase(unittest.TestCase):
+    """Each test gets its own copy of one committed repository: arkitect/lib/, the demo
+       project, and its accepted trace.md5. The first test in a process builds it (a gate
+       accept is half a second of processes); the rest copy it, .git and all, without its
+       bytecode or its base cache, so no test sees what another left."""
 
     def setUp(self):
         t = tempfile.TemporaryDirectory()
         self.addCleanup(t.cleanup)
         self.root = os.path.join(t.name, 'repo')
+        if not _TEMPLATE:
+            keep = tempfile.mkdtemp(prefix='gate-template-')
+            import atexit
+            atexit.register(shutil.rmtree, keep, True)
+            built, self.root = self.root, os.path.join(keep, 'repo')
+            self.build_template()
+            _TEMPLATE.append(self.root)
+            self.root = built
+        shutil.copytree(_TEMPLATE[0], self.root, symlinks=True,
+                        ignore=shutil.ignore_patterns('__pycache__', '.verify-cache'))
+
+    def build_template(self):
         shutil.copytree(os.path.join(HERE, 'arkitect', 'lib'), os.path.join(self.root, 'arkitect', 'lib'),
                         ignore=shutil.ignore_patterns('__pycache__', '.DS_Store'))
         os.makedirs(os.path.join(self.root, 'projects', 'demo'))
